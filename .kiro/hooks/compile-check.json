@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Compile Check",
+      "trigger": "Stop",
+      "description": "Compiles api and web packages with tsc. Only TypeScript compilation, not a full Vite build. Deterministic.",
+      "action": {
+        "type": "command",
+        "command": "npx tsc -b D:/Pedro/AGROBO/api/tsconfig.json && npx tsc -b D:/Pedro/AGROBO/web/tsconfig.json",
+        "timeout": 60
+      }
+    }
+  ]
+}

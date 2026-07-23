@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "TypeCheck",
+      "trigger": "PostFileSave",
+      "description": "Runs TypeScript type checking on api and web after save. Deterministic.",
+      "matcher": "\\.(ts|tsx)$",
+      "action": {
+        "type": "command",
+        "command": "npx tsc --noEmit -p D:/Pedro/AGROBO/api/tsconfig.json && npx tsc --noEmit -p D:/Pedro/AGROBO/web/tsconfig.json",
+        "timeout": 30
+      }
+    }
+  ]
+}

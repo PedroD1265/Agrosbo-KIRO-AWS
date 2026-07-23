@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Unit Tests",
+      "trigger": "Stop",
+      "description": "Runs all unit tests (vitest --run) when agent execution stops. Deterministic.",
+      "action": {
+        "type": "command",
+        "command": "npx vitest run --reporter=verbose",
+        "timeout": 60
+      }
+    }
+  ]
+}

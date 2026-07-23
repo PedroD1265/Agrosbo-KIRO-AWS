@@ -1,0 +1,19 @@
+{
+  "name": "@agrosbo/spike-a-offline-sync",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Spike A: Offline sync idempotency, dependency ordering, duplicate detection. DISPOSABLE.",
+  "scripts": {
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down -v",
+    "test": "vitest run",
+    "spike": "npm run db:up && npm run test; npm run db:down"
+  },
+  "dependencies": {
+    "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.0"
+  }
+}

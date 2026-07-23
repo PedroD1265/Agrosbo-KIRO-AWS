@@ -1,0 +1,13 @@
+{
+  "name": "@agrosbo/infra",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rimraf dist cdk.out",
+    "cdk": "cdk",
+    "deploy:lab": "cdk deploy AgrosboDevSpikeStack",
+    "destroy:lab": "cdk destroy AgrosboDevSpikeStack"
+  }
+}

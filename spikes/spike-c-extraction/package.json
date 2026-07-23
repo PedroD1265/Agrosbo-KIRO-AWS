@@ -1,0 +1,10 @@
+{
+  "name": "@agrosbo/spike-c-extraction",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Spike C: Document extraction benchmark (Textract vs Azure DI). DISPOSABLE.",
+  "scripts": {
+    "test": "vitest run"
+  }
+}

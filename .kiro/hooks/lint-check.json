@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Lint Check",
+      "trigger": "PostFileSave",
+      "description": "Runs ESLint on TypeScript files after save. Deterministic.",
+      "matcher": "\\.(ts|tsx)$",
+      "action": {
+        "type": "command",
+        "command": "npx eslint --no-error-on-unmatched-pattern \"D:/Pedro/AGROBO/api/src/**/*.ts\" \"D:/Pedro/AGROBO/web/src/**/*.ts\"",
+        "timeout": 30
+      }
+    }
+  ]
+}

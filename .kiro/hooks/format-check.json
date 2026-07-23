@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Format Check",
+      "trigger": "PostFileSave",
+      "description": "Checks Prettier formatting on TypeScript files after save. Deterministic.",
+      "matcher": "\\.(ts|tsx)$",
+      "action": {
+        "type": "command",
+        "command": "npx prettier --check --ignore-unknown \"D:/Pedro/AGROBO/api/src/**/*.ts\" \"D:/Pedro/AGROBO/web/src/**/*.ts\"",
+        "timeout": 30
+      }
+    }
+  ]
+}
