@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -b",
-    "clean": "rimraf dist cdk.out",
+    "clean": "node ../scripts/clean.mjs infra",
     "cdk": "cdk",
     "deploy:lab": "cdk deploy AgrosboDevSpikeStack",
     "destroy:lab": "cdk destroy AgrosboDevSpikeStack"
