@@ -54,10 +54,15 @@ async function cleanupExpiredDb() {
 async function clearOrphanProcessingDb() {
   if (!hasDatabaseUrl) return;
   try {
-    const result = await db.execute(sql`delete from idempotency_keys where state = 'processing'`);
+    // Only clear processing entries that are STALE (older than PROCESSING_STALE_MS).
+    // Do NOT delete all processing rows — other instances may have valid in-flight claims.
+    const staleCutoff = new Date(Date.now() - PROCESSING_STALE_MS).toISOString();
+    const result = await db.execute(
+      sql`delete from idempotency_keys where state = 'processing' and created_at < ${staleCutoff}`,
+    );
     const count = (result as unknown as { rowCount?: number }).rowCount ?? 0;
     if (count > 0) {
-      idemLog.info('cleared orphan processing rows', { count });
+      idemLog.info('cleared stale processing rows', { count, staleCutoff });
     }
   } catch (err) {
     idemLog.error('orphan cleanup failed', { err });
@@ -225,7 +230,7 @@ export async function verifyIdempotencyTable(): Promise<void> {
     );
   } catch (err) {
     throw new Error(
-      `[idempotency] schema check failed for 'idempotency_keys' — run 'npm run db:push' to apply latest schema. Original: ${err instanceof Error ? err.message : String(err)}`,
+      `[idempotency] schema check failed for 'idempotency_keys' — run 'npm run db:migrate' to apply latest schema. Original: ${err instanceof Error ? err.message : String(err)}`,
     );
   }
 }
