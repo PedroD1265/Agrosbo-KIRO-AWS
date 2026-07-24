@@ -2,7 +2,7 @@
   "name": "agrosbo",
   "version": "0.1.0",
   "private": true,
-  "description": "AGROSBO - Aplicación web agrícola offline-first para trazabilidad de cooperativa cafetera",
+  "description": "AGROSBO - Plataforma web agrícola offline-first para gestionar operaciones de la granja (campo a acciones, historial y evidencia operativa)",
   "workspaces": [
     "web",
     "api",
