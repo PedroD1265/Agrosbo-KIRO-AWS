@@ -51,7 +51,11 @@ lo diferido. No repite reglas de dominio ni de integridad.
 ## Hackathon target (planificado, NO desplegado)
 
 ### Frontend
-- Amazon **S3** (estático) + **CloudFront** (origen único). PWA.
+- **AWS Amplify Hosting** (despliegues por rama; API URL configurable; no
+  depende de cookies same-origin). CloudFront separado solo si se demuestra
+  necesidad.
+- `VITE_API_BASE_URL` configurable.
+- Auth por **Bearer token** (Cognito JWT) en staging/producción.
 
 ### API
 - **API Gateway HTTP API** + **AWS Lambda** ejecutando el Express vía adaptador
@@ -66,9 +70,14 @@ lo diferido. No repite reglas de dominio ni de integridad.
   los adjuntos de disco local a S3 antes del despliegue Lambda (ADR 007).
 
 ### Seguridad
-- Cookie actual como solución **provisional del hackathon** (ADR 008);
-  `AUTH_ENFORCEMENT=on`; `SESSION_SECRET` en **Secrets Manager**; cookies
-  `Secure`; protección CSRF; **Cognito diferido**.
+- **Amazon Cognito** User Pool + JWT authorizer de API Gateway para
+  staging/producción (ADR 010).
+- Proveedor local de sesión únicamente para desarrollo/tests.
+- Usuario interno vinculado por subject (`sub` de Cognito); roles/memberships en
+  PostgreSQL.
+- `SESSION_SECRET` en **Secrets Manager** para el proveedor local en despliegues
+  intermedios.
+- Protección CSRF donde aplique (mutaciones cross-origin).
 
 ### Operación
 - **CloudWatch** (logs/métricas mínimas), **AWS CDK** (infra reproducible),
@@ -76,13 +85,19 @@ lo diferido. No repite reglas de dominio ni de integridad.
 
 ## Deferred (NO usar sin una Spec que lo justifique)
 
-- **Amazon Cognito** (auth gestionada).
-- **Amazon Bedrock** (copiloto conversacional).
-- **Amazon Textract** (extracción documental).
-- **EventBridge / SQS / API Gateway WebSocket** (sin flujo que lo requiera).
 - **PostGIS** (no necesario para el MVP; JSONB/GeoJSON basta).
+- **EventBridge / SQS / API Gateway WebSocket** (sin flujo que lo requiera aún).
 - **RDS Proxy**, **DynamoDB** como base principal, **Step Functions**,
-  **App Runner**, **Azure**.
+  **App Runner**, pagos, marketplace.
+
+## Approved differentiators (requieren Spec propia, NO implementados)
+
+- **Amazon Bedrock** con tool calling: copiloto conversacional de solo lectura
+  con confirmación humana. Diferenciador aprobado para el hackathon (ADR futuro
+  de Spec #13).
+- **Amazon Textract**: candidato primario para extracción documental (ADR 013).
+- **Azure AI Document Intelligence**: candidato comparativo para extracción
+  documental (ADR 013); benchmark pendiente; AWS sigue como eje principal.
 
 ## Reglas
 
