@@ -41,3 +41,49 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: agrosbo_test
+          POSTGRES_USER: agrosbo
+          POSTGRES_PASSWORD: agrosbo_ci
+        options: >-
+          --health-cmd "pg_isready -U agrosbo"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgres://agrosbo:agrosbo_ci@localhost:5432/agrosbo_test
+      NODE_ENV: test
+      AUTH_ENFORCEMENT: 'off'
+      APP_AUTH_PROVIDER: local-session
+      ATTACHMENTS_STORAGE_DRIVER: local
+      DOCUMENT_EXTRACTION_PROVIDER: none
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run migrations
+        run: npm run db:migrate
+
+      - name: Seed database
+        run: npm run db:seed
+
+      - name: Run tests (with PostgreSQL)
+        run: npm test
+
+      - name: Verify migrations are idempotent
+        run: npm run db:migrate
