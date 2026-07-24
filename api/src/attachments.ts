@@ -135,14 +135,23 @@ export async function createAttachment(input: InsertAttachment): Promise<Attachm
 export async function deleteAttachment(id: string): Promise<boolean> {
   const [row] = await db.select().from(attachments).where(eq(attachments.id, id));
   if (!row) return false;
-  if (row.remoteUrl?.startsWith('/uploads/')) {
-    const key = row.remoteUrl.replace(/^\/uploads\//, '');
-    try {
-      await getProviders().attachments.deleteObject(key);
-    } catch {
-      /* best-effort */
-    }
+
+  // Derive the canonical storage key from the record's own fields.
+  // IMPORTANT: the key was generated as `entityType/entityId/id-fileName`
+  // (see createAttachment above).  We reconstruct it here so that we never
+  // try to parse a potentially-expired or provider-specific remoteUrl.
+  //
+  // TODO(cloud): when ATTACHMENTS_STORAGE_DRIVER=s3, the storage key and the
+  // presigned remoteUrl diverge — a dedicated `object_key` column will be
+  // required (tracked as schema migration pending S3 activation).
+  const canonicalKey = `${row.entityType}/${row.entityId}/${row.id}-${row.fileName}`;
+
+  try {
+    await getProviders().attachments.deleteObject(canonicalKey);
+  } catch {
+    /* best-effort — proceed to delete the DB record even if object removal fails */
   }
+
   await db.delete(attachments).where(eq(attachments.id, id));
   return true;
 }
