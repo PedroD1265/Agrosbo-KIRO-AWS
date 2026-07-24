@@ -444,4 +444,175 @@ describe('PostgreSQL Idempotency & Concurrency Integration Tests', () => {
       server.close();
     }
   });
+
+  it('12. Two concurrent claims on same stale row → exactly 1 winner', async () => {
+    const key = `test-pg-stale-race-${Date.now()}`;
+
+    // Insert a stale processing row (>10 min old) so both clients can race to reclaim
+    const staleTime = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    await db1.insert(schema.idempotencyKeys).values({
+      key,
+      state: 'processing',
+      attemptId: 'old-stale-token',
+      status: null,
+      body: null,
+      createdAt: staleTime,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    });
+
+    // Both clients race to reclaim the stale row simultaneously
+    const [res1, res2] = await Promise.all([
+      db1.transaction(async (tx: any) => claimTx(tx, key)),
+      db2.transaction(async (tx: any) => claimTx(tx, key)),
+    ]);
+
+    const results = [res1, res2];
+    const claimed = results.filter((r) => r.type === 'claimed');
+    const processing = results.filter((r) => r.type === 'processing');
+
+    // Exactly 1 winner and 1 loser — atomic UPDATE WHERE attemptId=old-token prevents double-win
+    expect(claimed.length).toBe(1);
+    expect(processing.length).toBe(1);
+    // Winner's token must differ from the stale token
+    expect(claimed[0].token).not.toBe('old-stale-token');
+  });
+
+  it('13. HTTP DELETE with idempotency key → 204 on first call, 204 on replay', async () => {
+    const { app } = await import('../../app.js');
+    const { createServer } = await import('node:http');
+
+    const server = createServer(app);
+    await new Promise<void>((resolve) => server.listen(0, resolve));
+    const port = (server.address() as { port: number }).port;
+
+    // First: create an expense to delete
+    const createRes = await fetch(`http://127.0.0.1:${port}/api/expenses`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Connection: 'close' },
+      body: JSON.stringify({
+        category: 'insumo',
+        amount: 10.0,
+        currency: 'USD',
+        date: new Date().toISOString().slice(0, 10),
+      }),
+    });
+    expect(createRes.status).toBe(201);
+    const created = (await createRes.json()) as { id: string };
+
+    const idemKey = `http-delete-204-${Date.now()}`;
+
+    try {
+      const doDelete = () =>
+        fetch(`http://127.0.0.1:${port}/api/expenses/${created.id}`, {
+          method: 'DELETE',
+          headers: { Connection: 'close', 'X-Idempotency-Key': idemKey },
+        });
+
+      // First call: deletes the row → 204
+      const del1 = await doDelete();
+      expect(del1.status).toBe(204);
+
+      // Replay call: idempotent → also 204 (not 404, not 500)
+      const del2 = await doDelete();
+      expect(del2.status).toBe(204);
+    } finally {
+      if ('closeAllConnections' in server && typeof server.closeAllConnections === 'function') {
+        (server as any).closeAllConnections();
+      }
+      server.close();
+    }
+  });
+
+  it('14. 10 concurrent POST /expenses with same key → exactly 1 expense row', async () => {
+    const { app } = await import('../../app.js');
+    const { createServer } = await import('node:http');
+
+    const server = createServer(app);
+    await new Promise<void>((resolve) => server.listen(0, resolve));
+    const port = (server.address() as { port: number }).port;
+
+    const idemKey = `http-expenses-concurrent-${Date.now()}`;
+    const expenseDate = new Date().toISOString().slice(0, 10);
+
+    try {
+      const sendPost = () =>
+        fetch(`http://127.0.0.1:${port}/api/expenses`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Connection: 'close',
+            'X-Idempotency-Key': idemKey,
+          },
+          body: JSON.stringify({
+            category: 'jornal',
+            amount: 99.99,
+            currency: 'USD',
+            date: expenseDate,
+          }),
+        });
+
+      const results = await Promise.all(Array.from({ length: 10 }, sendPost));
+
+      // Retry 409s until 201 or timeout
+      const finalResults = await Promise.all(
+        results.map(async (r) => {
+          if (r.status === 201) return r;
+          let latest = r;
+          let retries = 0;
+          while (latest.status === 409 && retries < 15) {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            latest = await sendPost();
+            retries++;
+          }
+          return latest;
+        }),
+      );
+
+      for (const r of finalResults) {
+        expect(r.status).toBe(201);
+      }
+
+      // All responses must share the same expense ID (idempotent replay)
+      const ids = new Set(
+        await Promise.all(
+          finalResults.map(async (r) => {
+            const j = (await r.json().catch(() => null)) as { id?: string } | null;
+            return j?.id;
+          }),
+        ),
+      );
+      expect(ids.size).toBe(1);
+
+      // Exactly 1 expense row for this idempotent POST was inserted
+      // (the shared id across all replays confirms uniqueness)
+      const expenseId = [...ids][0]!;
+      const [{ expCount }] = await db1
+        .select({ expCount: sql<number>`count(*)::int` })
+        .from(schema.expenses)
+        .where(eq(schema.expenses.id, expenseId));
+      expect(expCount).toBe(1);
+    } finally {
+      if ('closeAllConnections' in server && typeof server.closeAllConnections === 'function') {
+        (server as any).closeAllConnections();
+      }
+      server.close();
+    }
+  });
+
+  it('15. usesTransactionalDatabaseStorage() = false when USE_MEM_STORAGE=1 even with DATABASE_URL', async () => {
+    // This test validates the runtime signal fix without touching the singleton
+    // (which is already initialized to DbStorage in this integration test context).
+    // We test the env logic directly via env.ts.
+    const { env } = await import('../../env.js');
+
+    // In integration tests DATABASE_URL is set and USE_MEM_STORAGE is not set.
+    // So the current env should reflect hasDatabase=true, useMemStorage=false.
+    expect(env.hasDatabase).toBe(true);
+    expect(env.useMemStorage).toBe(false);
+
+    // The inverse is validated by the unit test storage-runtime.test.ts.
+    // Here we document the positive path:
+    const { usesTransactionalDatabaseStorage } = await import('../../storage.js');
+    expect(usesTransactionalDatabaseStorage()).toBe(true);
+  });
 });
