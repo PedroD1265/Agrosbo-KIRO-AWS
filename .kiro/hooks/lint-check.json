@@ -8,7 +8,7 @@
       "matcher": "\\.(ts|tsx)$",
       "action": {
         "type": "command",
-        "command": "npx eslint --no-error-on-unmatched-pattern \"D:/Pedro/AGROBO/api/src/**/*.ts\" \"D:/Pedro/AGROBO/web/src/**/*.ts\"",
+        "command": "npx eslint --no-error-on-unmatched-pattern \"D:/Pedro/AGROBO/api/src/**/*.ts\" \"D:/Pedro/AGROBO/web/src/**/*.{ts,tsx}\" \"D:/Pedro/AGROBO/shared/**/*.ts\"",
         "timeout": 30
       }
     }
