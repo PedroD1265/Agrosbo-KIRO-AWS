@@ -1,0 +1,195 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* AgrosBO — design tokens
+   Agrícola-tech: deep terroso green primary, ámbar accent, neutral warm surfaces.
+   All colors HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 60 20% 99%;
+    --foreground: 150 12% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 150 12% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 12% 12%;
+
+    /* Deep terroso green */
+    --primary: 152 42% 22%;
+    --primary-foreground: 60 20% 98%;
+    --primary-soft: 152 30% 92%;
+
+    --secondary: 80 15% 94%;
+    --secondary-foreground: 150 18% 18%;
+
+    --muted: 80 12% 95%;
+    --muted-foreground: 150 8% 40%;
+
+    /* Ámbar tierra */
+    --accent: 36 70% 50%;
+    --accent-foreground: 30 30% 12%;
+    --accent-soft: 38 80% 94%;
+
+    --destructive: 4 70% 48%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 80 10% 88%;
+    --input: 80 10% 88%;
+    --ring: 152 42% 22%;
+
+    --radius: 0.5rem;
+
+    /* Operational status tokens */
+    --status-ok: 142 55% 38%;
+    --status-ok-soft: 142 50% 92%;
+    --status-warn: 36 88% 48%;
+    --status-warn-soft: 38 90% 93%;
+    --status-critical: 4 70% 48%;
+    --status-critical-soft: 4 75% 95%;
+    --status-idle: 220 8% 55%;
+    --status-idle-soft: 220 12% 94%;
+    --status-pending-sync: 220 70% 50%;
+    --status-pending-sync-soft: 220 80% 95%;
+
+    /* Crop stage tokens */
+    --stage-seed: 32 60% 45%;
+    --stage-veg: 142 50% 38%;
+    --stage-flower: 320 45% 50%;
+    --stage-harvest: 16 75% 48%;
+
+    /* Surfaces & elevation */
+    --surface-raised: 60 25% 99.5%;
+    --surface-sunken: 80 14% 96%;
+    --gradient-primary: linear-gradient(135deg, hsl(152 42% 22%) 0%, hsl(142 50% 32%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(36 80% 52%) 0%, hsl(28 75% 48%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(152 42% 22%) 0%, hsl(168 38% 28%) 60%, hsl(36 70% 38%) 100%);
+    --shadow-card: 0 1px 2px 0 hsl(150 20% 12% / 0.04), 0 1px 3px 0 hsl(150 20% 12% / 0.06);
+    --shadow-elevated: 0 4px 12px -2px hsl(150 20% 12% / 0.08), 0 2px 6px -1px hsl(150 20% 12% / 0.05);
+    --shadow-focus: 0 0 0 3px hsl(152 42% 22% / 0.15);
+
+    /* Sidebar */
+    --sidebar-background: 152 30% 14%;
+    --sidebar-foreground: 80 15% 88%;
+    --sidebar-primary: 36 70% 55%;
+    --sidebar-primary-foreground: 30 30% 12%;
+    --sidebar-accent: 152 28% 20%;
+    --sidebar-accent-foreground: 60 20% 98%;
+    --sidebar-border: 152 25% 22%;
+    --sidebar-ring: 36 70% 55%;
+  }
+
+  .dark {
+    --background: 150 15% 8%;
+    --foreground: 60 15% 95%;
+    --card: 150 18% 11%;
+    --card-foreground: 60 15% 95%;
+    --popover: 150 18% 11%;
+    --popover-foreground: 60 15% 95%;
+    --primary: 142 50% 55%;
+    --primary-foreground: 150 30% 10%;
+    --primary-soft: 152 25% 18%;
+    --secondary: 150 12% 16%;
+    --secondary-foreground: 60 15% 95%;
+    --muted: 150 12% 16%;
+    --muted-foreground: 80 8% 65%;
+    --accent: 36 70% 55%;
+    --accent-foreground: 30 30% 10%;
+    --accent-soft: 38 30% 18%;
+    --destructive: 4 65% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 150 12% 20%;
+    --input: 150 12% 20%;
+    --ring: 142 50% 55%;
+    --status-ok: 142 55% 50%;
+    --status-ok-soft: 142 30% 18%;
+    --status-warn: 36 88% 55%;
+    --status-warn-soft: 36 30% 18%;
+    --status-critical: 4 70% 55%;
+    --status-critical-soft: 4 30% 18%;
+    --status-idle: 220 8% 60%;
+    --status-idle-soft: 220 12% 18%;
+    --status-pending-sync: 220 70% 60%;
+    --status-pending-sync-soft: 220 30% 18%;
+    --sidebar-background: 150 25% 10%;
+    --sidebar-foreground: 80 15% 88%;
+    --sidebar-primary: 36 70% 55%;
+    --sidebar-primary-foreground: 30 30% 10%;
+    --sidebar-accent: 150 22% 16%;
+    --sidebar-accent-foreground: 60 15% 95%;
+    --sidebar-border: 150 20% 18%;
+    --sidebar-ring: 36 70% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Consistent focus-visible across the app — keyboard-friendly, no rings on mouse clicks. */
+  :where(button, a, [role="button"], [role="tab"], [role="combobox"], input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    box-shadow: var(--shadow-focus);
+    border-radius: calc(var(--radius) - 2px);
+  }
+  /* Required-field marker: <Label className="form-required"> */
+  .form-required::after {
+    content: " *";
+    color: hsl(var(--destructive));
+    font-weight: 600;
+  }
+  /* Headings rhythm — tighter tracking for display sizes */
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+  /* Smooth scrollbars in scroll containers */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-hero { background: var(--gradient-hero); }
+  .bg-gradient-primary { background: var(--gradient-primary); }
+  .bg-gradient-accent { background: var(--gradient-accent); }
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-elevated { box-shadow: var(--shadow-elevated); }
+  .safe-pb { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
+  .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+  .animate-slide-up { animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+  .text-balance { text-wrap: balance; }
+  /* Subtle hover lift used by interactive cards/tiles */
+  .hover-lift { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+  .hover-lift:hover { transform: translateY(-1px); box-shadow: var(--shadow-elevated); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

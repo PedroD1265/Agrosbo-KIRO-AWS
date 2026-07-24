@@ -1,0 +1,129 @@
+import type {
+  Block,
+  Greenhouse,
+  Campaign,
+  IrrigationEvent,
+  Task,
+  Observation,
+  InventoryItem,
+  HarvestLot,
+  Alert,
+  Settings,
+} from "@agrosbo/shared/schema.js";
+import {
+  squareBoundaryFromCenter,
+  rectFootprintFromCenter,
+} from "@agrosbo/shared/spatial.js";
+
+/* Spatial seed: anchor everything around Toco, Cochabamba (Bolivia). */
+const TOCO = { lat: -17.4503, lng: -65.9712 };
+function offset(latM: number, lngM: number) {
+  const dLat = latM / 110_540;
+  const dLng = lngM / (111_320 * Math.cos(TOCO.lat * Math.PI / 180));
+  return { lat: TOCO.lat + dLat, lng: TOCO.lng + dLng };
+}
+function blockGeom(latM: number, lngM: number, areaHa: number) {
+  const c = offset(latM, lngM);
+  return {
+    centroidLat: c.lat,
+    centroidLng: c.lng,
+    boundary: squareBoundaryFromCenter(c.lat, c.lng, areaHa),
+  };
+}
+function ghGeom(latM: number, lngM: number, areaM2: number) {
+  const c = offset(latM, lngM);
+  return {
+    lat: c.lat,
+    lng: c.lng,
+    footprint: rectFootprintFromCenter(c.lat, c.lng, areaM2),
+  };
+}
+
+export const seedBlocks: Block[] = [
+  { id: "b-01", name: "Bloque A1", farm: "Predio Toco Norte", areaHa: 1.2, crop: "Tomate", variety: "Río Grande", stage: "veg", lastIrrigation: "2026-07-22T06:30:00", status: "ok", alerts: 0, ...blockGeom(120, -80, 1.2) },
+  { id: "b-02", name: "Bloque A2", farm: "Predio Toco Norte", areaHa: 0.8, crop: "Lechuga", variety: "Crespa", stage: "harvest", lastIrrigation: "2026-07-23T05:45:00", status: "warn", alerts: 1, ...blockGeom(120, 30, 0.8) },
+  { id: "b-03", name: "Bloque B1", farm: "Predio Toco Sur", areaHa: 2.0, crop: "Cebolla", variety: "Roja", stage: "veg", lastIrrigation: "2026-07-21T07:00:00", status: "critical", alerts: 2, ...blockGeom(-90, -120, 2.0) },
+  { id: "b-04", name: "Bloque B2", farm: "Predio Toco Sur", areaHa: 1.5, crop: "Zanahoria", stage: "seed", lastIrrigation: "2026-07-23T06:00:00", status: "ok", alerts: 0, ...blockGeom(-100, 60, 1.5) },
+  { id: "b-05", name: "Bloque C1", farm: "Predio Toco Sur", areaHa: 0.6, crop: "Acelga", stage: "veg", lastIrrigation: "2026-07-22T16:00:00", status: "idle", alerts: 0, ...blockGeom(-220, -40, 0.6) },
+  { id: "b-06", name: "Bloque C2", farm: "Predio Toco Sur", areaHa: 0.9, crop: "Brócoli", stage: "flower", lastIrrigation: "2026-07-23T05:30:00", status: "ok", alerts: 0, ...blockGeom(-220, 90, 0.9) },
+];
+
+export const seedGreenhouses: Greenhouse[] = [
+  { id: "g-01", name: "Invernadero N1", areaM2: 480, crop: "Tomate cherry", variety: "Sweet 100", stage: "flower", status: "ok", alerts: 0, tempC: 24, humidity: 62, ...ghGeom(40, 140, 480) },
+  { id: "g-02", name: "Invernadero N2", areaM2: 360, crop: "Pimiento", variety: "California", stage: "veg", status: "warn", alerts: 1, tempC: 28, humidity: 71, ...ghGeom(0, 170, 360) },
+  { id: "g-03", name: "Invernadero N3", areaM2: 600, crop: "Pepino", stage: "harvest", status: "ok", alerts: 0, tempC: 25, humidity: 65, ...ghGeom(-40, 180, 600) },
+];
+
+export const seedCampaigns: Campaign[] = [
+  { id: "c-01", scopeType: "block", scopeId: "b-01", scopeName: "Bloque A1", crop: "Tomate", variety: "Río Grande", startDate: "2026-05-10", endDate: "2026-09-15", stage: "veg", progress: 55, status: "ok" },
+  { id: "c-02", scopeType: "block", scopeId: "b-02", scopeName: "Bloque A2", crop: "Lechuga", variety: "Crespa", startDate: "2026-06-01", endDate: "2026-08-25", stage: "harvest", progress: 92, status: "warn" },
+  { id: "c-03", scopeType: "greenhouse", scopeId: "g-01", scopeName: "Invernadero N1", crop: "Tomate cherry", variety: "Sweet 100", startDate: "2026-04-20", endDate: "2026-10-10", stage: "flower", progress: 48, status: "ok" },
+  { id: "c-04", scopeType: "block", scopeId: "b-03", scopeName: "Bloque B1", crop: "Cebolla", variety: "Roja", startDate: "2026-05-25", endDate: "2026-11-01", stage: "veg", progress: 32, status: "critical" },
+];
+
+export const seedIrrigationEvents: IrrigationEvent[] = [
+  { id: "i-01", scopeType: "block", scopeId: "b-01", scopeName: "Bloque A1", scheduledAt: "2026-07-24T16:00:00", durationMin: 45, status: "scheduled", responsible: "M. Quispe" },
+  { id: "i-02", scopeType: "block", scopeId: "b-03", scopeName: "Bloque B1", scheduledAt: "2026-07-24T17:30:00", durationMin: 60, status: "scheduled", responsible: "J. Mamani" },
+  { id: "i-03", scopeType: "greenhouse", scopeId: "g-02", scopeName: "Invernadero N2", scheduledAt: "2026-07-25T18:00:00", durationMin: 25, status: "scheduled", responsible: "M. Quispe" },
+  { id: "i-04", scopeType: "block", scopeId: "b-02", scopeName: "Bloque A2", scheduledAt: "2026-07-23T05:45:00", durationMin: 30, volumeL: 1800, status: "done", responsible: "J. Mamani" },
+  { id: "i-05", scopeType: "block", scopeId: "b-04", scopeName: "Bloque B2", scheduledAt: "2026-07-23T06:00:00", durationMin: 40, volumeL: 2400, status: "done", responsible: "L. Vargas" },
+  { id: "i-06", scopeType: "block", scopeId: "b-06", scopeName: "Bloque C2", scheduledAt: "2026-07-23T17:00:00", durationMin: 35, status: "pending-sync", responsible: "M. Quispe" },
+];
+
+export const seedTasks: Task[] = [
+  {
+    id: "t-01", title: "Aplicar fertilización foliar", scopeType: "block", scopeId: "b-01", scopeName: "Bloque A1", assignee: "M. Quispe", dueDate: "2026-07-24", priority: "high", status: "pending",
+    checklist: [
+      { id: "c1", label: "Preparar mezcla", done: true },
+      { id: "c2", label: "Aplicar en surcos pares", done: false },
+      { id: "c3", label: "Registrar dosis", done: false },
+    ]
+  },
+  { id: "t-02", title: "Revisar trampas amarillas", scopeType: "greenhouse", scopeId: "g-01", scopeName: "Invernadero N1", assignee: "L. Vargas", dueDate: "2026-07-24", priority: "med", status: "pending" },
+  { id: "t-03", title: "Cosecha lote lechuga", scopeType: "block", scopeId: "b-02", scopeName: "Bloque A2", assignee: "J. Mamani", dueDate: "2026-07-24", priority: "high", status: "in_progress" },
+  { id: "t-04", title: "Limpieza de líneas de goteo", scopeType: "block", scopeId: "b-03", scopeName: "Bloque B1", assignee: "M. Quispe", dueDate: "2026-07-25", priority: "med", status: "pending" },
+  { id: "t-05", title: "Calibración pH solución", scopeType: "greenhouse", scopeId: "g-02", scopeName: "Invernadero N2", assignee: "L. Vargas", dueDate: "2026-07-25", priority: "low", status: "pending" },
+  { id: "t-06", title: "Deshierbe manual", scopeType: "block", scopeId: "b-05", scopeName: "Bloque C1", assignee: "J. Mamani", dueDate: "2026-07-22", priority: "low", status: "done" },
+  { id: "t-07", title: "Reporte semanal de cuadrillas", scopeType: "block", scopeId: "b-01", scopeName: "Bloque A1", assignee: "Coord.", dueDate: "2026-07-26", priority: "med", status: "pending" },
+];
+
+export const seedObservations: Observation[] = [
+  { id: "o-01", scopeType: "block", scopeId: "b-03", scopeName: "Bloque B1", author: "M. Quispe", createdAt: "2026-07-23T09:10:00", type: "pest", text: "Presencia leve de mosca blanca en surcos 4 y 5.", hasPhotos: 2, ...offset(-90, -130) },
+  { id: "o-02", scopeType: "greenhouse", scopeId: "g-02", scopeName: "Invernadero N2", author: "L. Vargas", createdAt: "2026-07-23T08:20:00", type: "incident", text: "Goteo obstruido en hilera 3, requiere mantenimiento.", hasPhotos: 1, pendingSync: true, ...offset(0, 170) },
+  { id: "o-03", scopeType: "block", scopeId: "b-02", scopeName: "Bloque A2", author: "J. Mamani", createdAt: "2026-07-22T17:45:00", type: "note", text: "Lote listo para cosecha mañana temprano.", hasPhotos: 0, ...offset(125, 35) },
+  { id: "o-04", scopeType: "block", scopeId: "b-01", scopeName: "Bloque A1", author: "M. Quispe", createdAt: "2026-07-22T11:00:00", type: "disease", text: "Manchas foliares iniciales, posible tizón temprano.", hasPhotos: 3, ...offset(115, -75) },
+  { id: "o-05", scopeType: "greenhouse", scopeId: "g-01", scopeName: "Invernadero N1", author: "L. Vargas", createdAt: "2026-07-21T16:30:00", type: "note", text: "Cuajado uniforme en racimos del primer tercio.", hasPhotos: 1 },
+];
+
+export const seedInventory: InventoryItem[] = [
+  { id: "iv-01", name: "Urea 46-0-0", category: "Fertilizante", unit: "kg", stock: 220, min: 100, lastMovement: "2026-07-22" },
+  { id: "iv-02", name: "Sulfato de potasio", category: "Fertilizante", unit: "kg", stock: 45, min: 80, lastMovement: "2026-07-21" },
+  { id: "iv-03", name: "Cipermetrina 25%", category: "Fitosanitario", unit: "L", stock: 8, min: 5, lastMovement: "2026-07-20" },
+  { id: "iv-04", name: "Mancozeb", category: "Fitosanitario", unit: "kg", stock: 3, min: 10, lastMovement: "2026-07-19" },
+  { id: "iv-05", name: "Cintas de goteo 16mm", category: "Riego", unit: "m", stock: 1200, min: 500, lastMovement: "2026-07-15" },
+  { id: "iv-06", name: "Bandejas semillero 200", category: "Almacigo", unit: "u", stock: 60, min: 40, lastMovement: "2026-07-17" },
+  { id: "iv-07", name: "Sustrato turba", category: "Almacigo", unit: "L", stock: 150, min: 80, lastMovement: "2026-07-16" },
+];
+
+export const seedHarvestLots: HarvestLot[] = [
+  { id: "h-01", code: "LOT-2607-001", originType: "block", originId: "b-02", origin: "Bloque A2", crop: "Lechuga", variety: "Crespa", date: "2026-07-22", quantity: 420, unit: "u", destination: "Mercado Cancha", status: "ok" },
+  { id: "h-02", code: "LOT-2607-002", originType: "greenhouse", originId: "g-03", origin: "Invernadero N3", crop: "Pepino", variety: "Marketmore", date: "2026-07-21", quantity: 180, unit: "kg", destination: "Acopio Sacaba", status: "ok" },
+  { id: "h-03", code: "LOT-2607-003", originType: "block", originId: "b-06", origin: "Bloque C2", crop: "Brócoli", variety: "Legacy", date: "2026-07-20", quantity: 95, unit: "kg", status: "warn" },
+  { id: "h-04", code: "LOT-2607-004", originType: "block", originId: "b-02", origin: "Bloque A2", crop: "Lechuga", variety: "Crespa", date: "2026-07-19", quantity: 380, unit: "u", destination: "Mercado Cancha", status: "ok" },
+  { id: "h-05", code: "LOT-2607-005", originType: "greenhouse", originId: "g-01", origin: "Invernadero N1", crop: "Tomate cherry", variety: "Sweet 100", date: "2026-07-18", quantity: 65, unit: "kg", destination: "Restaurantes", status: "ok" },
+];
+
+export const seedAlerts: Alert[] = [
+  { id: "a-01", level: "critical", scope: "Bloque B1", message: "Sin riego registrado en 48h", at: "2026-07-23T07:00:00" },
+  { id: "a-02", level: "warn", scope: "Invernadero N2", message: "Humedad sobre umbral (71%)", at: "2026-07-23T08:30:00" },
+  { id: "a-03", level: "warn", scope: "Inventario", message: "Mancozeb por debajo del mínimo", at: "2026-07-22T18:00:00" },
+];
+
+export const seedSettings: Settings = {
+  orgName: "Operación Toco",
+  location: "Toco, Cochabamba, Bolivia",
+  timezone: "America/La_Paz",
+  preferOffline: true,
+  confirmBeforeSync: false,
+  criticalAlertsBanner: true,
+};

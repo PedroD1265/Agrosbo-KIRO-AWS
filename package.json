@@ -7,9 +7,13 @@
     "web",
     "api",
     "infra",
+    "shared",
     "spikes/*"
   ],
   "scripts": {
+    "dev": "npm run dev --workspace=@agrosbo/api",
+    "dev:web": "npm run dev --workspace=@agrosbo/web",
+    "dev:api": "npm run dev --workspace=@agrosbo/api",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "lint": "eslint .",

@@ -1,0 +1,28 @@
+{
+  "name": "AgrosBO",
+  "short_name": "AgrosBO",
+  "description": "Sistema operativo agrícola offline-first para campo en Bolivia.",
+  "start_url": "/today",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0a0a",
+  "theme_color": "#1f7a3d",
+  "lang": "es-BO",
+  "dir": "ltr",
+  "categories": ["productivity", "business", "agriculture"],
+  "icons": [
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
