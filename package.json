@@ -2,14 +2,18 @@
   "name": "agrosbo",
   "version": "0.1.0",
   "private": true,
-  "description": "AGROSBO - Aplicación web agrícola offline-first para trazabilidad de cooperativa cafetera",
+  "description": "AGROSBO - Plataforma web agrícola offline-first para gestionar operaciones de la granja (campo a acciones, historial y evidencia operativa)",
   "workspaces": [
     "web",
     "api",
     "infra",
+    "shared",
     "spikes/*"
   ],
   "scripts": {
+    "dev": "npm run dev --workspace=@agrosbo/api",
+    "dev:web": "npm run dev --workspace=@agrosbo/web",
+    "dev:api": "npm run dev --workspace=@agrosbo/api",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "lint": "eslint .",
@@ -18,13 +22,14 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "build": "npm run build --workspaces --if-present",
-    "clean": "npm run clean --workspaces --if-present"
+    "clean": "node scripts/clean.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.0.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "prettier": "^3.3.0",
     "typescript": "^5.5.0",
     "typescript-eslint": "^8.65.0",

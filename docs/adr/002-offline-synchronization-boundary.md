@@ -1,6 +1,6 @@
 # ADR 002 - Frontera de sincronización offline
 
-Estado: Aceptado
+Estado: Partially Superseded (ver Estado de supersesión al final)
 
 ## Contexto
 
@@ -73,3 +73,18 @@ Hallazgos incorporados:
   futura: advisory lock o serializable isolation.
 - La persistencia en IndexedDB (probada con fake-indexeddb) sobrevive a la
   destrucción y recreación de la instancia de la cola.
+
+## Estado de supersesión
+
+- Estado: **Partially Superseded**.
+- **Vigente**: el protocolo de sincronización (idempotencia por client_op_id,
+  orden por dependencias, reconciliación temp→server, no fusión automática de
+  duplicados, archivos separados de la transacción) sigue siendo la base y está
+  implementado en `web/src/lib/sync`. El resultado del Spike A se mantiene.
+- **Superado por ADR 006 / `.kiro/steering/offline-first.md`**: la frontera
+  específica "solo captura de origen offline; lotes/transformaciones/embarques
+  online" era propia de la trazabilidad de café. En la plataforma agrícola, las
+  operaciones que funcionan offline son las de granja (tareas, observaciones,
+  aplicaciones, inventario, riego, cosecha, etc.), definidas en offline-first.md.
+- La regla provisional de detección de duplicados de cosecha queda como
+  referencia; su aplicación concreta se redefine por dominio.

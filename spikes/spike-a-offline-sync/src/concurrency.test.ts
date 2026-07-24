@@ -175,9 +175,10 @@ describe('Concurrent idempotency', () => {
     expect(parseInt(count.rows[0].count)).toBe(1);
 
     // Only one sync_operation record
-    const syncOps = await pool.query('SELECT count(*) FROM sync_operation WHERE client_op_id = $1', [
-      clientOpId,
-    ]);
+    const syncOps = await pool.query(
+      'SELECT count(*) FROM sync_operation WHERE client_op_id = $1',
+      [clientOpId],
+    );
     expect(parseInt(syncOps.rows[0].count)).toBe(1);
   });
 });

@@ -1,6 +1,6 @@
 # ADR 003 - Procedencia canónica reconstruida (sin lot_source)
 
-Estado: Aceptado
+Estado: Deferred (ver Estado de supersesión al final)
 
 ## Contexto
 
@@ -36,3 +36,15 @@ fuente de verdad del balance y la vista de procedencia.
   valida en el Spike B.
 - Si aparece un límite de rendimiento, una vista materializada derivable y
   verificable podrá añadirse en un ADR posterior sin cambiar la fuente de verdad.
+
+## Estado de supersesión
+
+- Estado: **Deferred**.
+- La procedencia canónica de lotes/transformaciones pertenece a la trazabilidad
+  de café, que tras el giro (ADR 006) pasa a **visión futura** ("trazabilidad
+  operativa" ampliada), no a regla activa del MVP agrícola.
+- No se descarta: si se retoma la trazabilidad de lotes/transformaciones, esta
+  decisión (reconstrucción recursiva sin `lot_source`, grafo acíclico) sigue
+  siendo válida como punto de partida.
+- El MVP actual NO implementa `harvest_allocation`, `transformation_input/output`
+  ni consultas recursivas de procedencia.

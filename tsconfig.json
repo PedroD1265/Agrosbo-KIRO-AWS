@@ -14,11 +14,7 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "references": [
-    { "path": "./web" },
-    { "path": "./api" },
-    { "path": "./infra" }
-  ],
+  "references": [{ "path": "./web" }, { "path": "./api" }, { "path": "./infra" }],
   "include": [],
   "exclude": ["node_modules", "dist", "spikes"]
 }
