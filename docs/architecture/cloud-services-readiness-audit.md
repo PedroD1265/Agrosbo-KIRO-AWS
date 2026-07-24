@@ -397,17 +397,24 @@ o un adaptador incompleto.
 
 ---
 
-## Resumen de preparación por prioridad
+## Status Matrix & Verification Summary
 
-| Prioridad | Área | Acción |
-|-----------|------|--------|
-| **P1** | Migraciones | drizzle.config + scripts + carpeta migrations |
-| **P1** | Idempotencia | Corregir orphan cleanup; tests concurrentes |
-| **P1** | Health/Ready | Endpoints live/ready + fail-closed init |
-| **P1** | Provider boundaries | Interfaces Identity/Attachment/DocExtraction |
-| **P2** | API client | Base URL + AuthTokenProvider |
-| **P2** | Configuración | Centralizar + validar + fail-closed prod |
-| **P2** | CI PostgreSQL | Job de integración |
-| **P3** | Lambda init | Import dinámico Vite; fail-closed |
-| **P3** | Gobernanza | Actualizar docs al nuevo target |
-| **P3** | ADRs | 010-013 |
+| Component / Boundary | Status | Implementation Details | Evidence / Verification |
+|----------------------|--------|------------------------|-------------------------|
+| **Transactional Idempotency** | `verified` / `locally verified` | Atomic single-transaction PostgreSQL claim + business mutation + completion (`claimTx` / `completeTx` / `withTransaction`). Client sync engine handles `IDEMPOTENCY_IN_PROGRESS` (409) and respects `Retry-After`. | `idempotency.ts`, `routes.ts`, `engine.ts`, `idempotency.postgres.test.ts` (10/10 PASS) |
+| **PostgreSQL Integration Suite** | `locally verified` / `CI pending` | 10 mandatory real concurrency test cases + clean DB migration/seed test against synthetic PostgreSQL instance. Prepared for CI job `integration-postgres`. | `idempotency.postgres.test.ts`, `migrations.postgres.test.ts`, `vitest.integration.config.ts`, `.github/workflows/ci.yml` |
+| **IdentityProvider Boundary** | `wired` (`locally verified`) | `LocalSessionIdentityProvider` wired via `getProviders().identity.resolve` in `auth.ts`. Produces canonical `IdentityPrincipal` without exposing cookie structure to domain handlers. | `auth.ts`, `providers/identity/local-session.ts` |
+| **AttachmentStorage Boundary** | `wired` (`locally verified`) | `LocalAttachmentStorage` wired in `attachments.ts` via `getProviders().attachments`. Upload and deletion flow through single storage path. | `attachments.ts`, `providers/attachments/local.ts` |
+| **DocumentExtractionProvider** | `scaffold-only` | `NoOpDocumentExtraction` stub active. Remote AWS Textract / Azure DI remain unimplemented until future spec. | `providers/documents/noop.ts` |
+| **Config Fail-Closed Validation** | `verified` | Environment validation rules reject invalid prod configurations (`local-session` in prod, missing S3 bucket, missing Cognito keys). | `env.ts`, `test/config.test.ts` |
+| **Lambda Import Isolation** | `verified` | `app.ts` contains zero Vite imports. `server.ts` handles dev/standalone server. `handlers/index.ts` imports `app.ts` directly. | `app.ts`, `server.ts`, `handlers/index.ts` |
+| **Health Checks (/live & /ready)** | `verified` | `/health/live` returns process liveness. `/health/ready` validates initialization and schema access without exposing secrets. | `health.ts`, `test/health.test.ts` |
+| **Data API Migration Strategy** | `documented` | Architecture lifecycle recorded detailing local/CI vs AWS Aurora Data API runner, IAM permissions, advisory locks, and zero-downtime policy. | `docs/architecture/database-deployment-lifecycle.md` |
+
+---
+
+### Verified Platform Status
+
+> Cloud-service boundaries prepared.
+> Local development remains functional.
+> Production deployment requires Cognito, S3 and AWS infrastructure.
