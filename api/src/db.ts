@@ -5,23 +5,44 @@ import pg from 'pg';
 import * as schema from '@agrosbo/shared';
 import { env } from './env.js';
 
-export const hasDatabaseUrl = env.hasDatabase;
-
 let dbInstance: any = null;
 
-if (env.hasDatabase) {
-  if (env.awsRdsSecretArn && env.awsRdsResourceArn && env.awsRdsDatabase) {
-    const rdsClient = new RDSDataClient({});
-    dbInstance = drizzleAws(rdsClient, {
-      schema,
-      secretArn: env.awsRdsSecretArn,
-      resourceArn: env.awsRdsResourceArn,
-      database: env.awsRdsDatabase,
-    });
-  } else if (env.databaseUrl) {
-    const pool = new pg.Pool({ connectionString: env.databaseUrl });
-    dbInstance = drizzlePg(pool, { schema });
+function getDbInstance() {
+  const currentUrl = process.env.DATABASE_URL || env.databaseUrl;
+  if (currentUrl) {
+    if (!dbInstance || dbInstance._url !== currentUrl) {
+      const pool = new pg.Pool({ connectionString: currentUrl });
+      const d = drizzlePg(pool, { schema }) as any;
+      d._url = currentUrl;
+      dbInstance = d;
+    }
+    return dbInstance;
   }
+  if (env.awsRdsSecretArn && env.awsRdsResourceArn && env.awsRdsDatabase) {
+    if (!dbInstance) {
+      const rdsClient = new RDSDataClient({});
+      dbInstance = drizzleAws(rdsClient, {
+        schema,
+        secretArn: env.awsRdsSecretArn,
+        resourceArn: env.awsRdsResourceArn,
+        database: env.awsRdsDatabase,
+      });
+    }
+    return dbInstance;
+  }
+  return null;
 }
 
-export const db = dbInstance;
+export const hasDatabaseUrl = Boolean(process.env.DATABASE_URL || env.hasDatabase);
+
+export const db: any = new Proxy(
+  {},
+  {
+    get(_target, prop) {
+      const instance = getDbInstance();
+      if (!instance) return undefined;
+      const val = instance[prop];
+      return typeof val === 'function' ? val.bind(instance) : val;
+    },
+  },
+);

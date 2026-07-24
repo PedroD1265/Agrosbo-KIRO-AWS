@@ -47,13 +47,13 @@ export function registerHealthRoutes(router: Router): void {
       database: false,
     };
 
-    // Database connectivity check
+    // Database connectivity & schema check
     if (hasDatabaseUrl) {
       try {
-        await db.execute(sql`SELECT 1`);
+        await db.execute(sql`SELECT key FROM idempotency_keys LIMIT 0`);
         checks.database = true;
       } catch (err) {
-        log.warn('readiness check: database unreachable', {
+        log.warn('readiness check: database unreachable or schema missing', {
           err: (err as Error).message,
         });
       }

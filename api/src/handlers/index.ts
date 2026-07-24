@@ -1,5 +1,5 @@
 import serverlessExpress from '@vendia/serverless-express';
-import { app } from '../index.js';
+import { app } from '../app.js';
 import { seedDatabase } from '../dbStorage.js';
 import { initIdempotency } from '../idempotency.js';
 import { initRevokedSessions } from '../auth.js';
