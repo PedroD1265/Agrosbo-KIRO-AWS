@@ -11,7 +11,7 @@ function getDbInstance() {
   const currentUrl = process.env.DATABASE_URL || env.databaseUrl;
   if (currentUrl) {
     if (!dbInstance || dbInstance._url !== currentUrl) {
-      const pool = new pg.Pool({ connectionString: currentUrl });
+      const pool = new pg.Pool({ connectionString: currentUrl, max: 20 });
       const d = drizzlePg(pool, { schema }) as any;
       d._url = currentUrl;
       dbInstance = d;

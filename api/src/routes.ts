@@ -33,16 +33,14 @@ import {
   harvestLotsToCSV,
   parseAndImport,
 } from './csv.js';
-import { claim, complete, release, claimTx, completeTx, releaseTx } from './idempotency.js';
+import { claim, complete, release, claimTx, completeTx } from './idempotency.js';
 import { hasDatabaseUrl } from './db.js';
 import type { IStorage } from './storage.js';
 import type { DbStorage } from './dbStorage.js';
 
-declare global {
-  namespace Express {
-    interface Request {
-      storage?: IStorage;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    storage?: IStorage;
   }
 }
 
@@ -216,6 +214,7 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
         }
 
         await completeTx(tx, key, token, cap.status, cap.body);
+        respHolder.current = { status: cap.status, body: cap.body };
       });
 
       if (respHolder.current) {
@@ -309,7 +308,6 @@ import {
   inspectionsCSV,
   honeyHarvestsCSV,
 } from './reports.js';
-
 
 export function registerRoutes(router: Router) {
   // Health endpoints registered separately via registerHealthRoutes (health.ts).

@@ -1027,7 +1027,7 @@ export async function seedDatabase(): Promise<void> {
       active: true,
       createdAt: new Date().toISOString(),
     });
-    if (generated) {
+    if (generated && process.env.NODE_ENV !== 'test') {
       // eslint-disable-next-line no-console
       console.warn(
         `\n========================================================================\n` +

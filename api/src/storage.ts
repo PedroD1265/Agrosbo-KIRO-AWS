@@ -450,10 +450,22 @@ import { createLogger } from './logger.js';
 
 const storageLog = createLogger('storage');
 
-if (env.useMemStorage) {
-  storageLog.warn('using in-memory storage', {
-    reason: env.databaseUrl ? 'USE_MEM_STORAGE=1' : 'DATABASE_URL not set',
-  });
+let singletonStorage: IStorage | null = null;
+
+export function getGlobalStorage(): IStorage {
+  if (!singletonStorage) {
+    singletonStorage = env.useMemStorage ? new MemStorage() : new DbStorage();
+  }
+  return singletonStorage;
 }
 
-export const storage: IStorage = env.useMemStorage ? new MemStorage() : new DbStorage();
+export const storage: IStorage = new Proxy(
+  {} as IStorage,
+  {
+    get(_target, prop) {
+      const s = getGlobalStorage() as any;
+      const val = s[prop];
+      return typeof val === 'function' ? val.bind(s) : val;
+    },
+  },
+);

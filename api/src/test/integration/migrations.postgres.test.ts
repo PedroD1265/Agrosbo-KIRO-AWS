@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import pg from 'pg';
-import { drizzle } from 'drizzle-orm/node-postgres';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { seedDatabase } from '../../dbStorage.js';
@@ -8,10 +7,10 @@ import { markReady, registerHealthRoutes } from '../../health.js';
 import express from 'express';
 import { createServer } from 'node:http';
 
-const BASE_DB_URL =
-  process.env.TEST_DATABASE_URL ||
-  process.env.DATABASE_URL ||
-  'postgresql://spike:spike_local_only@127.0.0.1:54320/agrosbo_spike';
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is required for PostgreSQL integration tests');
+}
+const BASE_DB_URL = process.env.DATABASE_URL;
 
 const CLEAN_DB_NAME = `agrosbo_clean_test_${Date.now()}`;
 

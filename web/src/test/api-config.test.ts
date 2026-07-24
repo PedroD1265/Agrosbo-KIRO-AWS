@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveApiUrl, buildFetchInit, getAuthProvider, setAuthProvider } from '@/lib/api-config';
+import { resolveApiUrl, buildFetchInit, setAuthProvider } from '@/lib/api-config';
 
 describe('Frontend API Config Tests', () => {
   it('allows VITE_API_BASE_URL and resolves relative URLs correctly', () => {

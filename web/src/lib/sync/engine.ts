@@ -40,7 +40,7 @@ export interface SyncEngineError extends Error {
   retryAfterMs?: number;
 }
 
-function isClientError(status: number, err?: SyncEngineError) {
+export function isClientError(status: number, err?: SyncEngineError) {
   if (status === 409 && err?.isIdempotencyInProgress) {
     return false;
   }

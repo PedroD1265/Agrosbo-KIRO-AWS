@@ -1,12 +1,10 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
-const TEST_DB_URL =
-  process.env.TEST_DATABASE_URL ||
-  process.env.DATABASE_URL ||
-  'postgresql://spike:spike_local_only@127.0.0.1:54320/agrosbo_spike';
-
-process.env.DATABASE_URL = TEST_DB_URL;
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is required for PostgreSQL integration tests');
+}
+const TEST_DB_URL = process.env.DATABASE_URL;
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import pg from 'pg';
@@ -359,6 +357,91 @@ describe('PostgreSQL Idempotency & Concurrency Integration Tests', () => {
     expect(reclaimRes.type).toBe('claimed');
     if (reclaimRes.type === 'claimed') {
       expect(reclaimRes.token).not.toBe('old-dead-lambda-token');
+    }
+  });
+
+  it('11. Mandatory End-to-End HTTP Concurrent Idempotency Test via Express app.ts', async () => {
+    const { app } = await import('../../app.js');
+    const { createServer } = await import('node:http');
+
+    const server = createServer(app);
+    await new Promise<void>((resolve) => server.listen(0, resolve));
+    const port = (server.address() as { port: number }).port;
+
+    const idemHeader = `http-idem-key-${Date.now()}`;
+    const testTitle = `Tarea HTTP Concurrente Real ${Date.now()}`;
+    const payload = {
+      title: testTitle,
+      scopeType: 'block',
+      scopeId: 'b-1',
+      dueDate: new Date().toISOString().slice(0, 10),
+      priority: 'high',
+      status: 'pending',
+    };
+
+    try {
+      const sendHttp = async () => {
+        const res = await fetch(`http://127.0.0.1:${port}/api/tasks`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Connection: 'close',
+            'X-Idempotency-Key': idemHeader,
+          },
+          body: JSON.stringify(payload),
+        });
+        const json = (await res.json().catch(() => null)) as { id?: string; error?: string } | null;
+        return { status: res.status, headers: res.headers, json };
+      };
+
+      const results = await Promise.all(Array.from({ length: 10 }, () => sendHttp()));
+
+      // Retry any 409 in-progress responses until all 10 return completed 201 response
+      const replayResults = await Promise.all(
+        results.map(async (r) => {
+          if (r.status === 201) return r;
+          let retries = 0;
+          let latest = r;
+          while (latest.status === 409 && retries < 10) {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            latest = await sendHttp();
+            retries++;
+          }
+          return latest;
+        }),
+      );
+
+      // Verify all 10 responses converged to HTTP 201
+      for (const res of replayResults) {
+        expect(res.status).toBe(201);
+      }
+
+      const returnedIds = new Set(
+        replayResults.filter((r) => r.status === 201 && r.json?.id).map((r) => r.json?.id),
+      );
+
+      // Confirm all replays converged to the SAME single task ID
+      expect(returnedIds.size).toBe(1);
+
+      // Confirm exactly 1 row in tasks table
+      const [{ taskCount }] = await db1
+        .select({ taskCount: sql<number>`count(*)::int` })
+        .from(schema.tasks)
+        .where(eq(schema.tasks.title, testTitle));
+      expect(taskCount).toBe(1);
+
+      // Confirm exactly 1 canonical row in idempotency_keys table
+      const allKeys = await db1.select().from(schema.idempotencyKeys);
+      const matchingKeys = allKeys.filter((k: { key: string; state: string }) =>
+        k.key.includes(idemHeader),
+      );
+      expect(matchingKeys.length).toBe(1);
+      expect(matchingKeys[0].state).toBe('completed');
+    } finally {
+      if ('closeAllConnections' in server && typeof server.closeAllConnections === 'function') {
+        server.closeAllConnections();
+      }
+      server.close();
     }
   });
 });
