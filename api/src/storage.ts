@@ -459,13 +459,10 @@ export function getGlobalStorage(): IStorage {
   return singletonStorage;
 }
 
-export const storage: IStorage = new Proxy(
-  {} as IStorage,
-  {
-    get(_target, prop) {
-      const s = getGlobalStorage() as any;
-      const val = s[prop];
-      return typeof val === 'function' ? val.bind(s) : val;
-    },
+export const storage: IStorage = new Proxy({} as IStorage, {
+  get(_target, prop) {
+    const s = getGlobalStorage() as any;
+    const val = s[prop];
+    return typeof val === 'function' ? val.bind(s) : val;
   },
-);
+});
