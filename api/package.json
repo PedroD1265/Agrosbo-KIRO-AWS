@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "tsx watch --ignore \"../web/**\" --ignore \"dist/**\" src/index.ts",
     "build": "tsc -b",
-    "clean": "node ../scripts/clean.mjs api"
+    "clean": "node ../scripts/clean.mjs api",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:check": "drizzle-kit check",
+    "db:seed": "tsx src/scripts/seed-db.ts"
   },
   "dependencies": {
     "@agrosbo/shared": "*",
