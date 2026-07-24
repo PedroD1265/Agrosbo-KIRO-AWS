@@ -4,7 +4,7 @@ import { createServer } from 'node:http';
 import { env, parsePort } from './env.js';
 import { log, requestLogger } from './logger.js';
 import { registerRoutes } from './routes.js';
-import { setupViteDev, setupStatic } from './vite.js';
+import { registerHealthRoutes, markReady } from './health.js';
 import { seedDatabase } from './dbStorage.js';
 import { initIdempotency } from './idempotency.js';
 import { UPLOADS_DIR } from './attachments.js';
@@ -17,7 +17,14 @@ app.use('/api', attachUser());
 
 // Global auth guard. When AUTH_ENFORCEMENT=off, this no-ops. When 'on',
 // only the whitelisted public paths bypass; everything else needs req.user.
-const AUTH_PUBLIC = new Set(['/health', '/crops', '/auth/login', '/auth/me', '/auth/logout']);
+const AUTH_PUBLIC = new Set([
+  '/health/live',
+  '/health/ready',
+  '/crops',
+  '/auth/login',
+  '/auth/me',
+  '/auth/logout',
+]);
 app.use('/api', (req, res, next) => {
   if (env.authEnforcement === 'off') return next();
   if (AUTH_PUBLIC.has(req.path)) return next();
@@ -36,6 +43,7 @@ app.use(
 );
 
 const apiRouter = Router();
+registerHealthRoutes(apiRouter);
 registerRoutes(apiRouter);
 app.use('/api', apiRouter);
 
@@ -84,14 +92,19 @@ async function start() {
   }
 
   if (env.isProd) {
+    const { setupStatic } = await import('./vite.js');
     setupStatic(app);
   } else {
+    const { setupViteDev } = await import('./vite.js');
     await setupViteDev(app, httpServer);
   }
 
   if (env.authEnforcement === 'off') {
     log.warn("AUTH_ENFORCEMENT=off — API is open access (set to 'on' in production)");
   }
+
+  // Mark the application as ready ONLY after all initialization succeeds.
+  markReady();
 
   if (!process.env.LAMBDA_TASK_ROOT) {
     httpServer.listen(PORT, '0.0.0.0', () => {

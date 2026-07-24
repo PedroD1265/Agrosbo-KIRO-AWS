@@ -86,7 +86,9 @@ function isCreateDomain(d: QueuedMutation['domain']) {
 /* --- network send ------------------------------------------------------- */
 
 async function send(mut: QueuedMutation) {
-  const res = await fetch(mut.url, {
+  const { resolveApiUrl, buildFetchInit } = await import('@/lib/api-config');
+  const url = resolveApiUrl(mut.url);
+  const baseInit = await buildFetchInit({
     method: mut.method,
     headers: {
       'Content-Type': 'application/json',
@@ -94,8 +96,8 @@ async function send(mut: QueuedMutation) {
       'X-Idempotency-Key': mut.clientId,
     },
     body: JSON.stringify(mut.body),
-    credentials: 'include',
   });
+  const res = await fetch(url, baseInit);
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     let humanMessage = `${res.status} ${res.statusText}`;

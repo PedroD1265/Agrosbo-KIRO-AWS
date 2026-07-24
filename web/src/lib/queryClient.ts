@@ -1,15 +1,16 @@
 import { QueryClient } from '@tanstack/react-query';
+import { resolveApiUrl, buildFetchInit } from './api-config.js';
 
 async function defaultFetcher({ queryKey }: { queryKey: readonly unknown[] }) {
-  const url = queryKey
+  const path = queryKey
     .map((seg) => (typeof seg === 'string' ? seg : String(seg)))
     .join('/')
     .replace(/\/+/g, '/');
 
-  const res = await fetch(url, {
-    credentials: 'include',
-    headers: { Accept: 'application/json' },
-  });
+  const url = resolveApiUrl(path);
+  const init = await buildFetchInit({ headers: { Accept: 'application/json' } });
+
+  const res = await fetch(url, init);
 
   if (!res.ok) {
     const body = await res.text().catch(() => '');
@@ -39,12 +40,14 @@ export async function apiRequest<T = unknown>(
   url: string,
   body?: unknown,
 ): Promise<T> {
-  const res = await fetch(url, {
+  const fullUrl = resolveApiUrl(url);
+  const init = await buildFetchInit({
     method,
-    credentials: 'include',
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
+
+  const res = await fetch(fullUrl, init);
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');

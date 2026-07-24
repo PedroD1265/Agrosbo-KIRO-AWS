@@ -198,7 +198,7 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
 }
 
 export function registerRoutes(router: Router) {
-  router.get('/health', (_req, res) => res.json({ ok: true }));
+  // Health endpoints registered separately via registerHealthRoutes (health.ts).
 
   /* Blocks */
   router.get(
@@ -1039,26 +1039,8 @@ export function registerRoutes(router: Router) {
   );
 
   /* ================================================================
-   * Health
+   * Health — replaced by /health/live and /health/ready (health.ts)
    * ============================================================== */
-  router.get(
-    '/health',
-    asyncHandler(async (_req, res) => {
-      let dbOk = false;
-      try {
-        await storage.getSettings();
-        dbOk = true;
-      } catch {
-        dbOk = false;
-      }
-      res.json({
-        ok: dbOk,
-        uptime: process.uptime(),
-        now: new Date().toISOString(),
-        storage: dbOk ? 'up' : 'down',
-      });
-    }),
-  );
 
   /* Settings */
   router.get(
