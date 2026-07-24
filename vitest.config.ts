@@ -19,7 +19,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['node_modules', 'dist', 'spikes'],
+    exclude: ['node_modules', 'dist', 'spikes', '**/*.postgres.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
