@@ -5,7 +5,8 @@
 
 export type OperationType = 'create_producer' | 'create_parcel' | 'create_harvest';
 
-export type OperationStatus = 'pending' | 'in_progress' | 'applied' | 'failed' | 'possible_duplicate';
+export type OperationStatus =
+  'pending' | 'in_progress' | 'applied' | 'failed' | 'possible_duplicate';
 
 export interface SyncOperation {
   client_op_id: string;

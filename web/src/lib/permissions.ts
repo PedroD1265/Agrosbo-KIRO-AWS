@@ -1,34 +1,34 @@
-import { useAuth } from "@/lib/auth";
-import type { User } from "@shared/schema";
+import { useAuth } from '@/lib/auth';
+import type { User } from '@shared/schema';
 
 export type Permission =
-  | "inventory:write"
-  | "expenses:write"
-  | "applications:write"
-  | "harvestLots:write"
-  | "users:manage";
+  | 'inventory:write'
+  | 'expenses:write'
+  | 'applications:write'
+  | 'harvestLots:write'
+  | 'users:manage';
 
-const ROLE_PERMISSIONS: Record<User["role"], ReadonlySet<Permission>> = {
+const ROLE_PERMISSIONS: Record<User['role'], ReadonlySet<Permission>> = {
   admin: new Set<Permission>([
-    "inventory:write",
-    "expenses:write",
-    "applications:write",
-    "harvestLots:write",
-    "users:manage",
+    'inventory:write',
+    'expenses:write',
+    'applications:write',
+    'harvestLots:write',
+    'users:manage',
   ]),
   tecnico: new Set<Permission>([
-    "inventory:write",
-    "expenses:write",
-    "applications:write",
-    "harvestLots:write",
+    'inventory:write',
+    'expenses:write',
+    'applications:write',
+    'harvestLots:write',
   ]),
   encargado: new Set<Permission>([
-    "inventory:write",
-    "expenses:write",
-    "applications:write",
-    "harvestLots:write",
+    'inventory:write',
+    'expenses:write',
+    'applications:write',
+    'harvestLots:write',
   ]),
-  finanzas: new Set<Permission>(["expenses:write"]),
+  finanzas: new Set<Permission>(['expenses:write']),
   operario: new Set<Permission>([]),
 };
 

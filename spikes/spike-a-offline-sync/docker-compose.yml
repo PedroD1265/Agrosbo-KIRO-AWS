@@ -3,13 +3,13 @@ services:
     image: postgres:15-alpine
     container_name: agrosbo-spike-a-db
     ports:
-      - "127.0.0.1:54320:5432"
+      - '127.0.0.1:54320:5432'
     env_file:
       - .env.spike
     volumes:
       - ./migrations:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U spike -d agrosbo_spike"]
+      test: ['CMD-SHELL', 'pg_isready -U spike -d agrosbo_spike']
       interval: 2s
       timeout: 5s
       retries: 10

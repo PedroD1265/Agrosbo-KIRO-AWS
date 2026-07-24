@@ -5,12 +5,19 @@ import type {
   IrrigationEvent,
   Observation,
   Task,
-} from "@agrosbo/shared/schema.js";
+} from '@agrosbo/shared/schema.js';
 
 export interface CampaignSummary {
   campaign: Campaign;
   tasks: { total: number; pending: number; in_progress: number; done: number; overdue: number };
-  irrigation: { total: number; done: number; scheduled: number; skipped: number; totalDurationMin: number; totalVolumeL: number };
+  irrigation: {
+    total: number;
+    done: number;
+    scheduled: number;
+    skipped: number;
+    totalDurationMin: number;
+    totalVolumeL: number;
+  };
   observations: { total: number; byType: Record<string, number> };
   harvest: {
     lots: number;
@@ -57,23 +64,28 @@ export function buildCampaignSummary(input: Input): CampaignSummary {
   const harvest = input.harvest.filter((h) => h.campaignId === campaign.id);
   const movements = input.movements.filter(
     (m) =>
-      m.scopeType === campaign.scopeType &&
-      m.scopeId === campaign.scopeId &&
-      inWindowDate(m.at),
+      m.scopeType === campaign.scopeType && m.scopeId === campaign.scopeId && inWindowDate(m.at),
   );
 
   const taskAgg = { total: tasks.length, pending: 0, in_progress: 0, done: 0, overdue: 0 };
   for (const t of tasks) {
     taskAgg[t.status] = (taskAgg[t.status] ?? 0) + 1;
-    if (t.status !== "done" && t.dueDate < todayIso) taskAgg.overdue += 1;
+    if (t.status !== 'done' && t.dueDate < todayIso) taskAgg.overdue += 1;
   }
 
-  const irrAgg = { total: irrigation.length, done: 0, scheduled: 0, skipped: 0, totalDurationMin: 0, totalVolumeL: 0 };
+  const irrAgg = {
+    total: irrigation.length,
+    done: 0,
+    scheduled: 0,
+    skipped: 0,
+    totalDurationMin: 0,
+    totalVolumeL: 0,
+  };
   for (const e of irrigation) {
-    if (e.status === "done") irrAgg.done += 1;
-    else if (e.status === "scheduled" || e.status === "pending-sync") irrAgg.scheduled += 1;
-    else if (e.status === "skipped") irrAgg.skipped += 1;
-    if (e.status === "done") {
+    if (e.status === 'done') irrAgg.done += 1;
+    else if (e.status === 'scheduled' || e.status === 'pending-sync') irrAgg.scheduled += 1;
+    else if (e.status === 'skipped') irrAgg.skipped += 1;
+    if (e.status === 'done') {
       irrAgg.totalDurationMin += e.durationMin ?? 0;
       irrAgg.totalVolumeL += e.volumeL ?? 0;
     }
@@ -90,15 +102,15 @@ export function buildCampaignSummary(input: Input): CampaignSummary {
   for (const h of harvest) {
     totalQty += h.quantity;
     unitMix[h.unit] = (unitMix[h.unit] ?? 0) + h.quantity;
-    if (typeof h.unitPrice === "number") revenue += h.quantity * h.unitPrice;
-    if (typeof h.costAllocated === "number") costAlloc += h.costAllocated;
+    if (typeof h.unitPrice === 'number') revenue += h.quantity * h.unitPrice;
+    if (typeof h.costAllocated === 'number') costAlloc += h.costAllocated;
     if (!harvestCurrency && h.currency) harvestCurrency = h.currency;
   }
 
   let movementCost = 0;
   let movementsCurrency: string | null = null;
   for (const m of movements) {
-    if (typeof m.totalCost === "number") movementCost += m.totalCost;
+    if (typeof m.totalCost === 'number') movementCost += m.totalCost;
     if (!movementsCurrency && m.currency) movementsCurrency = m.currency;
   }
 

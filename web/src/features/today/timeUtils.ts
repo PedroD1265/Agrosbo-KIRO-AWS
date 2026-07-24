@@ -11,14 +11,14 @@ export function relativeFromNow(iso: string, now = new Date()): string {
   const day = Math.round(abs / 86400000);
   const past = diff < 0;
   let core: string;
-  if (min < 1) core = "ahora";
+  if (min < 1) core = 'ahora';
   else if (min < 60) core = `${min} min`;
   else if (hr < 24) core = `${hr} h`;
   else core = `${day} d`;
-  if (core === "ahora") return "ahora";
+  if (core === 'ahora') return 'ahora';
   return past ? `hace ${core}` : `en ${core}`;
 }
 
 export function shortTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' });
 }

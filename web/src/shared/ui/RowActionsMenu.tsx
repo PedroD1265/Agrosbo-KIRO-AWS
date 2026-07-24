@@ -1,13 +1,13 @@
-import { MoreVertical, Pencil, Trash2 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 
 export interface ExtraAction {
   key: string;
@@ -30,8 +30,8 @@ export function RowActionsMenu({
   testId,
   onEdit,
   onDelete,
-  editLabel = "Editar",
-  deleteLabel = "Eliminar",
+  editLabel = 'Editar',
+  deleteLabel = 'Eliminar',
   extraItems = [],
 }: Props) {
   return (
@@ -63,10 +63,7 @@ export function RowActionsMenu({
         })}
         {extraItems.length > 0 && (onEdit || onDelete) && <DropdownMenuSeparator />}
         {onEdit && (
-          <DropdownMenuItem
-            onClick={onEdit}
-            data-testid={`action-edit-${testId}`}
-          >
+          <DropdownMenuItem onClick={onEdit} data-testid={`action-edit-${testId}`}>
             <Pencil className="h-4 w-4" /> {editLabel}
           </DropdownMenuItem>
         )}

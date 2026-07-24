@@ -1,14 +1,14 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-import type { Request, Response, NextFunction, RequestHandler } from "express";
-import { env } from "./env.js";
-import { db, hasDatabaseUrl } from "./db.js";
-import { users, revokedSessions, type User } from "@agrosbo/shared/schema.js";
-import { eq, sql } from "drizzle-orm";
-import { createLogger } from "./logger.js";
+import { createHmac, timingSafeEqual } from 'node:crypto';
+import type { Request, Response, NextFunction, RequestHandler } from 'express';
+import { env } from './env.js';
+import { db, hasDatabaseUrl } from './db.js';
+import { users, revokedSessions, type User } from '@agrosbo/shared/schema.js';
+import { eq, sql } from 'drizzle-orm';
+import { createLogger } from './logger.js';
 
-const log = createLogger("auth");
+const log = createLogger('auth');
 
-export const COOKIE_NAME = "agrosbo_session";
+export const COOKIE_NAME = 'agrosbo_session';
 const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
@@ -35,7 +35,7 @@ async function cleanupExpiredRevokedDb(): Promise<void> {
       sql`delete from revoked_sessions where expires_at < ${new Date().toISOString()}`,
     );
   } catch (err) {
-    log.warn("cleanupExpiredRevokedDb failed", { err });
+    log.warn('cleanupExpiredRevokedDb failed', { err });
   }
 }
 
@@ -48,12 +48,12 @@ async function persistRevokeToDb(tokenKey: string, expiresAt: number): Promise<v
       .values({ tokenKey, expiresAt: expiresIso })
       .onConflictDoNothing();
   } catch (err) {
-    log.warn("persistRevokeToDb failed", { err });
+    log.warn('persistRevokeToDb failed', { err });
   }
 }
 
 export function revokeToken(token: string): void {
-  const parts = token.split(".");
+  const parts = token.split('.');
   if (parts.length !== 3) return;
   const [userId, expRaw] = parts;
   const expiresAt = Number(expRaw);
@@ -76,9 +76,7 @@ function isRevoked(userId: string, expiresAt: number): boolean {
 async function verifyRevokedSessionsTable(): Promise<void> {
   if (!hasDatabaseUrl) return;
   try {
-    await db.execute(
-      sql`select token_key, expires_at from revoked_sessions limit 0`,
-    );
+    await db.execute(sql`select token_key, expires_at from revoked_sessions limit 0`);
   } catch (err) {
     throw new Error(
       `[auth] schema check failed for 'revoked_sessions' — run 'npm run db:push' to apply latest schema. Original: ${err instanceof Error ? err.message : String(err)}`,
@@ -95,12 +93,8 @@ export async function initRevokedSessions(): Promise<void> {
   if (!hasDatabaseUrl) return;
   await verifyRevokedSessionsTable();
   const nowIso = new Date().toISOString();
-  await db.execute(
-    sql`delete from revoked_sessions where expires_at < ${nowIso}`,
-  );
-  const rows = await db
-    .select()
-    .from(revokedSessions);
+  await db.execute(sql`delete from revoked_sessions where expires_at < ${nowIso}`);
+  const rows = await db.select().from(revokedSessions);
   let loaded = 0;
   for (const row of rows) {
     const exp = Date.parse(row.expiresAt);
@@ -109,25 +103,25 @@ export async function initRevokedSessions(): Promise<void> {
       loaded++;
     }
   }
-  log.info("revoked sessions loaded from DB", { loaded });
+  log.info('revoked sessions loaded from DB', { loaded });
 }
 
-export type Role = "admin" | "tecnico" | "encargado" | "operario" | "finanzas";
+export type Role = 'admin' | 'tecnico' | 'encargado' | 'operario' | 'finanzas';
 
 /**
  * Synthetic admin used when AUTH_ENFORCEMENT=off and no real session exists.
  * Lets the legacy open-access flow continue without code changes.
  */
 const DEMO_USER: User = {
-  id: "demo-admin",
-  orgId: "org-default",
-  name: "Demo (auth off)",
-  role: "admin",
+  id: 'demo-admin',
+  orgId: 'org-default',
+  name: 'Demo (auth off)',
+  role: 'admin',
   active: true,
   createdAt: new Date(0).toISOString(),
 };
 
-declare module "express-serve-static-core" {
+declare module 'express-serve-static-core' {
   interface Request {
     user?: User;
     authBypass?: boolean;
@@ -135,12 +129,12 @@ declare module "express-serve-static-core" {
 }
 
 function sign(payload: string): string {
-  return createHmac("sha256", env.sessionSecret).update(payload).digest("hex");
+  return createHmac('sha256', env.sessionSecret).update(payload).digest('hex');
 }
 
 function safeEq(a: string, b: string): boolean {
-  const ab = Buffer.from(a, "utf8");
-  const bb = Buffer.from(b, "utf8");
+  const ab = Buffer.from(a, 'utf8');
+  const bb = Buffer.from(b, 'utf8');
   if (ab.length !== bb.length) return false;
   return timingSafeEqual(ab, bb);
 }
@@ -151,7 +145,7 @@ export function encodeToken(userId: string, expiresAt: number): string {
 }
 
 export function decodeToken(token: string): { userId: string; expiresAt: number } | null {
-  const parts = token.split(".");
+  const parts = token.split('.');
   if (parts.length !== 3) return null;
   const [userId, expRaw, sig] = parts;
   const expiresAt = Number(expRaw);
@@ -165,9 +159,9 @@ export function decodeToken(token: string): { userId: string; expiresAt: number 
 function readCookie(req: Request, name: string): string | null {
   const header = req.headers.cookie;
   if (!header) return null;
-  for (const part of header.split(";")) {
-    const [k, ...rest] = part.trim().split("=");
-    if (k === name) return decodeURIComponent(rest.join("="));
+  for (const part of header.split(';')) {
+    const [k, ...rest] = part.trim().split('=');
+    if (k === name) return decodeURIComponent(rest.join('='));
   }
   return null;
 }
@@ -177,26 +171,20 @@ export function setSessionCookie(res: Response, userId: string): number {
   const token = encodeToken(userId, expiresAt);
   const attrs = [
     `${COOKIE_NAME}=${encodeURIComponent(token)}`,
-    "Path=/",
-    "HttpOnly",
-    "SameSite=Lax",
+    'Path=/',
+    'HttpOnly',
+    'SameSite=Lax',
     `Max-Age=${Math.floor(MAX_AGE_MS / 1000)}`,
   ];
-  if (env.isProd) attrs.push("Secure");
-  res.setHeader("Set-Cookie", attrs.join("; "));
+  if (env.isProd) attrs.push('Secure');
+  res.setHeader('Set-Cookie', attrs.join('; '));
   return expiresAt;
 }
 
 export function clearSessionCookie(res: Response) {
-  const attrs = [
-    `${COOKIE_NAME}=`,
-    "Path=/",
-    "HttpOnly",
-    "SameSite=Lax",
-    "Max-Age=0",
-  ];
-  if (env.isProd) attrs.push("Secure");
-  res.setHeader("Set-Cookie", attrs.join("; "));
+  const attrs = [`${COOKIE_NAME}=`, 'Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=0'];
+  if (env.isProd) attrs.push('Secure');
+  res.setHeader('Set-Cookie', attrs.join('; '));
 }
 
 async function loadUser(userId: string): Promise<User | null> {
@@ -216,7 +204,7 @@ async function loadUser(userId: string): Promise<User | null> {
     if (row.username) u.username = row.username;
     return u;
   } catch (err) {
-    log.warn("loadUser failed", { err });
+    log.warn('loadUser failed', { err });
     return null;
   }
 }
@@ -239,7 +227,7 @@ export function attachUser(): RequestHandler {
         }
       }
     }
-    if (env.authEnforcement === "off") {
+    if (env.authEnforcement === 'off') {
       req.user = DEMO_USER;
       req.authBypass = true;
     }
@@ -249,9 +237,9 @@ export function attachUser(): RequestHandler {
 
 export function requireAuth(): RequestHandler {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (env.authEnforcement === "off") return next();
+    if (env.authEnforcement === 'off') return next();
     if (!req.user) {
-      return res.status(401).json({ error: "No autenticado" });
+      return res.status(401).json({ error: 'No autenticado' });
     }
     next();
   };
@@ -259,12 +247,12 @@ export function requireAuth(): RequestHandler {
 
 export function requireRole(...roles: Role[]): RequestHandler {
   return (req: Request, res: Response, next: NextFunction) => {
-    if (env.authEnforcement === "off") return next();
+    if (env.authEnforcement === 'off') return next();
     if (!req.user) {
-      return res.status(401).json({ error: "No autenticado" });
+      return res.status(401).json({ error: 'No autenticado' });
     }
     if (!roles.includes(req.user.role as Role)) {
-      return res.status(403).json({ error: "Permiso insuficiente", needed: roles });
+      return res.status(403).json({ error: 'Permiso insuficiente', needed: roles });
     }
     next();
   };

@@ -1,6 +1,9 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID } from 'node:crypto';
 export class InventoryStockError extends Error {
-  constructor(message: string) { super(message); this.name = "InventoryStockError"; }
+  constructor(message: string) {
+    super(message);
+    this.name = 'InventoryStockError';
+  }
 }
 import {
   type Block,
@@ -32,7 +35,7 @@ import {
   type UpdateIrrigationEvent,
   type UpdateInventoryItem,
   type UpdateHarvestLot,
-} from "@agrosbo/shared/schema.js";
+} from '@agrosbo/shared/schema.js';
 import {
   seedBlocks,
   seedGreenhouses,
@@ -44,7 +47,7 @@ import {
   seedHarvestLots,
   seedAlerts,
   seedSettings,
-} from "./seed.js";
+} from './seed.js';
 
 export interface IStorage {
   /* Blocks */
@@ -71,13 +74,16 @@ export interface IStorage {
   listIrrigationEvents(): Promise<IrrigationEvent[]>;
   createIrrigationEvent(input: InsertIrrigationEvent): Promise<IrrigationEvent>;
   markIrrigationDone(id: string): Promise<IrrigationEvent | undefined>;
-  updateIrrigationEvent(id: string, patch: UpdateIrrigationEvent): Promise<IrrigationEvent | undefined>;
+  updateIrrigationEvent(
+    id: string,
+    patch: UpdateIrrigationEvent,
+  ): Promise<IrrigationEvent | undefined>;
   deleteIrrigationEvent(id: string): Promise<boolean>;
 
   /* Tasks */
   listTasks(): Promise<Task[]>;
   createTask(input: InsertTask): Promise<Task>;
-  updateTaskStatus(id: string, status: Task["status"]): Promise<Task | undefined>;
+  updateTaskStatus(id: string, status: Task['status']): Promise<Task | undefined>;
   updateTask(id: string, patch: UpdateTask): Promise<Task | undefined>;
   deleteTask(id: string): Promise<boolean>;
 
@@ -145,12 +151,16 @@ export class MemStorage implements IStorage {
   }
 
   private resolveScopeName(type: ScopeType, id: string): string {
-    if (type === "block") return this.blocks.get(id)?.name ?? "Bloque desconocido";
-    return this.greenhouses.get(id)?.name ?? "Invernadero desconocido";
+    if (type === 'block') return this.blocks.get(id)?.name ?? 'Bloque desconocido';
+    return this.greenhouses.get(id)?.name ?? 'Invernadero desconocido';
   }
 
-  async listBlocks() { return Array.from(this.blocks.values()); }
-  async getBlock(id: string) { return this.blocks.get(id); }
+  async listBlocks() {
+    return Array.from(this.blocks.values());
+  }
+  async getBlock(id: string) {
+    return this.blocks.get(id);
+  }
   async createBlock(input: InsertBlock): Promise<Block> {
     const block: Block = { id: `b-${randomUUID().slice(0, 8)}`, ...input };
     this.blocks.set(block.id, block);
@@ -166,8 +176,12 @@ export class MemStorage implements IStorage {
   async deleteBlock(id: string) {
     return this.blocks.delete(id);
   }
-  async listGreenhouses() { return Array.from(this.greenhouses.values()); }
-  async getGreenhouse(id: string) { return this.greenhouses.get(id); }
+  async listGreenhouses() {
+    return Array.from(this.greenhouses.values());
+  }
+  async getGreenhouse(id: string) {
+    return this.greenhouses.get(id);
+  }
   async createGreenhouse(input: InsertGreenhouse): Promise<Greenhouse> {
     const g: Greenhouse = { id: `g-${randomUUID().slice(0, 8)}`, ...input };
     this.greenhouses.set(g.id, g);
@@ -183,7 +197,9 @@ export class MemStorage implements IStorage {
   async deleteGreenhouse(id: string) {
     return this.greenhouses.delete(id);
   }
-  async listCampaigns() { return Array.from(this.campaigns.values()); }
+  async listCampaigns() {
+    return Array.from(this.campaigns.values());
+  }
   async createCampaign(input: InsertCampaign): Promise<Campaign> {
     const c: Campaign = {
       id: `c-${randomUUID().slice(0, 8)}`,
@@ -212,7 +228,9 @@ export class MemStorage implements IStorage {
   async deleteCampaign(id: string) {
     return this.campaigns.delete(id);
   }
-  async listIrrigationEvents() { return Array.from(this.irrigation.values()); }
+  async listIrrigationEvents() {
+    return Array.from(this.irrigation.values());
+  }
   async createIrrigationEvent(input: InsertIrrigationEvent): Promise<IrrigationEvent> {
     const ev: IrrigationEvent = {
       id: `i-${randomUUID().slice(0, 8)}`,
@@ -225,7 +243,7 @@ export class MemStorage implements IStorage {
   async markIrrigationDone(id: string) {
     const ev = this.irrigation.get(id);
     if (!ev) return undefined;
-    const updated: IrrigationEvent = { ...ev, status: "done" };
+    const updated: IrrigationEvent = { ...ev, status: 'done' };
     this.irrigation.set(id, updated);
     return updated;
   }
@@ -248,7 +266,9 @@ export class MemStorage implements IStorage {
   async deleteIrrigationEvent(id: string) {
     return this.irrigation.delete(id);
   }
-  async listTasks() { return Array.from(this.tasks.values()); }
+  async listTasks() {
+    return Array.from(this.tasks.values());
+  }
   async createTask(input: InsertTask): Promise<Task> {
     const t: Task = {
       id: `t-${randomUUID().slice(0, 8)}`,
@@ -258,7 +278,7 @@ export class MemStorage implements IStorage {
     this.tasks.set(t.id, t);
     return t;
   }
-  async updateTaskStatus(id: string, status: Task["status"]) {
+  async updateTaskStatus(id: string, status: Task['status']) {
     const t = this.tasks.get(id);
     if (!t) return undefined;
     const updated: Task = { ...t, status };
@@ -303,7 +323,9 @@ export class MemStorage implements IStorage {
   async deleteObservation(id: string) {
     return this.observations.delete(id);
   }
-  async listInventory() { return Array.from(this.inventory.values()); }
+  async listInventory() {
+    return Array.from(this.inventory.values());
+  }
   async createInventoryItem(input: InsertInventoryItem): Promise<InventoryItem> {
     const it: InventoryItem = { id: `iv-${randomUUID().slice(0, 8)}`, ...input };
     this.inventory.set(it.id, it);
@@ -332,9 +354,7 @@ export class MemStorage implements IStorage {
     return this.inventory.delete(id);
   }
   async listInventoryMovements(itemId?: string) {
-    const all = itemId
-      ? this.movements.filter((m) => m.itemId === itemId)
-      : this.movements.slice();
+    const all = itemId ? this.movements.filter((m) => m.itemId === itemId) : this.movements.slice();
     return all.sort((a, b) => b.at.localeCompare(a.at));
   }
   async createInventoryMovement(input: InsertInventoryMovement) {
@@ -342,15 +362,14 @@ export class MemStorage implements IStorage {
     if (!cur) return undefined;
     const delta = input.delta;
     if (delta < 0 && cur.stock + delta < 0) {
-      throw new InventoryStockError("Stock insuficiente");
+      throw new InventoryStockError('Stock insuficiente');
     }
     const nextStock = cur.stock + delta;
     const at = input.at ?? new Date().toISOString();
-    const kind: InventoryMovementKind = delta > 0 ? "in" : "out";
+    const kind: InventoryMovementKind = delta > 0 ? 'in' : 'out';
     const unitCost = input.unitCost ?? cur.unitCost;
     const currency = input.currency ?? cur.currency;
-    const totalCost =
-      typeof unitCost === "number" ? Math.abs(delta) * unitCost : undefined;
+    const totalCost = typeof unitCost === 'number' ? Math.abs(delta) * unitCost : undefined;
     const movement: InventoryMovement = {
       id: `mv-${randomUUID().slice(0, 8)}`,
       itemId: input.itemId,
@@ -377,7 +396,9 @@ export class MemStorage implements IStorage {
     this.inventory.set(cur.id, nextItem);
     return { item: nextItem, movement };
   }
-  async listHarvestLots() { return Array.from(this.harvest.values()); }
+  async listHarvestLots() {
+    return Array.from(this.harvest.values());
+  }
   async createHarvestLot(input: InsertHarvestLot): Promise<HarvestLot> {
     const h: HarvestLot = {
       id: `h-${randomUUID().slice(0, 8)}`,
@@ -406,23 +427,28 @@ export class MemStorage implements IStorage {
   async deleteHarvestLot(id: string) {
     return this.harvest.delete(id);
   }
-  async listAlerts() { return Array.from(this.alerts.values()); }
-  async getSettings() { return this.settings; }
-  async updateSettings(input: Settings) { this.settings = input; return this.settings; }
+  async listAlerts() {
+    return Array.from(this.alerts.values());
+  }
+  async getSettings() {
+    return this.settings;
+  }
+  async updateSettings(input: Settings) {
+    this.settings = input;
+    return this.settings;
+  }
 }
 
-import { DbStorage } from "./dbStorage.js";
-import { env } from "./env.js";
-import { createLogger } from "./logger.js";
+import { DbStorage } from './dbStorage.js';
+import { env } from './env.js';
+import { createLogger } from './logger.js';
 
-const storageLog = createLogger("storage");
+const storageLog = createLogger('storage');
 
 if (env.useMemStorage) {
-  storageLog.warn("using in-memory storage", {
-    reason: env.databaseUrl ? "USE_MEM_STORAGE=1" : "DATABASE_URL not set",
+  storageLog.warn('using in-memory storage', {
+    reason: env.databaseUrl ? 'USE_MEM_STORAGE=1' : 'DATABASE_URL not set',
   });
 }
 
-export const storage: IStorage = env.useMemStorage
-  ? new MemStorage()
-  : new DbStorage();
+export const storage: IStorage = env.useMemStorage ? new MemStorage() : new DbStorage();

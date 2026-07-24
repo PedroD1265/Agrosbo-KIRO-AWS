@@ -153,7 +153,12 @@ describe('4. Dependencies replaced by real IDs', () => {
     });
     queue.enqueue({
       operationType: 'create_parcel',
-      payload: { producer_id: prodOp.temp_entity_id, name: 'Parcela Test', gps_lat: 14.5, gps_lng: -90.3 },
+      payload: {
+        producer_id: prodOp.temp_entity_id,
+        name: 'Parcela Test',
+        gps_lat: 14.5,
+        gps_lng: -90.3,
+      },
       dependencyOpIds: [prodOp.client_op_id],
       tempEntityId: 'parcel-temp-1',
     });
@@ -165,7 +170,9 @@ describe('4. Dependencies replaced by real IDs', () => {
     const realParcelId = result.reconciliation_map['parcel-temp-1'];
 
     // Verify parcel references the real producer in DB
-    const parcelRow = await pool.query('SELECT producer_id FROM parcel WHERE id = $1', [realParcelId]);
+    const parcelRow = await pool.query('SELECT producer_id FROM parcel WHERE id = $1', [
+      realParcelId,
+    ]);
     expect(parcelRow.rows[0].producer_id).toBe(realProducerId);
   });
 });
@@ -373,7 +380,9 @@ describe('9. No automatic fusion', () => {
     expect(parseInt(afterCount.rows[0].count)).toBe(parseInt(beforeCount.rows[0].count));
 
     // sync_operation recorded as possible_duplicate
-    const dupOps = await pool.query("SELECT * FROM sync_operation WHERE status = 'possible_duplicate'");
+    const dupOps = await pool.query(
+      "SELECT * FROM sync_operation WHERE status = 'possible_duplicate'",
+    );
     expect(dupOps.rows.length).toBe(1);
   });
 });

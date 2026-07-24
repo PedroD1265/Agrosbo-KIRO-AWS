@@ -1,5 +1,5 @@
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 interface Props {
   className?: string;
@@ -15,7 +15,7 @@ interface Props {
  */
 export function DetailSkeleton({ className, metrics = 4, tabs = true }: Props) {
   return (
-    <div className={cn("space-y-5 animate-fade-in", className)}>
+    <div className={cn('space-y-5 animate-fade-in', className)}>
       <Skeleton className="h-7 w-32" />
       <div className="space-y-3 border-b border-border/60 pb-5">
         <Skeleton className="h-3 w-24" />

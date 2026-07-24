@@ -1,10 +1,10 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { apiRequest } from "@/lib/queryClient";
-import type { User } from "@shared/schema";
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { apiRequest } from '@/lib/queryClient';
+import type { User } from '@shared/schema';
 
 interface AuthState {
   user: User | null;
-  enforcement: "on" | "off";
+  enforcement: 'on' | 'off';
   bypass: boolean;
   loading: boolean;
   login: (login: string, password: string) => Promise<User>;
@@ -16,19 +16,19 @@ const AuthContext = createContext<AuthState | undefined>(undefined);
 
 interface MeResponse {
   user: User | null;
-  enforcement: "on" | "off";
+  enforcement: 'on' | 'off';
   bypass: boolean;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [enforcement, setEnforcement] = useState<"on" | "off">("off");
+  const [enforcement, setEnforcement] = useState<'on' | 'off'>('off');
   const [bypass, setBypass] = useState(false);
   const [loading, setLoading] = useState(true);
 
   async function refresh() {
     try {
-      const res = await fetch("/api/auth/me", { credentials: "include" });
+      const res = await fetch('/api/auth/me', { credentials: 'include' });
       if (res.ok) {
         const data = (await res.json()) as MeResponse;
         setUser(data.user);
@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setBypass(data.bypass);
       } else {
         setUser(null);
-        setEnforcement("on");
+        setEnforcement('on');
         setBypass(false);
       }
     } catch {
@@ -46,10 +46,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  useEffect(() => { void refresh(); }, []);
+  useEffect(() => {
+    void refresh();
+  }, []);
 
   async function login(loginVal: string, password: string): Promise<User> {
-    const { user: u } = await apiRequest<{ user: User }>("POST", "/api/auth/login", {
+    const { user: u } = await apiRequest<{ user: User }>('POST', '/api/auth/login', {
       login: loginVal,
       password,
     });
@@ -58,9 +60,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
-    try { await apiRequest("POST", "/api/auth/logout"); } catch { /* noop */ }
+    try {
+      await apiRequest('POST', '/api/auth/logout');
+    } catch {
+      /* noop */
+    }
     setUser(null);
-    setEnforcement("on");
+    setEnforcement('on');
   }
 
   return (
@@ -72,11 +78,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthState {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
   return ctx;
 }
 
-export function hasRole(user: User | null, ...roles: Array<User["role"]>): boolean {
+export function hasRole(user: User | null, ...roles: Array<User['role']>): boolean {
   if (!user) return false;
   return roles.includes(user.role);
 }

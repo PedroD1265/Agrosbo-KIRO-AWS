@@ -1,6 +1,6 @@
-import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface Props {
   /** Header title (operative, e.g. row identifier) */
@@ -35,7 +35,7 @@ export function DetailSidePanel({
   return (
     <aside
       className={cn(
-        "sticky top-4 flex max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-lg border border-border bg-card shadow-card animate-fade-in",
+        'sticky top-4 flex max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-lg border border-border bg-card shadow-card animate-fade-in',
         className,
       )}
       aria-label="Panel de detalle"
@@ -57,13 +57,9 @@ export function DetailSidePanel({
           <X className="h-4 w-4" />
         </Button>
       </header>
-      <div className={cn("flex-1 px-4 py-3.5", scroll && "overflow-y-auto")}>
-        {children}
-      </div>
+      <div className={cn('flex-1 px-4 py-3.5', scroll && 'overflow-y-auto')}>{children}</div>
       {footer && (
-        <footer className="border-t border-border/60 bg-muted/20 px-4 py-2.5">
-          {footer}
-        </footer>
+        <footer className="border-t border-border/60 bg-muted/20 px-4 py-2.5">{footer}</footer>
       )}
     </aside>
   );

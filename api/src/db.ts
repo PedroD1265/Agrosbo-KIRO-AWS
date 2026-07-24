@@ -1,9 +1,9 @@
-import { RDSDataClient } from "@aws-sdk/client-rds-data";
-import { drizzle as drizzleAws } from "drizzle-orm/aws-data-api/pg";
-import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
-import pg from "pg";
-import * as schema from "@agrosbo/shared";
-import { env } from "./env.js";
+import { RDSDataClient } from '@aws-sdk/client-rds-data';
+import { drizzle as drizzleAws } from 'drizzle-orm/aws-data-api/pg';
+import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
+import pg from 'pg';
+import * as schema from '@agrosbo/shared';
+import { env } from './env.js';
 
 export const hasDatabaseUrl = env.hasDatabase;
 

@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowDownToLine, Clock, Download } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { EXPORT_DATASETS } from "./integrationUtils";
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowDownToLine, Clock, Download } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { EXPORT_DATASETS } from './integrationUtils';
 
 export function ExportPanel() {
   const [downloading, setDownloading] = useState<string | null>(null);
@@ -12,13 +12,13 @@ export function ExportPanel() {
     setDownloading(datasetId);
     try {
       const res = await fetch(`/api/integrations/export/${datasetId}`, {
-        credentials: "include",
+        credentials: 'include',
       });
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      const cd = res.headers.get("content-disposition") ?? "";
+      const a = document.createElement('a');
+      const cd = res.headers.get('content-disposition') ?? '';
       const match = cd.match(/filename="([^"]+)"/);
       a.href = url;
       a.download = match?.[1] ?? `agro-${datasetId}.csv`;
@@ -26,9 +26,9 @@ export function ExportPanel() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      toast.success("CSV descargado", { description: a.download });
+      toast.success('CSV descargado', { description: a.download });
     } catch (err) {
-      toast.error("No se pudo exportar el CSV", { description: (err as Error).message });
+      toast.error('No se pudo exportar el CSV', { description: (err as Error).message });
     } finally {
       setDownloading(null);
     }
@@ -44,7 +44,8 @@ export function ExportPanel() {
           Exportar datos
         </CardTitle>
         <p className="text-xs text-muted-foreground">
-          Descarga CSV en UTF-8 con todos los registros actuales. Compatible con Excel, Google Sheets y QGIS.
+          Descarga CSV en UTF-8 con todos los registros actuales. Compatible con Excel, Google
+          Sheets y QGIS.
         </p>
       </CardHeader>
       <CardContent className="p-4">
@@ -57,9 +58,9 @@ export function ExportPanel() {
               onClick={() => handleExport(ds.id)}
               data-testid={`button-export-${ds.id}`}
               className={cn(
-                "group flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background px-3 py-2.5 text-left transition-all",
-                "hover:border-primary/40 hover:bg-primary-soft/30 hover:shadow-card",
-                "disabled:opacity-60 disabled:cursor-not-allowed",
+                'group flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-background px-3 py-2.5 text-left transition-all',
+                'hover:border-primary/40 hover:bg-primary-soft/30 hover:shadow-card',
+                'disabled:opacity-60 disabled:cursor-not-allowed',
               )}
             >
               <div className="min-w-0">

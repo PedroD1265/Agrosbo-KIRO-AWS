@@ -1,28 +1,34 @@
-import { randomUUID } from "node:crypto";
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import { eq, and, desc } from "drizzle-orm";
-import { db } from "./db.js";
+import { randomUUID } from 'node:crypto';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import { eq, and, desc } from 'drizzle-orm';
+import { db } from './db.js';
 import {
   attachments,
   type Attachment,
   type InsertAttachment,
   type AttachmentEntityType,
-} from "@agrosbo/shared/schema.js";
+} from '@agrosbo/shared/schema.js';
 
-const UPLOAD_ROOT = path.resolve(process.cwd(), "uploads");
+const UPLOAD_ROOT = path.resolve(process.cwd(), 'uploads');
 const ALLOWED_MIME = new Set([
-  "image/jpeg", "image/png", "image/webp", "image/gif",
-  "application/pdf",
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'application/pdf',
 ]);
 const MAX_BYTES = 10 * 1024 * 1024;
 
 export class AttachmentValidationError extends Error {
-  constructor(message: string) { super(message); this.name = "AttachmentValidationError"; }
+  constructor(message: string) {
+    super(message);
+    this.name = 'AttachmentValidationError';
+  }
 }
 
 function safeFileName(name: string): string {
-  return name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120);
+  return name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120);
 }
 
 const ENTITY_ID_RE = /^[a-zA-Z0-9_-]{1,64}$/;
@@ -31,7 +37,7 @@ function assertWithinUploads(fullPath: string): void {
   const resolved = path.resolve(fullPath);
   const root = UPLOAD_ROOT.endsWith(path.sep) ? UPLOAD_ROOT : UPLOAD_ROOT + path.sep;
   if (resolved !== UPLOAD_ROOT && !resolved.startsWith(root)) {
-    throw new AttachmentValidationError("Ruta de archivo fuera de uploads/");
+    throw new AttachmentValidationError('Ruta de archivo fuera de uploads/');
   }
 }
 
@@ -54,14 +60,21 @@ function rowToAttachment(r: typeof attachments.$inferSelect): Attachment {
   return out;
 }
 
-export async function listAttachments(entityType?: AttachmentEntityType, entityId?: string): Promise<Attachment[]> {
+export async function listAttachments(
+  entityType?: AttachmentEntityType,
+  entityId?: string,
+): Promise<Attachment[]> {
   let rows;
   if (entityType && entityId) {
-    rows = await db.select().from(attachments)
+    rows = await db
+      .select()
+      .from(attachments)
       .where(and(eq(attachments.entityType, entityType), eq(attachments.entityId, entityId)))
       .orderBy(desc(attachments.createdAt));
   } else if (entityType) {
-    rows = await db.select().from(attachments)
+    rows = await db
+      .select()
+      .from(attachments)
       .where(eq(attachments.entityType, entityType))
       .orderBy(desc(attachments.createdAt));
   } else {
@@ -77,15 +90,15 @@ export async function createAttachment(input: InsertAttachment): Promise<Attachm
   if (input.sizeBytes > MAX_BYTES) {
     throw new AttachmentValidationError(`Archivo > 10MB`);
   }
-  const buf = Buffer.from(input.dataBase64, "base64");
+  const buf = Buffer.from(input.dataBase64, 'base64');
   if (buf.byteLength === 0 || buf.byteLength > MAX_BYTES) {
-    throw new AttachmentValidationError("Tamaño de archivo inválido");
+    throw new AttachmentValidationError('Tamaño de archivo inválido');
   }
   if (Math.abs(buf.byteLength - input.sizeBytes) > 1024) {
-    throw new AttachmentValidationError("Tamaño declarado no coincide con el contenido");
+    throw new AttachmentValidationError('Tamaño declarado no coincide con el contenido');
   }
   if (!ENTITY_ID_RE.test(input.entityId)) {
-    throw new AttachmentValidationError("entityId inválido");
+    throw new AttachmentValidationError('entityId inválido');
   }
   const id = `att-${randomUUID().slice(0, 10)}`;
   const safe = safeFileName(input.fileName);
@@ -97,32 +110,37 @@ export async function createAttachment(input: InsertAttachment): Promise<Attachm
   await fs.writeFile(fullPath, buf);
   const remoteUrl = `/uploads/${input.entityType}/${input.entityId}/${diskName}`;
   const now = new Date().toISOString();
-  const [row] = await db.insert(attachments).values({
-    id,
-    entityType: input.entityType,
-    entityId: input.entityId,
-    fileName: safe,
-    mimeType: input.mimeType,
-    sizeBytes: buf.byteLength,
-    localStatus: "uploaded",
-    remoteUrl,
-    createdAt: now,
-    uploadedAt: now,
-    createdBy: input.createdBy ?? null,
-  }).returning();
+  const [row] = await db
+    .insert(attachments)
+    .values({
+      id,
+      entityType: input.entityType,
+      entityId: input.entityId,
+      fileName: safe,
+      mimeType: input.mimeType,
+      sizeBytes: buf.byteLength,
+      localStatus: 'uploaded',
+      remoteUrl,
+      createdAt: now,
+      uploadedAt: now,
+      createdBy: input.createdBy ?? null,
+    })
+    .returning();
   return rowToAttachment(row);
 }
 
 export async function deleteAttachment(id: string): Promise<boolean> {
   const [row] = await db.select().from(attachments).where(eq(attachments.id, id));
   if (!row) return false;
-  if (row.remoteUrl?.startsWith("/uploads/")) {
-    const rel = row.remoteUrl.replace(/^\/uploads\//, "");
+  if (row.remoteUrl?.startsWith('/uploads/')) {
+    const rel = row.remoteUrl.replace(/^\/uploads\//, '');
     const full = path.join(UPLOAD_ROOT, rel);
     try {
       assertWithinUploads(full);
       await fs.unlink(full);
-    } catch { /* best-effort */ }
+    } catch {
+      /* best-effort */
+    }
   }
   await db.delete(attachments).where(eq(attachments.id, id));
   return true;

@@ -1,6 +1,6 @@
-import { Cloud, CloudRain, CloudDrizzle, CloudSnow, Sun, CloudFog, Zap } from "lucide-react";
-import { useWeatherForecast, weatherLabel, irrigationAdvice } from "@/hooks/useWeatherForecast";
-import { cn } from "@/lib/utils";
+import { Cloud, CloudRain, CloudDrizzle, CloudSnow, Sun, CloudFog, Zap } from 'lucide-react';
+import { useWeatherForecast, weatherLabel, irrigationAdvice } from '@/hooks/useWeatherForecast';
+import { cn } from '@/lib/utils';
 
 interface Props {
   lat: number | null;
@@ -18,7 +18,7 @@ function iconFor(code: number) {
   return Zap;
 }
 
-const DAY_NAMES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 export function WeatherStrip({ lat, lng, className }: Props) {
   const { data, isLoading, isError } = useWeatherForecast(lat, lng);
@@ -27,7 +27,12 @@ export function WeatherStrip({ lat, lng, className }: Props) {
 
   if (isLoading) {
     return (
-      <div className={cn("flex h-[88px] items-center gap-2 rounded-xl border border-primary-foreground/15 bg-primary-foreground/5 px-3", className)}>
+      <div
+        className={cn(
+          'flex h-[88px] items-center gap-2 rounded-xl border border-primary-foreground/15 bg-primary-foreground/5 px-3',
+          className,
+        )}
+      >
         <Cloud className="h-4 w-4 animate-pulse text-primary-foreground/60" />
         <span className="text-xs text-primary-foreground/70">Cargando clima…</span>
       </div>
@@ -43,16 +48,16 @@ export function WeatherStrip({ lat, lng, className }: Props) {
   const TodayIcon = iconFor(today.weatherCode);
 
   const adviceClasses =
-    advice.tone === "warn"
-      ? "bg-status-warn/20 text-primary-foreground ring-1 ring-status-warn/40"
-      : advice.tone === "info"
-      ? "bg-primary-foreground/15 text-primary-foreground"
-      : "bg-status-ok/20 text-primary-foreground ring-1 ring-status-ok/30";
+    advice.tone === 'warn'
+      ? 'bg-status-warn/20 text-primary-foreground ring-1 ring-status-warn/40'
+      : advice.tone === 'info'
+        ? 'bg-primary-foreground/15 text-primary-foreground'
+        : 'bg-status-ok/20 text-primary-foreground ring-1 ring-status-ok/30';
 
   return (
     <div
       className={cn(
-        "rounded-xl border border-primary-foreground/15 bg-primary-foreground/8 backdrop-blur-sm px-3.5 py-3",
+        'rounded-xl border border-primary-foreground/15 bg-primary-foreground/8 backdrop-blur-sm px-3.5 py-3',
         className,
       )}
       data-testid="weather-strip"
@@ -98,7 +103,7 @@ export function WeatherStrip({ lat, lng, className }: Props) {
       </div>
       <div
         className={cn(
-          "mt-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium",
+          'mt-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium',
           adviceClasses,
         )}
         data-testid="weather-advice"

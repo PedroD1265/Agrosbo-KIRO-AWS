@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { X, Sparkles, ArrowRight, type LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { X, Sparkles, ArrowRight, type LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface OnboardingStep {
   id: string;
@@ -23,8 +23,8 @@ interface Props {
  * de los datos (steps.done) y se puede descartar. Puramente UI; no toca data.
  */
 export function OnboardingHints({
-  storageKey = "agrosbo:onboarding:dismissed",
-  title = "Configura tu operación",
+  storageKey = 'agrosbo:onboarding:dismissed',
+  title = 'Configura tu operación',
   steps,
   className,
 }: Props) {
@@ -32,7 +32,7 @@ export function OnboardingHints({
 
   useEffect(() => {
     try {
-      setDismissed(localStorage.getItem(storageKey) === "1");
+      setDismissed(localStorage.getItem(storageKey) === '1');
     } catch {
       // ignore
     }
@@ -43,7 +43,7 @@ export function OnboardingHints({
 
   const handleDismiss = () => {
     try {
-      localStorage.setItem(storageKey, "1");
+      localStorage.setItem(storageKey, '1');
     } catch {
       // ignore
     }
@@ -53,7 +53,7 @@ export function OnboardingHints({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-primary/15 bg-primary-soft/40 p-4 md:p-5 animate-fade-in",
+        'relative overflow-hidden rounded-2xl border border-primary/15 bg-primary-soft/40 p-4 md:p-5 animate-fade-in',
         className,
       )}
     >
@@ -65,7 +65,8 @@ export function OnboardingHints({
           <div>
             <p className="text-sm font-semibold text-foreground">{title}</p>
             <p className="text-xs text-muted-foreground">
-              {remaining.length} {remaining.length === 1 ? "paso recomendado" : "pasos recomendados"} para arrancar
+              {remaining.length}{' '}
+              {remaining.length === 1 ? 'paso recomendado' : 'pasos recomendados'} para arrancar
             </p>
           </div>
         </div>
@@ -87,22 +88,26 @@ export function OnboardingHints({
                 to={s.to}
                 data-testid={`onboarding-step-${s.id}`}
                 className={cn(
-                  "group flex items-center gap-3 rounded-xl border bg-card px-3 py-2.5 transition-all",
+                  'group flex items-center gap-3 rounded-xl border bg-card px-3 py-2.5 transition-all',
                   s.done
-                    ? "border-status-ok/30 opacity-70"
-                    : "border-border/60 hover:border-primary/40 hover:shadow-card",
+                    ? 'border-status-ok/30 opacity-70'
+                    : 'border-border/60 hover:border-primary/40 hover:shadow-card',
                 )}
               >
                 <span
                   className={cn(
-                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-                    s.done ? "bg-status-ok-soft text-status-ok" : "bg-primary text-primary-foreground",
+                    'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
+                    s.done
+                      ? 'bg-status-ok-soft text-status-ok'
+                      : 'bg-primary text-primary-foreground',
                   )}
                 >
-                  {s.done ? "✓" : i + 1}
+                  {s.done ? '✓' : i + 1}
                 </span>
                 {Icon && <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />}
-                <span className={cn("flex-1 truncate text-sm", s.done && "line-through")}>{s.label}</span>
+                <span className={cn('flex-1 truncate text-sm', s.done && 'line-through')}>
+                  {s.label}
+                </span>
                 {!s.done && (
                   <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                 )}

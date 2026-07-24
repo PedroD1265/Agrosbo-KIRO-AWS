@@ -1,10 +1,16 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { useBlocks, useGreenhouses } from "@/hooks/data";
-import { defaultFilters, type ReportFilters } from "./types";
-import { Calendar, RotateCcw, SlidersHorizontal } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { useBlocks, useGreenhouses } from '@/hooks/data';
+import { defaultFilters, type ReportFilters } from './types';
+import { Calendar, RotateCcw, SlidersHorizontal } from 'lucide-react';
 
 interface Props {
   filters: ReportFilters;
@@ -29,7 +35,13 @@ function presetRange(days: number): { dateFrom: string; dateTo: string } {
   };
 }
 
-export function ReportFilters({ filters, onChange, show = {}, assignees = [], statusOptions = [] }: Props) {
+export function ReportFilters({
+  filters,
+  onChange,
+  show = {},
+  assignees = [],
+  statusOptions = [],
+}: Props) {
   const { data: blocks = [] } = useBlocks();
   const { data: greenhouses = [] } = useGreenhouses();
 
@@ -40,9 +52,9 @@ export function ReportFilters({ filters, onChange, show = {}, assignees = [], st
   }
 
   const scopeOptions =
-    filters.scopeType === "block"
+    filters.scopeType === 'block'
       ? blocks
-      : filters.scopeType === "greenhouse"
+      : filters.scopeType === 'greenhouse'
         ? greenhouses
         : [...blocks, ...greenhouses];
 
@@ -70,7 +82,9 @@ export function ReportFilters({ filters, onChange, show = {}, assignees = [], st
         {dateRange && (
           <>
             <div className="flex flex-col gap-1">
-              <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Desde</Label>
+              <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                Desde
+              </Label>
               <Input
                 type="date"
                 value={filters.dateFrom}
@@ -80,7 +94,9 @@ export function ReportFilters({ filters, onChange, show = {}, assignees = [], st
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Hasta</Label>
+              <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                Hasta
+              </Label>
               <Input
                 type="date"
                 value={filters.dateTo}
@@ -92,9 +108,9 @@ export function ReportFilters({ filters, onChange, show = {}, assignees = [], st
             <div className="flex items-end gap-1 pb-0.5">
               <Calendar className="mb-1.5 h-3.5 w-3.5 text-muted-foreground" />
               {[
-                { label: "7d", days: 7 },
-                { label: "30d", days: 30 },
-                { label: "90d", days: 90 },
+                { label: '7d', days: 7 },
+                { label: '30d', days: 30 },
+                { label: '90d', days: 90 },
               ].map((p) => (
                 <Button
                   key={p.label}
@@ -115,10 +131,14 @@ export function ReportFilters({ filters, onChange, show = {}, assignees = [], st
         {scope && (
           <>
             <div className="flex flex-col gap-1">
-              <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Tipo</Label>
+              <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                Tipo
+              </Label>
               <Select
                 value={filters.scopeType}
-                onValueChange={(v) => patch({ scopeType: v as ReportFilters["scopeType"], scopeId: "all" })}
+                onValueChange={(v) =>
+                  patch({ scopeType: v as ReportFilters['scopeType'], scopeId: 'all' })
+                }
               >
                 <SelectTrigger className="h-9 w-36 text-sm" data-testid="filter-scope-type">
                   <SelectValue />
@@ -131,9 +151,11 @@ export function ReportFilters({ filters, onChange, show = {}, assignees = [], st
               </Select>
             </div>
 
-            {filters.scopeType !== "all" && (
+            {filters.scopeType !== 'all' && (
               <div className="flex flex-col gap-1">
-                <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Ubicación</Label>
+                <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  Ubicación
+                </Label>
                 <Select value={filters.scopeId} onValueChange={(v) => patch({ scopeId: v })}>
                   <SelectTrigger className="h-9 w-44 text-sm" data-testid="filter-scope-id">
                     <SelectValue placeholder="Todos" />
@@ -154,7 +176,9 @@ export function ReportFilters({ filters, onChange, show = {}, assignees = [], st
 
         {status && statusOptions.length > 0 && (
           <div className="flex flex-col gap-1">
-            <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Estado</Label>
+            <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              Estado
+            </Label>
             <Select value={filters.status} onValueChange={(v) => patch({ status: v })}>
               <SelectTrigger className="h-9 w-36 text-sm" data-testid="filter-status">
                 <SelectValue />
@@ -173,7 +197,9 @@ export function ReportFilters({ filters, onChange, show = {}, assignees = [], st
 
         {assignee && assignees.length > 0 && (
           <div className="flex flex-col gap-1">
-            <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Responsable</Label>
+            <Label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              Responsable
+            </Label>
             <Select value={filters.assignee} onValueChange={(v) => patch({ assignee: v })}>
               <SelectTrigger className="h-9 w-40 text-sm" data-testid="filter-assignee">
                 <SelectValue />

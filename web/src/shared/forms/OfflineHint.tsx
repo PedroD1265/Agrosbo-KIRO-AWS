@@ -1,6 +1,6 @@
-import { CloudOff, RefreshCw } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useSyncStatus } from "@/hooks/useSyncStatus";
+import { CloudOff, RefreshCw } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useSyncStatus } from '@/hooks/useSyncStatus';
 
 interface Props {
   /** Mensaje custom; por defecto se elige según online/cola */
@@ -24,18 +24,18 @@ export function OfflineHint({ children, className, showWhenPending = false }: Pr
   const offline = !online;
   const Icon = offline ? CloudOff : RefreshCw;
   const defaultMsg = offline
-    ? "Sin conexión: se guardará localmente y se sincronizará al recuperar internet."
-    : `${pending} ${pending === 1 ? "cambio" : "cambios"} en cola se sincronizarán pronto.`;
+    ? 'Sin conexión: se guardará localmente y se sincronizará al recuperar internet.'
+    : `${pending} ${pending === 1 ? 'cambio' : 'cambios'} en cola se sincronizarán pronto.`;
 
   return (
     <div
       role="status"
       aria-live="polite"
       className={cn(
-        "flex items-start gap-2 rounded-md border px-3 py-2 text-[12px] leading-snug",
+        'flex items-start gap-2 rounded-md border px-3 py-2 text-[12px] leading-snug',
         offline
-          ? "border-status-warn/30 bg-status-warn-soft/60 text-status-warn"
-          : "border-status-pending-sync/30 bg-status-pending-sync-soft/60 text-status-pending-sync",
+          ? 'border-status-warn/30 bg-status-warn-soft/60 text-status-warn'
+          : 'border-status-pending-sync/30 bg-status-pending-sync-soft/60 text-status-pending-sync',
         className,
       )}
     >

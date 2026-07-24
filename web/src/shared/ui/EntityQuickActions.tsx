@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Droplets, ListChecks, NotebookPen, PackageCheck } from "lucide-react";
-import type { ScopeType } from "@shared/schema";
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Droplets, ListChecks, NotebookPen, PackageCheck } from 'lucide-react';
+import type { ScopeType } from '@shared/schema';
 
 interface Props {
   scopeType: ScopeType;
@@ -19,11 +19,16 @@ interface Props {
  */
 export function EntityQuickActions({ scopeType, scopeId }: Props) {
   const ref = `${scopeType}:${scopeId}`;
-  const items: { to: string; label: string; icon: React.ComponentType<{ className?: string }>; testId: string }[] = [
-    { to: `/tasks?scope=${ref}`, label: "Nueva tarea", icon: ListChecks, testId: "qa-task" },
-    { to: `/irrigation?scope=${ref}`, label: "Riego", icon: Droplets, testId: "qa-irr" },
-    { to: `/observations?scope=${ref}`, label: "Observación", icon: NotebookPen, testId: "qa-obs" },
-    { to: `/harvest?scope=${ref}`, label: "Cosecha", icon: PackageCheck, testId: "qa-har" },
+  const items: {
+    to: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    testId: string;
+  }[] = [
+    { to: `/tasks?scope=${ref}`, label: 'Nueva tarea', icon: ListChecks, testId: 'qa-task' },
+    { to: `/irrigation?scope=${ref}`, label: 'Riego', icon: Droplets, testId: 'qa-irr' },
+    { to: `/observations?scope=${ref}`, label: 'Observación', icon: NotebookPen, testId: 'qa-obs' },
+    { to: `/harvest?scope=${ref}`, label: 'Cosecha', icon: PackageCheck, testId: 'qa-har' },
   ];
   return (
     <div className="flex flex-wrap items-center gap-1.5" data-testid="entity-quick-actions">

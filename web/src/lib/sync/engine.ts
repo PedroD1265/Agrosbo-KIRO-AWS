@@ -1,7 +1,7 @@
-import { toast } from "sonner";
-import { queryClient } from "@/lib/queryClient";
-import { idb, type QueuedMutation } from "@/lib/db/idb";
-import { listPending, setStatus, remove } from "@/lib/sync/queue";
+import { toast } from 'sonner';
+import { queryClient } from '@/lib/queryClient';
+import { idb, type QueuedMutation } from '@/lib/db/idb';
+import { listPending, setStatus, remove } from '@/lib/sync/queue';
 
 const MAX_ATTEMPTS = 6;
 const BASE_DELAY = 1500;
@@ -27,7 +27,7 @@ function notify() {
   });
 }
 
-idb.on("ready", () => notify());
+idb.on('ready', () => notify());
 
 function backoff(attempts: number) {
   return Math.min(30_000, BASE_DELAY * 2 ** Math.max(0, attempts - 1));
@@ -63,10 +63,7 @@ function substitute(value: string, map: Map<string, string>): string {
   return out;
 }
 
-function rewriteMutation(
-  mut: QueuedMutation,
-  map: Map<string, string>,
-): QueuedMutation {
+function rewriteMutation(mut: QueuedMutation, map: Map<string, string>): QueuedMutation {
   if (map.size === 0) return mut;
   const url = substitute(mut.url, map);
   let body = mut.body;
@@ -82,8 +79,8 @@ function rewriteMutation(
   return { ...mut, url, body };
 }
 
-function isCreateDomain(d: QueuedMutation["domain"]) {
-  return d.endsWith(":create");
+function isCreateDomain(d: QueuedMutation['domain']) {
+  return d.endsWith(':create');
 }
 
 /* --- network send ------------------------------------------------------- */
@@ -92,20 +89,23 @@ async function send(mut: QueuedMutation) {
   const res = await fetch(mut.url, {
     method: mut.method,
     headers: {
-      "Content-Type": "application/json",
-      "X-Client-Id": mut.clientId,
-      "X-Idempotency-Key": mut.clientId,
+      'Content-Type': 'application/json',
+      'X-Client-Id': mut.clientId,
+      'X-Idempotency-Key': mut.clientId,
     },
     body: JSON.stringify(mut.body),
-    credentials: "include",
+    credentials: 'include',
   });
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
+    const text = await res.text().catch(() => '');
     let humanMessage = `${res.status} ${res.statusText}`;
     try {
       const parsed = JSON.parse(text) as { error?: string; issues?: { message: string }[] };
       if (parsed.issues && parsed.issues.length > 0) {
-        const issueText = parsed.issues.slice(0, 2).map((i) => i.message).join("; ");
+        const issueText = parsed.issues
+          .slice(0, 2)
+          .map((i) => i.message)
+          .join('; ');
         humanMessage = parsed.error ? `${parsed.error}: ${issueText}` : issueText;
       } else if (parsed.error) {
         humanMessage = parsed.error;
@@ -137,24 +137,24 @@ function invalidateAfter(mut: QueuedMutation) {
 
 export async function processQueueOnce(): Promise<void> {
   if (running) return;
-  if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
   running = true;
   try {
     const pending = await listPending();
     const map = await loadIdMap();
     let nextAttemptForBackoff = Number.POSITIVE_INFINITY;
     for (const original of pending) {
-      if (original.status === "failed" && original.attempts >= MAX_ATTEMPTS) continue;
+      if (original.status === 'failed' && original.attempts >= MAX_ATTEMPTS) continue;
       const mut = rewriteMutation(original, map);
-      await setStatus(mut.clientId, "syncing", { attempts: mut.attempts + 1 });
+      await setStatus(mut.clientId, 'syncing', { attempts: mut.attempts + 1 });
       notify();
       try {
         const response = await send({ ...mut, attempts: mut.attempts + 1 });
         if (
           isCreateDomain(mut.domain) &&
           response &&
-          typeof response === "object" &&
-          typeof (response as { id?: unknown }).id === "string"
+          typeof response === 'object' &&
+          typeof (response as { id?: unknown }).id === 'string'
         ) {
           await rememberId(mut.clientId, (response as { id: string }).id);
         }
@@ -167,19 +167,20 @@ export async function processQueueOnce(): Promise<void> {
         const attempts = original.attempts + 1;
         const isClientErr = !!(status && isClientError(status));
         const giveUp = isClientErr || attempts >= MAX_ATTEMPTS;
-        await setStatus(mut.clientId, giveUp ? "failed" : "pending", {
+        await setStatus(mut.clientId, giveUp ? 'failed' : 'pending', {
           attempts: isClientErr ? MAX_ATTEMPTS : attempts,
           lastError: message,
         });
         if (giveUp && isClientErr) {
           if (status === 401) {
-            window.dispatchEvent(new CustomEvent("agrosbo:session-expired"));
-            toast.error("Sesión expirada", {
-              description: "Tu sesión ha caducado. Inicia sesión de nuevo para sincronizar los cambios pendientes.",
+            window.dispatchEvent(new CustomEvent('agrosbo:session-expired'));
+            toast.error('Sesión expirada', {
+              description:
+                'Tu sesión ha caducado. Inicia sesión de nuevo para sincronizar los cambios pendientes.',
               duration: 8000,
             });
           } else {
-            toast.error("Error al guardar cambios", { description: message });
+            toast.error('Error al guardar cambios', { description: message });
           }
         }
         notify();
@@ -212,15 +213,15 @@ export function triggerSync() {
 }
 
 export function startSyncEngine() {
-  if (listenersAttached || typeof window === "undefined") return;
+  if (listenersAttached || typeof window === 'undefined') return;
   listenersAttached = true;
-  window.addEventListener("online", () => {
+  window.addEventListener('online', () => {
     notify();
     void processQueueOnce();
   });
-  window.addEventListener("offline", () => notify());
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") void processQueueOnce();
+  window.addEventListener('offline', () => notify());
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') void processQueueOnce();
   });
   setTimeout(() => void processQueueOnce(), 500);
 }

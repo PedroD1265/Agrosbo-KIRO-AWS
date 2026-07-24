@@ -1,10 +1,10 @@
-import { useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Loader2, Paperclip, Trash2, FileText, Image as ImageIcon } from "lucide-react";
-import { useAttachments, queueUploadAttachment, queueDeleteAttachment } from "@/hooks/data";
-import { toast } from "sonner";
-import type { AttachmentEntityType } from "@shared/schema";
+import { useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Loader2, Paperclip, Trash2, FileText, Image as ImageIcon } from 'lucide-react';
+import { useAttachments, queueUploadAttachment, queueDeleteAttachment } from '@/hooks/data';
+import { toast } from 'sonner';
+import type { AttachmentEntityType } from '@shared/schema';
 
 interface Props {
   entityType: AttachmentEntityType;
@@ -25,14 +25,14 @@ export function AttachmentUploader({ entityType, entityId, readOnly }: Props) {
       for (const f of Array.from(files)) {
         await queueUploadAttachment({ entityType, entityId, file: f });
       }
-      toast.success("Adjunto en cola", { description: "Se subirá cuando haya conexión." });
+      toast.success('Adjunto en cola', { description: 'Se subirá cuando haya conexión.' });
     } catch (err) {
-      toast.error("No se pudo adjuntar", {
-        description: err instanceof Error ? err.message : "Error desconocido",
+      toast.error('No se pudo adjuntar', {
+        description: err instanceof Error ? err.message : 'Error desconocido',
       });
     } finally {
       setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
+      if (fileRef.current) fileRef.current.value = '';
     }
   }
 
@@ -43,9 +43,7 @@ export function AttachmentUploader({ entityType, entityId, readOnly }: Props) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-muted-foreground">
-          Adjuntos ({items.length})
-        </p>
+        <p className="text-xs font-medium text-muted-foreground">Adjuntos ({items.length})</p>
         {!readOnly && (
           <>
             <input
@@ -65,7 +63,11 @@ export function AttachmentUploader({ entityType, entityId, readOnly }: Props) {
               disabled={uploading}
               data-testid="button-attach"
             >
-              {uploading ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Paperclip className="mr-1 h-3.5 w-3.5" />}
+              {uploading ? (
+                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Paperclip className="mr-1 h-3.5 w-3.5" />
+              )}
               Adjuntar
             </Button>
           </>
@@ -78,7 +80,7 @@ export function AttachmentUploader({ entityType, entityId, readOnly }: Props) {
       ) : (
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {items.map((a) => {
-            const isImg = a.mimeType.startsWith("image/");
+            const isImg = a.mimeType.startsWith('image/');
             return (
               <Card key={a.id} className="overflow-hidden" data-testid={`card-attachment-${a.id}`}>
                 {isImg && a.remoteUrl ? (
@@ -92,12 +94,12 @@ export function AttachmentUploader({ entityType, entityId, readOnly }: Props) {
                   </a>
                 ) : (
                   <a
-                    href={a.remoteUrl ?? "#"}
+                    href={a.remoteUrl ?? '#'}
                     target="_blank"
                     rel="noreferrer"
                     className="flex h-24 w-full items-center justify-center bg-muted"
                   >
-                    {a.mimeType === "application/pdf" ? (
+                    {a.mimeType === 'application/pdf' ? (
                       <FileText className="h-10 w-10 text-muted-foreground" />
                     ) : (
                       <ImageIcon className="h-10 w-10 text-muted-foreground" />

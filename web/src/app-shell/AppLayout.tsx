@@ -1,12 +1,12 @@
-import { Outlet } from "react-router-dom";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "./AppSidebar";
-import { TopBar } from "./TopBar";
-import { BottomNav } from "./BottomNav";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { SyncIndicator } from "@/shared/ui/SyncIndicator";
-import { CommandPalette, useCommandPalette } from "@/components/CommandPalette";
-import { Search } from "lucide-react";
+import { Outlet } from 'react-router-dom';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { AppSidebar } from './AppSidebar';
+import { TopBar } from './TopBar';
+import { BottomNav } from './BottomNav';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { SyncIndicator } from '@/shared/ui/SyncIndicator';
+import { CommandPalette, useCommandPalette } from '@/components/CommandPalette';
+import { Search } from 'lucide-react';
 
 function MobileTopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
   return (
@@ -17,7 +17,9 @@ function MobileTopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
         </div>
         <div className="leading-tight">
           <p className="text-sm font-semibold">AgrosBO</p>
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Toco · Bolivia</p>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Toco · Bolivia
+          </p>
         </div>
       </div>
       <div className="flex items-center gap-1">
@@ -45,7 +47,10 @@ export function AppLayout() {
       <div className="min-h-screen bg-background">
         <MobileTopBar onOpenCommand={() => setCmdOpen(true)} />
         <main className="px-4 pb-24 pt-4">
-          <div key={typeof window !== "undefined" ? window.location.pathname : ""} className="animate-fade-in">
+          <div
+            key={typeof window !== 'undefined' ? window.location.pathname : ''}
+            className="animate-fade-in"
+          >
             <Outlet />
           </div>
         </main>
@@ -63,7 +68,7 @@ export function AppLayout() {
           <TopBar onOpenCommand={() => setCmdOpen(true)} />
           <main className="flex-1 px-6 py-6">
             <div
-              key={typeof window !== "undefined" ? window.location.pathname : ""}
+              key={typeof window !== 'undefined' ? window.location.pathname : ''}
               className="mx-auto w-full max-w-[1600px] animate-fade-in"
             >
               <Outlet />

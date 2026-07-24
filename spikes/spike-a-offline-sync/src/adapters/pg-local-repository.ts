@@ -63,7 +63,13 @@ export class PgLocalRepository implements SyncRepository {
       `INSERT INTO sync_operation (client_op_id, device_id, operation_type, temp_entity_id, resolved_entity_id, status)
        VALUES ($1, $2, $3, $4, $5, 'applied')
        ON CONFLICT (client_op_id) DO NOTHING`,
-      [params.clientOpId, params.deviceId, params.operationType, params.tempEntityId, params.resolvedEntityId],
+      [
+        params.clientOpId,
+        params.deviceId,
+        params.operationType,
+        params.tempEntityId,
+        params.resolvedEntityId,
+      ],
     );
   }
 
@@ -78,7 +84,13 @@ export class PgLocalRepository implements SyncRepository {
       `INSERT INTO sync_operation (client_op_id, device_id, operation_type, temp_entity_id, status, error_message)
        VALUES ($1, $2, $3, $4, 'failed', $5)
        ON CONFLICT (client_op_id) DO NOTHING`,
-      [params.clientOpId, params.deviceId, params.operationType, params.tempEntityId, params.errorMessage],
+      [
+        params.clientOpId,
+        params.deviceId,
+        params.operationType,
+        params.tempEntityId,
+        params.errorMessage,
+      ],
     );
   }
 
@@ -172,7 +184,13 @@ export class PgLocalRepository implements SyncRepository {
     const result = await this.getClient().query(
       `INSERT INTO document_metadata (storage_key, filename, category, related_entity_type, related_entity_id)
        VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [params.storageKey, params.filename, params.category, params.relatedEntityType, params.relatedEntityId],
+      [
+        params.storageKey,
+        params.filename,
+        params.category,
+        params.relatedEntityType,
+        params.relatedEntityId,
+      ],
     );
     return result.rows[0].id;
   }

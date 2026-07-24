@@ -1,17 +1,17 @@
-import { eq, lt } from "drizzle-orm";
-import { db, hasDatabaseUrl } from "./db.js";
-import { weatherCache, type WeatherForecast, type DailyForecast } from "@agrosbo/shared/schema.js";
-import { createLogger } from "./logger.js";
+import { eq, lt } from 'drizzle-orm';
+import { db, hasDatabaseUrl } from './db.js';
+import { weatherCache, type WeatherForecast, type DailyForecast } from '@agrosbo/shared/schema.js';
+import { createLogger } from './logger.js';
 
-const log = createLogger("weather");
+const log = createLogger('weather');
 
-const ENDPOINT = "https://api.open-meteo.com/v1/forecast";
-const TZ = "America/La_Paz";
+const ENDPOINT = 'https://api.open-meteo.com/v1/forecast';
+const TZ = 'America/La_Paz';
 const FRESH_MS = 60 * 60 * 1000;
 const STALE_MS = 24 * 60 * 60 * 1000;
 
 interface CacheEntry {
-  payload: Omit<WeatherForecast, "stale">;
+  payload: Omit<WeatherForecast, 'stale'>;
   expiresAt: number;
 }
 const memCache = new Map<string, CacheEntry>();
@@ -20,20 +20,20 @@ function keyFor(lat: number, lng: number): string {
   return `${lat.toFixed(3)},${lng.toFixed(3)}`;
 }
 
-async function fetchOpenMeteo(lat: number, lng: number): Promise<Omit<WeatherForecast, "stale">> {
+async function fetchOpenMeteo(lat: number, lng: number): Promise<Omit<WeatherForecast, 'stale'>> {
   const params = new URLSearchParams({
     latitude: lat.toFixed(4),
     longitude: lng.toFixed(4),
     daily: [
-      "weather_code",
-      "temperature_2m_max",
-      "temperature_2m_min",
-      "precipitation_sum",
-      "precipitation_probability_max",
-      "wind_speed_10m_max",
-    ].join(","),
+      'weather_code',
+      'temperature_2m_max',
+      'temperature_2m_min',
+      'precipitation_sum',
+      'precipitation_probability_max',
+      'wind_speed_10m_max',
+    ].join(','),
     timezone: TZ,
-    forecast_days: "7",
+    forecast_days: '7',
   });
 
   const ctrl = new AbortController();
@@ -78,23 +78,30 @@ async function fetchOpenMeteo(lat: number, lng: number): Promise<Omit<WeatherFor
   };
 }
 
-async function loadFromDb(key: string): Promise<{ payload: Omit<WeatherForecast, "stale">; fetchedAt: number } | null> {
+async function loadFromDb(
+  key: string,
+): Promise<{ payload: Omit<WeatherForecast, 'stale'>; fetchedAt: number } | null> {
   if (!hasDatabaseUrl) return null;
   try {
     const rows = await db.select().from(weatherCache).where(eq(weatherCache.key, key)).limit(1);
     const r = rows[0];
     if (!r) return null;
     return {
-      payload: r.payload as Omit<WeatherForecast, "stale">,
+      payload: r.payload as Omit<WeatherForecast, 'stale'>,
       fetchedAt: new Date(r.fetchedAt).getTime(),
     };
   } catch (err) {
-    log.warn("weather cache db read failed", { err });
+    log.warn('weather cache db read failed', { err });
     return null;
   }
 }
 
-async function saveToDb(key: string, lat: number, lng: number, payload: Omit<WeatherForecast, "stale">): Promise<void> {
+async function saveToDb(
+  key: string,
+  lat: number,
+  lng: number,
+  payload: Omit<WeatherForecast, 'stale'>,
+): Promise<void> {
   if (!hasDatabaseUrl) return;
   const now = Date.now();
   const fetchedAt = new Date(now).toISOString();
@@ -109,7 +116,7 @@ async function saveToDb(key: string, lat: number, lng: number, payload: Omit<Wea
       });
     await db.delete(weatherCache).where(lt(weatherCache.expiresAt, fetchedAt));
   } catch (err) {
-    log.warn("weather cache db write failed", { err });
+    log.warn('weather cache db write failed', { err });
   }
 }
 
@@ -134,7 +141,9 @@ export async function getForecast(lat: number, lng: number): Promise<WeatherFore
     await saveToDb(key, lat, lng, fresh);
     return { ...fresh, stale: false };
   } catch (err) {
-    log.warn("open-meteo fetch failed; using stale cache if available", { err: (err as Error).message });
+    log.warn('open-meteo fetch failed; using stale cache if available', {
+      err: (err as Error).message,
+    });
     if (dbHit && now - dbHit.fetchedAt < STALE_MS) {
       return { ...dbHit.payload, stale: true };
     }

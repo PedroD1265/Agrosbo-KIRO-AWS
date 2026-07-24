@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 interface Props {
   title: string;
@@ -13,14 +13,12 @@ interface Props {
  */
 export function FormSection({ title, description, children, className }: Props) {
   return (
-    <section className={cn("space-y-3", className)}>
+    <section className={cn('space-y-3', className)}>
       <div className="flex items-baseline justify-between gap-2 border-b border-border/50 pb-1.5">
         <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
           {title}
         </h3>
-        {description && (
-          <p className="text-[11px] text-muted-foreground/80">{description}</p>
-        )}
+        {description && <p className="text-[11px] text-muted-foreground/80">{description}</p>}
       </div>
       <div className="space-y-3.5">{children}</div>
     </section>

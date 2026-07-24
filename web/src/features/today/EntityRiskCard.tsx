@@ -1,13 +1,19 @@
-import { Link } from "react-router-dom";
-import { ChevronRight, AlertTriangle, Sprout, LayoutGrid, Droplets, ListChecks, NotebookPen } from "lucide-react";
-import type { Block, Greenhouse } from "@shared/schema";
-import { StatusBadge } from "@/shared/ui/StatusBadge";
-import { StageBadge } from "@/shared/ui/StageBadge";
-import { cn } from "@/lib/utils";
+import { Link } from 'react-router-dom';
+import {
+  ChevronRight,
+  AlertTriangle,
+  Sprout,
+  LayoutGrid,
+  Droplets,
+  ListChecks,
+  NotebookPen,
+} from 'lucide-react';
+import type { Block, Greenhouse } from '@shared/schema';
+import { StatusBadge } from '@/shared/ui/StatusBadge';
+import { StageBadge } from '@/shared/ui/StageBadge';
+import { cn } from '@/lib/utils';
 
-type Entity =
-  | ({ kind: "block" } & Block)
-  | ({ kind: "greenhouse" } & Greenhouse);
+type Entity = ({ kind: 'block' } & Block) | ({ kind: 'greenhouse' } & Greenhouse);
 
 interface Props {
   entity: Entity;
@@ -16,7 +22,7 @@ interface Props {
 }
 
 export function EntityRiskCard({ entity, lastIrrigation, nextAction }: Props) {
-  const isBlock = entity.kind === "block";
+  const isBlock = entity.kind === 'block';
   const to = isBlock ? `/blocks/${entity.id}` : `/greenhouses/${entity.id}`;
   const Icon = isBlock ? LayoutGrid : Sprout;
   const subtitle = isBlock
@@ -28,17 +34,17 @@ export function EntityRiskCard({ entity, lastIrrigation, nextAction }: Props) {
     <div
       data-testid={`card-risk-${entity.id}`}
       className={cn(
-        "group block overflow-hidden rounded-xl border bg-card transition-all hover:shadow-elevated",
-        entity.status === "critical" ? "border-status-critical/40" : "border-status-warn/30",
+        'group block overflow-hidden rounded-xl border bg-card transition-all hover:shadow-elevated',
+        entity.status === 'critical' ? 'border-status-critical/40' : 'border-status-warn/30',
       )}
     >
       <Link to={to} className="flex items-center gap-3 px-4 py-3">
         <div
           className={cn(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
-            entity.status === "critical"
-              ? "bg-status-critical-soft text-status-critical"
-              : "bg-status-warn-soft text-status-warn",
+            'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
+            entity.status === 'critical'
+              ? 'bg-status-critical-soft text-status-critical'
+              : 'bg-status-warn-soft text-status-warn',
           )}
         >
           <Icon className="h-5 w-5" />
@@ -59,11 +65,19 @@ export function EntityRiskCard({ entity, lastIrrigation, nextAction }: Props) {
           {entity.alerts > 0 && (
             <span className="inline-flex items-center gap-1 font-medium text-status-critical">
               <AlertTriangle className="h-3 w-3" />
-              {entity.alerts} {entity.alerts === 1 ? "alerta" : "alertas"}
+              {entity.alerts} {entity.alerts === 1 ? 'alerta' : 'alertas'}
             </span>
           )}
-          {lastIrrigation && <span>Último riego: <span className="text-foreground">{lastIrrigation}</span></span>}
-          {nextAction && <span>Próximo: <span className="text-foreground">{nextAction}</span></span>}
+          {lastIrrigation && (
+            <span>
+              Último riego: <span className="text-foreground">{lastIrrigation}</span>
+            </span>
+          )}
+          {nextAction && (
+            <span>
+              Próximo: <span className="text-foreground">{nextAction}</span>
+            </span>
+          )}
         </div>
       )}
 
@@ -96,4 +110,3 @@ export function EntityRiskCard({ entity, lastIrrigation, nextAction }: Props) {
     </div>
   );
 }
-

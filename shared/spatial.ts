@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /* ========================================================================
  * GeoJSON contracts (subset used by AgrosBO spatial layer)
@@ -7,32 +7,29 @@ import { z } from "zod";
 
 export const lngLatSchema = z
   .tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)])
-  .describe("[lng, lat] WGS84");
+  .describe('[lng, lat] WGS84');
 
 export const geoJsonPointSchema = z.object({
-  type: z.literal("Point"),
+  type: z.literal('Point'),
   coordinates: lngLatSchema,
 });
 export type GeoJsonPoint = z.infer<typeof geoJsonPointSchema>;
 
 const linearRingSchema = z
   .array(lngLatSchema)
-  .min(4, "Un anillo lineal necesita al menos 4 vértices (cerrado)");
+  .min(4, 'Un anillo lineal necesita al menos 4 vértices (cerrado)');
 
 export const geoJsonPolygonSchema = z.object({
-  type: z.literal("Polygon"),
+  type: z.literal('Polygon'),
   coordinates: z.array(linearRingSchema).min(1),
 });
 export type GeoJsonPolygon = z.infer<typeof geoJsonPolygonSchema>;
 
-export const geoJsonGeometrySchema = z.union([
-  geoJsonPointSchema,
-  geoJsonPolygonSchema,
-]);
+export const geoJsonGeometrySchema = z.union([geoJsonPointSchema, geoJsonPolygonSchema]);
 export type GeoJsonGeometry = z.infer<typeof geoJsonGeometrySchema>;
 
 export const geoJsonFeatureSchema = z.object({
-  type: z.literal("Feature"),
+  type: z.literal('Feature'),
   geometry: geoJsonGeometrySchema,
   properties: z.record(z.unknown()).nullable().optional(),
   id: z.union([z.string(), z.number()]).optional(),
@@ -40,12 +37,10 @@ export const geoJsonFeatureSchema = z.object({
 export type GeoJsonFeature = z.infer<typeof geoJsonFeatureSchema>;
 
 export const geoJsonFeatureCollectionSchema = z.object({
-  type: z.literal("FeatureCollection"),
+  type: z.literal('FeatureCollection'),
   features: z.array(geoJsonFeatureSchema),
 });
-export type GeoJsonFeatureCollection = z.infer<
-  typeof geoJsonFeatureCollectionSchema
->;
+export type GeoJsonFeatureCollection = z.infer<typeof geoJsonFeatureCollectionSchema>;
 
 /* ========================================================================
  * Patch contracts (PATCH /spatial endpoints)
@@ -58,10 +53,8 @@ export const blockGeometryPatchSchema = z
     boundary: geoJsonPolygonSchema.nullable().optional(),
   })
   .refine(
-    (v) =>
-      (v.centroidLat !== undefined && v.centroidLng !== undefined) ||
-      v.boundary !== undefined,
-    "Debes enviar centroide o boundary",
+    (v) => (v.centroidLat !== undefined && v.centroidLng !== undefined) || v.boundary !== undefined,
+    'Debes enviar centroide o boundary',
   );
 export type BlockGeometryPatch = z.infer<typeof blockGeometryPatchSchema>;
 
@@ -72,22 +65,16 @@ export const greenhouseLocationPatchSchema = z
     footprint: geoJsonPolygonSchema.nullable().optional(),
   })
   .refine(
-    (v) =>
-      (v.lat !== undefined && v.lng !== undefined) ||
-      v.footprint !== undefined,
-    "Debes enviar punto o footprint",
+    (v) => (v.lat !== undefined && v.lng !== undefined) || v.footprint !== undefined,
+    'Debes enviar punto o footprint',
   );
-export type GreenhouseLocationPatch = z.infer<
-  typeof greenhouseLocationPatchSchema
->;
+export type GreenhouseLocationPatch = z.infer<typeof greenhouseLocationPatchSchema>;
 
 export const observationLocationPatchSchema = z.object({
   lat: z.number().min(-90).max(90).nullable(),
   lng: z.number().min(-180).max(180).nullable(),
 });
-export type ObservationLocationPatch = z.infer<
-  typeof observationLocationPatchSchema
->;
+export type ObservationLocationPatch = z.infer<typeof observationLocationPatchSchema>;
 
 /* ========================================================================
  * Geo helpers (pure, isomorphic — used by server seed and client UI).
@@ -105,11 +92,7 @@ export function metersPerDegreeLng(lat: number): number {
 export const METERS_PER_DEG_LAT = (Math.PI / 180) * EARTH_R_M;
 
 /** Build a square boundary polygon centered on (lat,lng) with given area in hectares. */
-export function squareBoundaryFromCenter(
-  lat: number,
-  lng: number,
-  areaHa: number,
-): GeoJsonPolygon {
+export function squareBoundaryFromCenter(lat: number, lng: number, areaHa: number): GeoJsonPolygon {
   const sideM = Math.sqrt(Math.max(areaHa, 0.0001) * 10_000); // ha → m²
   const half = sideM / 2;
   const dLat = half / METERS_PER_DEG_LAT;
@@ -121,7 +104,7 @@ export function squareBoundaryFromCenter(
     [lng - dLng, lat + dLat],
     [lng - dLng, lat - dLat],
   ];
-  return { type: "Polygon", coordinates: [ring] };
+  return { type: 'Polygon', coordinates: [ring] };
 }
 
 /** Build a rectangle footprint centered on (lat,lng) with given area in m². */
@@ -142,7 +125,7 @@ export function rectFootprintFromCenter(
     [lng - dLng, lat + dLat],
     [lng - dLng, lat - dLat],
   ];
-  return { type: "Polygon", coordinates: [ring] };
+  return { type: 'Polygon', coordinates: [ring] };
 }
 
 /** Centroid (average of unique vertices) of a polygon. */

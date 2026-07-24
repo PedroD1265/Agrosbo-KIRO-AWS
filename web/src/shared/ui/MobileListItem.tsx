@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils";
-import { ChevronRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { cn } from '@/lib/utils';
+import { ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Props {
   to?: string;
@@ -15,8 +15,8 @@ export function MobileListItem({ to, title, subtitle, right, meta, className }: 
   const content = (
     <div
       className={cn(
-        "flex min-h-[64px] items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 shadow-card transition-all",
-        to && "active:scale-[0.99] active:bg-muted/50",
+        'flex min-h-[64px] items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 shadow-card transition-all',
+        to && 'active:scale-[0.99] active:bg-muted/50',
         className,
       )}
     >

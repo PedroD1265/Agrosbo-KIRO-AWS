@@ -1,6 +1,12 @@
-import { useMemo, useRef, useState, type PointerEvent as RPointerEvent, type WheelEvent as RWheelEvent } from "react";
-import { metersPerDegreeLng, METERS_PER_DEG_LAT } from "@shared/spatial";
-import type { GeoJsonFeatureCollection } from "@shared/spatial";
+import {
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as RPointerEvent,
+  type WheelEvent as RWheelEvent,
+} from 'react';
+import { metersPerDegreeLng, METERS_PER_DEG_LAT } from '@shared/spatial';
+import type { GeoJsonFeatureCollection } from '@shared/spatial';
 
 export type SpatialMapProps = {
   features: GeoJsonFeatureCollection | undefined;
@@ -19,17 +25,17 @@ export type SpatialMapProps = {
 const TOCO = { lat: -17.4503, lng: -65.9712 };
 
 const COLORS: Record<string, { fill: string; stroke: string }> = {
-  block: { fill: "rgba(34,197,94,0.18)", stroke: "rgb(22,163,74)" },
-  greenhouse: { fill: "rgba(59,130,246,0.22)", stroke: "rgb(37,99,235)" },
-  "block-hl": { fill: "rgba(34,197,94,0.45)", stroke: "rgb(21,128,61)" },
-  "greenhouse-hl": { fill: "rgba(59,130,246,0.5)", stroke: "rgb(29,78,216)" },
+  block: { fill: 'rgba(34,197,94,0.18)', stroke: 'rgb(22,163,74)' },
+  greenhouse: { fill: 'rgba(59,130,246,0.22)', stroke: 'rgb(37,99,235)' },
+  'block-hl': { fill: 'rgba(34,197,94,0.45)', stroke: 'rgb(21,128,61)' },
+  'greenhouse-hl': { fill: 'rgba(59,130,246,0.5)', stroke: 'rgb(29,78,216)' },
 };
 
 const OBS_COLOR: Record<string, string> = {
-  note: "rgb(100,116,139)",
-  incident: "rgb(234,88,12)",
-  pest: "rgb(217,70,239)",
-  disease: "rgb(220,38,38)",
+  note: 'rgb(100,116,139)',
+  incident: 'rgb(234,88,12)',
+  pest: 'rgb(217,70,239)',
+  disease: 'rgb(220,38,38)',
 };
 
 type Pt = { x: number; y: number };
@@ -52,11 +58,17 @@ export function SpatialMap({
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState<Pt>({ x: 0, y: 0 });
   const dragRef = useRef<{ x: number; y: number } | null>(null);
-  const [hover, setHover] = useState<{ kind: string; id: string; name?: string; x: number; y: number } | null>(null);
+  const [hover, setHover] = useState<{
+    kind: string;
+    id: string;
+    name?: string;
+    x: number;
+    y: number;
+  } | null>(null);
 
   // Observe size
   useMemo(() => {
-    if (typeof ResizeObserver === "undefined") return;
+    if (typeof ResizeObserver === 'undefined') return;
     const el = wrapRef.current;
     if (!el) return;
     const ro = new ResizeObserver((entries) => {
@@ -65,7 +77,7 @@ export function SpatialMap({
     });
     ro.observe(el);
     return () => ro.disconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wrapRef.current]);
 
   const mxLng = metersPerDegreeLng(anchorLat);
@@ -73,24 +85,43 @@ export function SpatialMap({
 
   // Compute world bounds in meters relative to anchor — derive from features if any, fallback to padding
   const worldBoundsM = useMemo(() => {
-    let minX = -initialPaddingM, maxX = initialPaddingM, minY = -initialPaddingM, maxY = initialPaddingM;
+    let minX = -initialPaddingM,
+      maxX = initialPaddingM,
+      minY = -initialPaddingM,
+      maxY = initialPaddingM;
     const fs = features?.features ?? [];
     let hasAny = false;
     for (const f of fs) {
       const g = f.geometry;
-      if (g.type === "Polygon") {
+      if (g.type === 'Polygon') {
         for (const [lng, lat] of g.coordinates[0] ?? []) {
           const X = (lng - anchorLng) * mxLng;
           const Y = (lat - anchorLat) * mxLat;
-          if (!hasAny) { minX = maxX = X; minY = maxY = Y; hasAny = true; }
-          else { if (X < minX) minX = X; if (X > maxX) maxX = X; if (Y < minY) minY = Y; if (Y > maxY) maxY = Y; }
+          if (!hasAny) {
+            minX = maxX = X;
+            minY = maxY = Y;
+            hasAny = true;
+          } else {
+            if (X < minX) minX = X;
+            if (X > maxX) maxX = X;
+            if (Y < minY) minY = Y;
+            if (Y > maxY) maxY = Y;
+          }
         }
-      } else if (g.type === "Point") {
+      } else if (g.type === 'Point') {
         const [lng, lat] = g.coordinates;
         const X = (lng - anchorLng) * mxLng;
         const Y = (lat - anchorLat) * mxLat;
-        if (!hasAny) { minX = maxX = X; minY = maxY = Y; hasAny = true; }
-        else { if (X < minX) minX = X; if (X > maxX) maxX = X; if (Y < minY) minY = Y; if (Y > maxY) maxY = Y; }
+        if (!hasAny) {
+          minX = maxX = X;
+          minY = maxY = Y;
+          hasAny = true;
+        } else {
+          if (X < minX) minX = X;
+          if (X > maxX) maxX = X;
+          if (Y < minY) minY = Y;
+          if (Y > maxY) maxY = Y;
+        }
       }
     }
     // pad
@@ -125,13 +156,14 @@ export function SpatialMap({
     coords
       .map((c, i) => {
         const p = project(c[0], c[1]);
-        return `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+        return `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`;
       })
-      .join(" ") + " Z";
+      .join(' ') + ' Z';
 
   // Build grid lines every 100m within world bounds (visible in current viewport)
   const gridLines = useMemo(() => {
-    if (!showGrid) return [] as Array<{ x1: number; y1: number; x2: number; y2: number; major: boolean }>;
+    if (!showGrid)
+      return [] as Array<{ x1: number; y1: number; x2: number; y2: number; major: boolean }>;
     const lines: Array<{ x1: number; y1: number; x2: number; y2: number; major: boolean }> = [];
     const step = 100; // meters
     const startX = Math.floor(worldBoundsM.minX / step) * step;
@@ -149,7 +181,7 @@ export function SpatialMap({
       lines.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, major: Y % 500 === 0 });
     }
     return lines;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [worldBoundsM, scale, pan, size, showGrid]);
 
   const onPointerDown = (e: RPointerEvent<SVGSVGElement>) => {
@@ -161,7 +193,9 @@ export function SpatialMap({
     if (!dragRef.current) return;
     setPan({ x: e.clientX - dragRef.current.x, y: e.clientY - dragRef.current.y });
   };
-  const onPointerUp = () => { dragRef.current = null; };
+  const onPointerUp = () => {
+    dragRef.current = null;
+  };
   const onWheel = (e: RWheelEvent<SVGSVGElement>) => {
     if (!interactive) return;
     const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
@@ -169,9 +203,9 @@ export function SpatialMap({
   };
 
   const fs = features?.features ?? [];
-  const blocks = fs.filter((f) => (f.properties as any)?.kind === "block");
-  const greenhouses = fs.filter((f) => (f.properties as any)?.kind === "greenhouse");
-  const points = fs.filter((f) => f.geometry.type === "Point");
+  const blocks = fs.filter((f) => (f.properties as any)?.kind === 'block');
+  const greenhouses = fs.filter((f) => (f.properties as any)?.kind === 'greenhouse');
+  const points = fs.filter((f) => f.geometry.type === 'Point');
 
   // anchor projection (Toco marker)
   const anchorPx = project(anchorLng, anchorLat);
@@ -187,7 +221,9 @@ export function SpatialMap({
   return (
     <div
       ref={wrapRef}
-      className={"relative w-full overflow-hidden rounded-md border bg-muted/20 " + (className ?? "")}
+      className={
+        'relative w-full overflow-hidden rounded-md border bg-muted/20 ' + (className ?? '')
+      }
       style={{ height }}
       data-testid="spatial-map-root"
     >
@@ -201,7 +237,7 @@ export function SpatialMap({
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerUp}
         onWheel={onWheel}
-        style={{ cursor: dragRef.current ? "grabbing" : interactive ? "grab" : "default" }}
+        style={{ cursor: dragRef.current ? 'grabbing' : interactive ? 'grab' : 'default' }}
         data-testid="spatial-map-svg"
       >
         {/* Grid */}
@@ -214,7 +250,7 @@ export function SpatialMap({
                 y1={l.y1}
                 x2={l.x2}
                 y2={l.y2}
-                stroke={l.major ? "hsl(var(--border))" : "hsl(var(--border))"}
+                stroke={l.major ? 'hsl(var(--border))' : 'hsl(var(--border))'}
                 strokeOpacity={l.major ? 0.7 : 0.3}
                 strokeWidth={l.major ? 0.8 : 0.5}
               />
@@ -228,7 +264,7 @@ export function SpatialMap({
             const props = f.properties as any;
             const id = props.id as string;
             const hl = id === highlightId;
-            const c = COLORS[hl ? "block-hl" : "block"];
+            const c = COLORS[hl ? 'block-hl' : 'block'];
             const ring = (f.geometry as any).coordinates[0] as [number, number][];
             const path = polygonPath(ring);
             return (
@@ -238,10 +274,18 @@ export function SpatialMap({
                 fill={c.fill}
                 stroke={c.stroke}
                 strokeWidth={hl ? 2 : 1.2}
-                onClick={() => onSelect?.({ id, kind: "block", name: props.name })}
-                onPointerEnter={(e) => setHover({ kind: "block", id, name: props.name, x: (e as any).clientX, y: (e as any).clientY })}
+                onClick={() => onSelect?.({ id, kind: 'block', name: props.name })}
+                onPointerEnter={(e) =>
+                  setHover({
+                    kind: 'block',
+                    id,
+                    name: props.name,
+                    x: (e as any).clientX,
+                    y: (e as any).clientY,
+                  })
+                }
                 onPointerLeave={() => setHover(null)}
-                style={{ cursor: onSelect ? "pointer" : "default" }}
+                style={{ cursor: onSelect ? 'pointer' : 'default' }}
                 data-testid={`map-block-${id}`}
               />
             );
@@ -254,7 +298,7 @@ export function SpatialMap({
             const props = f.properties as any;
             const id = props.id as string;
             const hl = id === highlightId;
-            const c = COLORS[hl ? "greenhouse-hl" : "greenhouse"];
+            const c = COLORS[hl ? 'greenhouse-hl' : 'greenhouse'];
             const ring = (f.geometry as any).coordinates[0] as [number, number][];
             const path = polygonPath(ring);
             return (
@@ -264,10 +308,18 @@ export function SpatialMap({
                 fill={c.fill}
                 stroke={c.stroke}
                 strokeWidth={hl ? 2 : 1.2}
-                onClick={() => onSelect?.({ id, kind: "greenhouse", name: props.name })}
-                onPointerEnter={(e) => setHover({ kind: "greenhouse", id, name: props.name, x: (e as any).clientX, y: (e as any).clientY })}
+                onClick={() => onSelect?.({ id, kind: 'greenhouse', name: props.name })}
+                onPointerEnter={(e) =>
+                  setHover({
+                    kind: 'greenhouse',
+                    id,
+                    name: props.name,
+                    x: (e as any).clientX,
+                    y: (e as any).clientY,
+                  })
+                }
                 onPointerLeave={() => setHover(null)}
-                style={{ cursor: onSelect ? "pointer" : "default" }}
+                style={{ cursor: onSelect ? 'pointer' : 'default' }}
                 data-testid={`map-greenhouse-${id}`}
               />
             );
@@ -281,12 +333,24 @@ export function SpatialMap({
             const id = props.id as string;
             const ring = (f.geometry as any).coordinates[0] as [number, number][];
             // centroid
-            let sx = 0, sy = 0; const n = ring.length - 1;
-            for (let i = 0; i < n; i++) { sx += ring[i][0]; sy += ring[i][1]; }
+            let sx = 0,
+              sy = 0;
+            const n = ring.length - 1;
+            for (let i = 0; i < n; i++) {
+              sx += ring[i][0];
+              sy += ring[i][1];
+            }
             const p = project(sx / n, sy / n);
             return (
-              <text key={id} x={p.x} y={p.y} textAnchor="middle" fontSize={11}
-                    fill="hsl(var(--foreground))" style={{ paintOrder: "stroke", stroke: "hsl(var(--background))", strokeWidth: 3 }}>
+              <text
+                key={id}
+                x={p.x}
+                y={p.y}
+                textAnchor="middle"
+                fontSize={11}
+                fill="hsl(var(--foreground))"
+                style={{ paintOrder: 'stroke', stroke: 'hsl(var(--background))', strokeWidth: 3 }}
+              >
                 {props.name}
               </text>
             );
@@ -300,8 +364,10 @@ export function SpatialMap({
             const id = props.id as string;
             const [lng, lat] = (f.geometry as any).coordinates as [number, number];
             const p = project(lng, lat);
-            const isObs = props.kind === "observation";
-            const fill = isObs ? OBS_COLOR[props.obsType] ?? "rgb(100,116,139)" : "rgb(37,99,235)";
+            const isObs = props.kind === 'observation';
+            const fill = isObs
+              ? (OBS_COLOR[props.obsType] ?? 'rgb(100,116,139)')
+              : 'rgb(37,99,235)';
             return (
               <g key={id} transform={`translate(${p.x.toFixed(1)},${p.y.toFixed(1)})`}>
                 <circle
@@ -309,10 +375,20 @@ export function SpatialMap({
                   fill={fill}
                   stroke="white"
                   strokeWidth={1.5}
-                  onClick={() => onSelect?.({ id, kind: props.kind, name: props.scopeName ?? props.name })}
-                  onPointerEnter={(e) => setHover({ kind: props.kind, id, name: props.scopeName ?? props.name, x: (e as any).clientX, y: (e as any).clientY })}
+                  onClick={() =>
+                    onSelect?.({ id, kind: props.kind, name: props.scopeName ?? props.name })
+                  }
+                  onPointerEnter={(e) =>
+                    setHover({
+                      kind: props.kind,
+                      id,
+                      name: props.scopeName ?? props.name,
+                      x: (e as any).clientX,
+                      y: (e as any).clientY,
+                    })
+                  }
                   onPointerLeave={() => setHover(null)}
-                  style={{ cursor: onSelect ? "pointer" : "default" }}
+                  style={{ cursor: onSelect ? 'pointer' : 'default' }}
                   data-testid={`map-point-${id}`}
                 />
               </g>
@@ -321,20 +397,51 @@ export function SpatialMap({
         </g>
 
         {/* Anchor (Toco) */}
-        <g transform={`translate(${anchorPx.x.toFixed(1)},${anchorPx.y.toFixed(1)})`} pointerEvents="none">
+        <g
+          transform={`translate(${anchorPx.x.toFixed(1)},${anchorPx.y.toFixed(1)})`}
+          pointerEvents="none"
+        >
           <circle r={4} fill="rgb(239,68,68)" />
-          <text x={8} y={4} fontSize={10} fill="hsl(var(--foreground))" style={{ paintOrder: "stroke", stroke: "hsl(var(--background))", strokeWidth: 3 }}>
+          <text
+            x={8}
+            y={4}
+            fontSize={10}
+            fill="hsl(var(--foreground))"
+            style={{ paintOrder: 'stroke', stroke: 'hsl(var(--background))', strokeWidth: 3 }}
+          >
             Toco
           </text>
         </g>
 
         {/* Scale bar */}
         <g transform={`translate(16, ${size.h - 22})`} pointerEvents="none">
-          <line x1={0} y1={0} x2={scaleBarM * scale} y2={0} stroke="hsl(var(--foreground))" strokeWidth={2} />
+          <line
+            x1={0}
+            y1={0}
+            x2={scaleBarM * scale}
+            y2={0}
+            stroke="hsl(var(--foreground))"
+            strokeWidth={2}
+          />
           <line x1={0} y1={-4} x2={0} y2={4} stroke="hsl(var(--foreground))" strokeWidth={2} />
-          <line x1={scaleBarM * scale} y1={-4} x2={scaleBarM * scale} y2={4} stroke="hsl(var(--foreground))" strokeWidth={2} />
-          <text x={(scaleBarM * scale) / 2} y={-6} textAnchor="middle" fontSize={10} fill="hsl(var(--foreground))">
-            {scaleBarM >= 1000 ? `${(scaleBarM / 1000).toFixed(scaleBarM % 1000 ? 1 : 0)} km` : `${scaleBarM} m`}
+          <line
+            x1={scaleBarM * scale}
+            y1={-4}
+            x2={scaleBarM * scale}
+            y2={4}
+            stroke="hsl(var(--foreground))"
+            strokeWidth={2}
+          />
+          <text
+            x={(scaleBarM * scale) / 2}
+            y={-6}
+            textAnchor="middle"
+            fontSize={10}
+            fill="hsl(var(--foreground))"
+          >
+            {scaleBarM >= 1000
+              ? `${(scaleBarM / 1000).toFixed(scaleBarM % 1000 ? 1 : 0)} km`
+              : `${scaleBarM} m`}
           </text>
         </g>
       </svg>
@@ -347,29 +454,59 @@ export function SpatialMap({
             onClick={() => setZoom((z) => Math.min(8, z * 1.25))}
             className="h-7 w-7 rounded-md border bg-background text-sm font-medium shadow-sm hover-elevate active-elevate-2"
             data-testid="button-map-zoom-in"
-          >+</button>
+          >
+            +
+          </button>
           <button
             type="button"
             onClick={() => setZoom((z) => Math.max(0.5, z / 1.25))}
             className="h-7 w-7 rounded-md border bg-background text-sm font-medium shadow-sm hover-elevate active-elevate-2"
             data-testid="button-map-zoom-out"
-          >−</button>
+          >
+            −
+          </button>
           <button
             type="button"
-            onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
+            onClick={() => {
+              setZoom(1);
+              setPan({ x: 0, y: 0 });
+            }}
             className="h-7 w-7 rounded-md border bg-background text-[10px] font-medium shadow-sm hover-elevate active-elevate-2"
             data-testid="button-map-reset"
             title="Centrar"
-          >⌂</button>
+          >
+            ⌂
+          </button>
         </div>
       )}
 
       {/* Legend */}
       {showLegend && (
-        <div className="absolute bottom-2 right-2 rounded-md border bg-background/95 px-2 py-1.5 text-[10px] shadow-sm" data-testid="map-legend">
-          <div className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm border" style={{ background: COLORS.block.fill, borderColor: COLORS.block.stroke }} />Bloques</div>
-          <div className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm border" style={{ background: COLORS.greenhouse.fill, borderColor: COLORS.greenhouse.stroke }} />Invernaderos</div>
-          <div className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-full" style={{ background: OBS_COLOR.incident }} />Observaciones</div>
+        <div
+          className="absolute bottom-2 right-2 rounded-md border bg-background/95 px-2 py-1.5 text-[10px] shadow-sm"
+          data-testid="map-legend"
+        >
+          <div className="flex items-center gap-1.5">
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-sm border"
+              style={{ background: COLORS.block.fill, borderColor: COLORS.block.stroke }}
+            />
+            Bloques
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span
+              className="inline-block h-2.5 w-2.5 rounded-sm border"
+              style={{ background: COLORS.greenhouse.fill, borderColor: COLORS.greenhouse.stroke }}
+            />
+            Invernaderos
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ background: OBS_COLOR.incident }}
+            />
+            Observaciones
+          </div>
         </div>
       )}
 

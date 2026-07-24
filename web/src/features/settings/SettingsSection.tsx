@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
-import type { LucideIcon } from "lucide-react";
+import { cn } from '@/lib/utils';
+import type { LucideIcon } from 'lucide-react';
 
 interface Props {
   icon: LucideIcon;
@@ -8,13 +8,13 @@ interface Props {
   action?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
-  tone?: "default" | "primary" | "muted";
+  tone?: 'default' | 'primary' | 'muted';
 }
 
 const toneCfg = {
-  default: "bg-card border-border",
-  primary: "bg-card border-primary/15",
-  muted: "bg-muted/30 border-border",
+  default: 'bg-card border-border',
+  primary: 'bg-card border-primary/15',
+  muted: 'bg-muted/30 border-border',
 };
 
 /**
@@ -28,15 +28,11 @@ export function SettingsSection({
   action,
   children,
   className,
-  tone = "default",
+  tone = 'default',
 }: Props) {
   return (
     <section
-      className={cn(
-        "overflow-hidden rounded-2xl border shadow-card",
-        toneCfg[tone],
-        className,
-      )}
+      className={cn('overflow-hidden rounded-2xl border shadow-card', toneCfg[tone], className)}
     >
       <header className="flex items-start justify-between gap-3 border-b border-border/60 px-5 py-4">
         <div className="flex min-w-0 items-start gap-3">
@@ -45,9 +41,7 @@ export function SettingsSection({
           </div>
           <div className="min-w-0">
             <h2 className="text-sm font-semibold leading-tight">{title}</h2>
-            {description && (
-              <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
-            )}
+            {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
           </div>
         </div>
         {action && <div className="shrink-0">{action}</div>}

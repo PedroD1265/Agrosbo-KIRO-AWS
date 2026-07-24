@@ -1,7 +1,7 @@
-import { Link, useLocation } from "react-router-dom";
-import { EmptyState } from "@/shared/ui/EmptyState";
-import { Button } from "@/components/ui/button";
-import { Compass, ArrowLeft } from "lucide-react";
+import { Link, useLocation } from 'react-router-dom';
+import { EmptyState } from '@/shared/ui/EmptyState';
+import { Button } from '@/components/ui/button';
+import { Compass, ArrowLeft } from 'lucide-react';
 
 export default function NotFoundPage() {
   const location = useLocation();

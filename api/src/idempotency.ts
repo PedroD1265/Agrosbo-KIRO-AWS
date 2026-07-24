@@ -1,16 +1,16 @@
-import { randomUUID } from "node:crypto";
-import { and, eq, sql } from "drizzle-orm";
-import { db, hasDatabaseUrl } from "./db.js";
-import { idempotencyKeys } from "@agrosbo/shared/schema.js";
-import { createLogger } from "./logger.js";
+import { randomUUID } from 'node:crypto';
+import { and, eq, sql } from 'drizzle-orm';
+import { db, hasDatabaseUrl } from './db.js';
+import { idempotencyKeys } from '@agrosbo/shared/schema.js';
+import { createLogger } from './logger.js';
 
-const idemLog = createLogger("idempotency");
+const idemLog = createLogger('idempotency');
 
 export type ClaimResult =
-  | { type: "completed"; status: number; body: unknown }
-  | { type: "processing" }
-  | { type: "claimed"; token: string }
-  | { type: "unavailable" };
+  | { type: 'completed'; status: number; body: unknown }
+  | { type: 'processing' }
+  | { type: 'claimed'; token: string }
+  | { type: 'unavailable' };
 
 const IDEM_TTL_MS = 24 * 60 * 60 * 1000;
 const PROCESSING_STALE_MS = 10 * 60 * 1000;
@@ -18,7 +18,7 @@ const IDEM_MAX_MEM = 5000;
 const CLEANUP_PROBABILITY = 0.01;
 
 interface MemEntry {
-  state: "processing" | "completed";
+  state: 'processing' | 'completed';
   attemptId: string;
   status?: number;
   body?: unknown;
@@ -47,22 +47,20 @@ async function cleanupExpiredDb() {
       sql`delete from idempotency_keys where expires_at < ${new Date().toISOString()}`,
     );
   } catch (err) {
-    idemLog.error("cleanup failed", { err });
+    idemLog.error('cleanup failed', { err });
   }
 }
 
 async function clearOrphanProcessingDb() {
   if (!hasDatabaseUrl) return;
   try {
-    const result = await db.execute(
-      sql`delete from idempotency_keys where state = 'processing'`,
-    );
+    const result = await db.execute(sql`delete from idempotency_keys where state = 'processing'`);
     const count = (result as unknown as { rowCount?: number }).rowCount ?? 0;
     if (count > 0) {
-      idemLog.info("cleared orphan processing rows", { count });
+      idemLog.info('cleared orphan processing rows', { count });
     }
   } catch (err) {
-    idemLog.error("orphan cleanup failed", { err });
+    idemLog.error('orphan cleanup failed', { err });
   }
 }
 
@@ -71,31 +69,31 @@ function claimMem(key: string): ClaimResult {
   const existing = memCache.get(key);
   const now = Date.now();
   if (existing && existing.expires > now) {
-    if (existing.state === "completed") {
+    if (existing.state === 'completed') {
       return {
-        type: "completed",
+        type: 'completed',
         status: existing.status as number,
         body: existing.body,
       };
     }
     if (now - existing.createdAt < PROCESSING_STALE_MS) {
-      return { type: "processing" };
+      return { type: 'processing' };
     }
   }
   const token = randomUUID();
   memCache.set(key, {
-    state: "processing",
+    state: 'processing',
     attemptId: token,
     expires: now + IDEM_TTL_MS,
     createdAt: now,
   });
-  return { type: "claimed", token };
+  return { type: 'claimed', token };
 }
 
 function isUniqueViolation(err: unknown): boolean {
-  if (!err || typeof err !== "object") return false;
+  if (!err || typeof err !== 'object') return false;
   const e = err as { code?: string; cause?: { code?: string } };
-  return e.code === "23505" || e.cause?.code === "23505";
+  return e.code === '23505' || e.cause?.code === '23505';
 }
 
 async function claimDbOnce(key: string): Promise<ClaimResult> {
@@ -110,33 +108,29 @@ async function claimDbOnce(key: string): Promise<ClaimResult> {
       .select()
       .from(idempotencyKeys)
       .where(eq(idempotencyKeys.key, key))
-      .for("update")
+      .for('update')
       .limit(1);
 
     const row = existing[0];
     if (row && Date.parse(row.expiresAt) > now) {
-      if (row.state === "completed") {
+      if (row.state === 'completed') {
         return {
-          type: "completed",
+          type: 'completed',
           status: row.status as number,
           body: row.body,
         } as ClaimResult;
       }
       if (row.createdAt > staleCutoffIso) {
-        return { type: "processing" } as ClaimResult;
+        return { type: 'processing' } as ClaimResult;
       }
-      await tx
-        .delete(idempotencyKeys)
-        .where(eq(idempotencyKeys.key, key));
+      await tx.delete(idempotencyKeys).where(eq(idempotencyKeys.key, key));
     } else if (row) {
-      await tx
-        .delete(idempotencyKeys)
-        .where(eq(idempotencyKeys.key, key));
+      await tx.delete(idempotencyKeys).where(eq(idempotencyKeys.key, key));
     }
 
     await tx.insert(idempotencyKeys).values({
       key,
-      state: "processing",
+      state: 'processing',
       attemptId: token,
       status: null,
       body: null,
@@ -144,7 +138,7 @@ async function claimDbOnce(key: string): Promise<ClaimResult> {
       createdAt: nowIso,
     });
 
-    return { type: "claimed", token } as ClaimResult;
+    return { type: 'claimed', token } as ClaimResult;
   });
 }
 
@@ -156,12 +150,12 @@ async function claimDb(key: string): Promise<ClaimResult> {
       if (isUniqueViolation(err)) {
         continue;
       }
-      idemLog.error("claim failed", { err, key });
-      return { type: "unavailable" };
+      idemLog.error('claim failed', { err, key });
+      return { type: 'unavailable' };
     }
   }
-  idemLog.error("claim retry exhausted", { key });
-  return { type: "unavailable" };
+  idemLog.error('claim retry exhausted', { key });
+  return { type: 'unavailable' };
 }
 
 export async function claim(key: string): Promise<ClaimResult> {
@@ -182,29 +176,25 @@ export async function complete(
   if (hasDatabaseUrl) {
     const result = await db
       .update(idempotencyKeys)
-      .set({ state: "completed", status, body: body as object })
+      .set({ state: 'completed', status, body: body as object })
       .where(
         and(
           eq(idempotencyKeys.key, key),
           eq(idempotencyKeys.attemptId, token),
-          eq(idempotencyKeys.state, "processing"),
+          eq(idempotencyKeys.state, 'processing'),
         ),
       )
       .returning({ key: idempotencyKeys.key });
     if (result.length === 0) {
-      throw new Error(
-        `[idempotency] complete: claim lost (key stolen or expired) for ${key}`,
-      );
+      throw new Error(`[idempotency] complete: claim lost (key stolen or expired) for ${key}`);
     }
     return;
   }
   const existing = memCache.get(key);
-  if (!existing || existing.attemptId !== token || existing.state !== "processing") {
-    throw new Error(
-      `[idempotency] complete: claim lost (key stolen or expired) for ${key}`,
-    );
+  if (!existing || existing.attemptId !== token || existing.state !== 'processing') {
+    throw new Error(`[idempotency] complete: claim lost (key stolen or expired) for ${key}`);
   }
-  existing.state = "completed";
+  existing.state = 'completed';
   existing.status = status;
   existing.body = body;
 }
@@ -214,15 +204,10 @@ export async function release(key: string, token: string): Promise<void> {
     try {
       await db
         .delete(idempotencyKeys)
-        .where(
-          and(
-            eq(idempotencyKeys.key, key),
-            eq(idempotencyKeys.attemptId, token),
-          ),
-        );
+        .where(and(eq(idempotencyKeys.key, key), eq(idempotencyKeys.attemptId, token)));
       return;
     } catch (err) {
-      idemLog.error("release failed", { err, key });
+      idemLog.error('release failed', { err, key });
     }
     return;
   }

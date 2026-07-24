@@ -1,9 +1,9 @@
-import { ImageIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ImageIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export function PhotoPlaceholder({ count = 1, className }: { count?: number; className?: string }) {
   return (
-    <div className={cn("grid grid-cols-3 gap-2", className)}>
+    <div className={cn('grid grid-cols-3 gap-2', className)}>
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}

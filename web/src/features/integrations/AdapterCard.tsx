@@ -1,31 +1,53 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { StatusBadge } from "@/shared/ui/StatusBadge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { StatusBadge } from '@/shared/ui/StatusBadge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import {
-  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
-} from "@/components/ui/sheet";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet';
 import {
-  Globe, Play, ToggleLeft, ToggleRight, AlertCircle, CheckCircle2,
-  Lock, Info, Clock, CircleDot,
-} from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
-import type { Adapter, AdapterTestResult } from "@shared/schema";
+  Globe,
+  Play,
+  ToggleLeft,
+  ToggleRight,
+  AlertCircle,
+  CheckCircle2,
+  Lock,
+  Info,
+  Clock,
+  CircleDot,
+} from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
+import type { Adapter, AdapterTestResult } from '@shared/schema';
 import {
-  ADAPTER_ICONS, stateToStatus, stateLabel, readinessLabel,
-  readinessBadgeClass, relativeTime,
-} from "./integrationUtils";
+  ADAPTER_ICONS,
+  stateToStatus,
+  stateLabel,
+  readinessLabel,
+  readinessBadgeClass,
+  relativeTime,
+} from './integrationUtils';
 
 function AdapterDetailSheet({
-  adapter, open, onClose,
-}: { adapter: Adapter; open: boolean; onClose: () => void }) {
+  adapter,
+  open,
+  onClose,
+}: {
+  adapter: Adapter;
+  open: boolean;
+  onClose: () => void;
+}) {
   const qc = useQueryClient();
   const { data: detail } = useQuery<Adapter>({
-    queryKey: ["/api/integrations/adapters", adapter.id],
+    queryKey: ['/api/integrations/adapters', adapter.id],
     enabled: open,
   });
   const d = detail ?? adapter;
@@ -34,19 +56,27 @@ function AdapterDetailSheet({
 
   const detailTestMut = useMutation({
     mutationFn: () =>
-      apiRequest<AdapterTestResult>("POST", `/api/integrations/adapters/${adapter.id}/test`),
+      apiRequest<AdapterTestResult>('POST', `/api/integrations/adapters/${adapter.id}/test`),
     onSuccess: (result) => {
       setDetailTestResult(result);
-      qc.invalidateQueries({ queryKey: ["/api/integrations/adapters"] });
-      qc.invalidateQueries({ queryKey: ["/api/integrations/adapters", adapter.id] });
+      qc.invalidateQueries({ queryKey: ['/api/integrations/adapters'] });
+      qc.invalidateQueries({ queryKey: ['/api/integrations/adapters', adapter.id] });
     },
     onError: (e: Error) => {
-      toast.error("No se pudo ejecutar el test", { description: e.message });
+      toast.error('No se pudo ejecutar el test', { description: e.message });
     },
   });
 
   return (
-    <Sheet open={open} onOpenChange={(v) => { if (!v) { setDetailTestResult(null); onClose(); } }}>
+    <Sheet
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) {
+          setDetailTestResult(null);
+          onClose();
+        }
+      }}
+    >
       <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2.5">
@@ -64,28 +94,36 @@ function AdapterDetailSheet({
             <span className="text-muted-foreground">Estado</span>
             <StatusBadge status={stateToStatus(d.state)} label={stateLabel(d.state)} />
             <span className="text-muted-foreground">Preparación</span>
-            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium w-fit ${readinessBadgeClass(d.readiness)}`}>
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium w-fit ${readinessBadgeClass(d.readiness)}`}
+            >
               {readinessLabel(d.readiness)}
             </span>
             <span className="text-muted-foreground">Habilitado</span>
-            <span className="font-medium">{d.enabled ? "Sí" : "No"}</span>
+            <span className="font-medium">{d.enabled ? 'Sí' : 'No'}</span>
             <span className="text-muted-foreground">Requiere secretos</span>
-            <span className="font-medium">{d.requiresSecrets ? "Sí" : "No"}</span>
+            <span className="font-medium">{d.requiresSecrets ? 'Sí' : 'No'}</span>
             <span className="text-muted-foreground">Último check</span>
             <span className="font-medium text-xs">
-              {d.lastCheckAt ? new Date(d.lastCheckAt).toLocaleString("es-BO") : "—"}
+              {d.lastCheckAt ? new Date(d.lastCheckAt).toLocaleString('es-BO') : '—'}
             </span>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Capacidades</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+              Capacidades
+            </p>
             <div className="flex flex-wrap gap-1.5">
               {d.capabilities.map((cap) => (
-                <Badge key={cap} variant="outline" className="text-[10px] px-1.5 py-0">{cap}</Badge>
+                <Badge key={cap} variant="outline" className="text-[10px] px-1.5 py-0">
+                  {cap}
+                </Badge>
               ))}
             </div>
           </div>
           <div className="border-t border-border/60 pt-4 space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Test local</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Test local
+            </p>
             <Button
               variant="outline"
               size="sm"
@@ -95,15 +133,19 @@ function AdapterDetailSheet({
               data-testid={`button-detail-test-${adapter.id}`}
             >
               <Play className="h-3.5 w-3.5" />
-              {detailTestMut.isPending ? "Ejecutando…" : "Ejecutar test local"}
+              {detailTestMut.isPending ? 'Ejecutando…' : 'Ejecutar test local'}
             </Button>
             {detailTestResult && (
               <div
-                className={`rounded-md px-3 py-2 text-xs ${detailTestResult.success ? "bg-status-ok-soft text-status-ok" : "bg-status-idle-soft text-muted-foreground"}`}
+                className={`rounded-md px-3 py-2 text-xs ${detailTestResult.success ? 'bg-status-ok-soft text-status-ok' : 'bg-status-idle-soft text-muted-foreground'}`}
                 data-testid={`text-detail-test-result-${adapter.id}`}
               >
                 <div className="flex items-center gap-1.5 font-medium">
-                  {detailTestResult.success ? <CheckCircle2 className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+                  {detailTestResult.success ? (
+                    <CheckCircle2 className="h-3 w-3" />
+                  ) : (
+                    <AlertCircle className="h-3 w-3" />
+                  )}
                   {detailTestResult.message}
                 </div>
                 {detailTestResult.details && (
@@ -133,18 +175,18 @@ export function AdapterCard({ adapter }: { adapter: Adapter }) {
 
   const toggleMut = useMutation({
     mutationFn: (enabled: boolean) =>
-      apiRequest<Adapter>("POST", `/api/integrations/adapters/${adapter.id}/toggle`, { enabled }),
+      apiRequest<Adapter>('POST', `/api/integrations/adapters/${adapter.id}/toggle`, { enabled }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["/api/integrations/adapters"] });
+      qc.invalidateQueries({ queryKey: ['/api/integrations/adapters'] });
     },
     onError: (e: Error) => {
-      toast.error("No se pudo cambiar el estado", { description: e.message });
+      toast.error('No se pudo cambiar el estado', { description: e.message });
     },
   });
 
   const testMut = useMutation({
     mutationFn: () =>
-      apiRequest<AdapterTestResult>("POST", `/api/integrations/adapters/${adapter.id}/test`),
+      apiRequest<AdapterTestResult>('POST', `/api/integrations/adapters/${adapter.id}/test`),
     onSuccess: (result) => {
       setTestResult(result);
       if (result.success) {
@@ -152,26 +194,26 @@ export function AdapterCard({ adapter }: { adapter: Adapter }) {
       } else {
         toast.info(`Test completado: ${adapter.name}`, { description: result.message });
       }
-      qc.invalidateQueries({ queryKey: ["/api/integrations/adapters"] });
+      qc.invalidateQueries({ queryKey: ['/api/integrations/adapters'] });
     },
     onError: (e: Error) => {
-      toast.error("No se pudo ejecutar el test", { description: e.message });
+      toast.error('No se pudo ejecutar el test', { description: e.message });
     },
   });
 
-  const isActive = adapter.readiness === "ready" && adapter.enabled;
+  const isActive = adapter.readiness === 'ready' && adapter.enabled;
   const accentClass = isActive
-    ? "before:bg-status-ok"
+    ? 'before:bg-status-ok'
     : adapter.requiresSecrets
-    ? "before:bg-status-warn"
-    : "before:bg-border";
+      ? 'before:bg-status-warn'
+      : 'before:bg-border';
 
   return (
     <Card
       data-testid={`card-adapter-${adapter.id}`}
       className={cn(
-        "relative flex flex-col overflow-hidden border-border/60 shadow-card transition-all hover:shadow-elevated",
-        "before:absolute before:left-0 before:top-0 before:h-full before:w-[3px]",
+        'relative flex flex-col overflow-hidden border-border/60 shadow-card transition-all hover:shadow-elevated',
+        'before:absolute before:left-0 before:top-0 before:h-full before:w-[3px]',
         accentClass,
       )}
     >
@@ -219,7 +261,10 @@ export function AdapterCard({ adapter }: { adapter: Adapter }) {
             <CircleDot className="h-2.5 w-2.5" />
             {readinessLabel(adapter.readiness)}
           </span>
-          <span className="flex items-center gap-1 text-muted-foreground" data-testid={`text-last-check-${adapter.id}`}>
+          <span
+            className="flex items-center gap-1 text-muted-foreground"
+            data-testid={`text-last-check-${adapter.id}`}
+          >
             <Clock className="h-3 w-3" />
             {relativeTime(adapter.lastCheckAt)}
           </span>
@@ -227,11 +272,15 @@ export function AdapterCard({ adapter }: { adapter: Adapter }) {
 
         {testResult && (
           <div
-            className={`rounded-md px-3 py-2 text-xs ${testResult.success ? "bg-status-ok-soft text-status-ok" : "bg-status-idle-soft text-muted-foreground"}`}
+            className={`rounded-md px-3 py-2 text-xs ${testResult.success ? 'bg-status-ok-soft text-status-ok' : 'bg-status-idle-soft text-muted-foreground'}`}
             data-testid={`text-test-result-${adapter.id}`}
           >
             <div className="flex items-center gap-1.5 font-medium">
-              {testResult.success ? <CheckCircle2 className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+              {testResult.success ? (
+                <CheckCircle2 className="h-3 w-3" />
+              ) : (
+                <AlertCircle className="h-3 w-3" />
+              )}
               {testResult.message}
             </div>
           </div>
@@ -248,7 +297,7 @@ export function AdapterCard({ adapter }: { adapter: Adapter }) {
               data-testid={`button-test-${adapter.id}`}
             >
               <Play className="h-3.5 w-3.5" />
-              {testMut.isPending ? "Ejecutando…" : "Test"}
+              {testMut.isPending ? 'Ejecutando…' : 'Test'}
             </Button>
             <Button
               variant="ghost"
@@ -273,7 +322,7 @@ export function AdapterCard({ adapter }: { adapter: Adapter }) {
             </Button>
           ) : (
             <Button
-              variant={adapter.enabled ? "default" : "outline"}
+              variant={adapter.enabled ? 'default' : 'outline'}
               size="sm"
               className="w-full"
               disabled={toggleMut.isPending}
@@ -281,9 +330,13 @@ export function AdapterCard({ adapter }: { adapter: Adapter }) {
               data-testid={`button-toggle-${adapter.id}`}
             >
               {adapter.enabled ? (
-                <><ToggleRight className="h-3.5 w-3.5" /> Deshabilitar</>
+                <>
+                  <ToggleRight className="h-3.5 w-3.5" /> Deshabilitar
+                </>
               ) : (
-                <><ToggleLeft className="h-3.5 w-3.5" /> Habilitar</>
+                <>
+                  <ToggleLeft className="h-3.5 w-3.5" /> Habilitar
+                </>
               )}
             </Button>
           )}

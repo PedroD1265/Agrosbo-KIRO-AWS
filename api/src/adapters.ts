@@ -5,99 +5,96 @@
  * future integration work only needs to replace/extend the handlers here.
  */
 
-import type {
-  Adapter,
-  AdapterTestResult,
-} from "@agrosbo/shared/schema.js";
+import type { Adapter, AdapterTestResult } from '@agrosbo/shared/schema.js';
 
 const registry = new Map<string, Adapter>([
   [
-    "weather",
+    'weather',
     {
-      id: "weather",
-      name: "Clima / Meteorología",
-      type: "weather",
-      state: "stub",
+      id: 'weather',
+      name: 'Clima / Meteorología',
+      type: 'weather',
+      state: 'stub',
       description:
-        "Pronóstico y observaciones meteorológicas locales. Planificado para integrar Open-Meteo o similar para riego adaptativo.",
-      capabilities: ["forecast-7d", "hourly-temp", "rain-probability", "wind-speed"],
-      readiness: "needs-secrets",
+        'Pronóstico y observaciones meteorológicas locales. Planificado para integrar Open-Meteo o similar para riego adaptativo.',
+      capabilities: ['forecast-7d', 'hourly-temp', 'rain-probability', 'wind-speed'],
+      readiness: 'needs-secrets',
       requiresSecrets: true,
       enabled: false,
       lastCheckAt: null,
     },
   ],
   [
-    "iot",
+    'iot',
     {
-      id: "iot",
-      name: "Sensores / IoT",
-      type: "iot",
-      state: "stub",
+      id: 'iot',
+      name: 'Sensores / IoT',
+      type: 'iot',
+      state: 'stub',
       description:
-        "Telemetría continua de temperatura, humedad de suelo y estaciones de riego en invernaderos y bloques de campo.",
-      capabilities: ["soil-moisture", "air-temp", "humidity", "irrigation-flow"],
-      readiness: "needs-secrets",
+        'Telemetría continua de temperatura, humedad de suelo y estaciones de riego en invernaderos y bloques de campo.',
+      capabilities: ['soil-moisture', 'air-temp', 'humidity', 'irrigation-flow'],
+      readiness: 'needs-secrets',
       requiresSecrets: true,
       enabled: false,
       lastCheckAt: null,
     },
   ],
   [
-    "imagery",
+    'imagery',
     {
-      id: "imagery",
-      name: "Imágenes / Drones",
-      type: "imagery",
-      state: "stub",
+      id: 'imagery',
+      name: 'Imágenes / Drones',
+      type: 'imagery',
+      state: 'stub',
       description:
-        "NDVI, ortomosaicos y vuelos periódicos por bloque. Compatible con DJI Terra y Pix4D.",
-      capabilities: ["ndvi", "orthomosaic", "flight-schedule", "change-detection"],
-      readiness: "needs-secrets",
+        'NDVI, ortomosaicos y vuelos periódicos por bloque. Compatible con DJI Terra y Pix4D.',
+      capabilities: ['ndvi', 'orthomosaic', 'flight-schedule', 'change-detection'],
+      readiness: 'needs-secrets',
       requiresSecrets: true,
       enabled: false,
       lastCheckAt: null,
     },
   ],
   [
-    "csv",
+    'csv',
     {
-      id: "csv",
-      name: "Import / Export CSV",
-      type: "csv",
-      state: "connected",
+      id: 'csv',
+      name: 'Import / Export CSV',
+      type: 'csv',
+      state: 'connected',
       description:
-        "Importación masiva de catálogos (bloques, invernaderos, insumos, tareas) y exportación de reportes operativos en formato CSV estándar.",
+        'Importación masiva de catálogos (bloques, invernaderos, insumos, tareas) y exportación de reportes operativos en formato CSV estándar.',
       capabilities: [
-        "export-blocks",
-        "export-greenhouses",
-        "export-tasks",
-        "export-irrigation",
-        "export-observations",
-        "export-inventory",
-        "export-harvest",
-        "import-blocks",
-        "import-greenhouses",
-        "import-inventory",
-        "import-tasks",
+        'export-blocks',
+        'export-greenhouses',
+        'export-tasks',
+        'export-irrigation',
+        'export-observations',
+        'export-inventory',
+        'export-harvest',
+        'import-blocks',
+        'import-greenhouses',
+        'import-inventory',
+        'import-tasks',
       ],
-      readiness: "ready",
+      readiness: 'ready',
       requiresSecrets: false,
       enabled: true,
       lastCheckAt: new Date().toISOString(),
     },
   ],
   [
-    "external-backend",
+    'external-backend',
     {
-      id: "external-backend",
-      name: "Backend externo",
-      type: "external-backend",
-      state: "stub",
+      id: 'external-backend',
+      name: 'Backend externo',
+      type: 'external-backend',
+      state: 'stub',
       description:
-        "Sincronización maestra con backend de producción AgrosBO cuando esté disponible. Soportará multi-dispositivo y persistencia centralizada.",
-      capabilities: ["multi-device-sync", "central-persistence", "audit-log"],
-      readiness: "needs-secrets",
+        'Sincronización maestra con backend de producción AgrosBO cuando esté disponible. Soportará multi-dispositivo y persistencia centralizada.',
+      capabilities: ['multi-device-sync', 'central-persistence', 'audit-log'],
+      readiness: 'needs-secrets',
       requiresSecrets: true,
       enabled: false,
       lastCheckAt: null,
@@ -132,16 +129,16 @@ export function runAdapterTest(id: string): AdapterTestResult | undefined {
   const updated: Adapter = { ...adapter, lastCheckAt: checkedAt };
   registry.set(id, updated);
 
-  if (adapter.type === "csv") {
+  if (adapter.type === 'csv') {
     return {
       success: true,
-      message: "Adaptador CSV operativo. Exportación e importación disponibles.",
+      message: 'Adaptador CSV operativo. Exportación e importación disponibles.',
       checkedAt,
       details: {
         exportDatasets: 7,
         importDatasets: 4,
-        encoding: "UTF-8",
-        delimiter: ",",
+        encoding: 'UTF-8',
+        delimiter: ',',
       },
     };
   }
@@ -151,7 +148,7 @@ export function runAdapterTest(id: string): AdapterTestResult | undefined {
     message: `Adaptador "${adapter.name}" es un stub — no hay conexión real configurada todavía.`,
     checkedAt,
     details: {
-      state: "stub",
+      state: 'stub',
       requiresSecrets: adapter.requiresSecrets,
       readiness: adapter.readiness,
     },

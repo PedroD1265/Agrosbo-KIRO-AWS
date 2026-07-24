@@ -1,7 +1,7 @@
 export interface ReportFilters {
   dateFrom: string;
   dateTo: string;
-  scopeType: "all" | "block" | "greenhouse";
+  scopeType: 'all' | 'block' | 'greenhouse';
   scopeId: string;
   assignee: string;
   status: string;
@@ -15,9 +15,9 @@ export function defaultFilters(): ReportFilters {
   return {
     dateFrom: thirtyDaysAgo.toISOString().slice(0, 10),
     dateTo: TODAY,
-    scopeType: "all",
-    scopeId: "all",
-    assignee: "all",
-    status: "all",
+    scopeType: 'all',
+    scopeId: 'all',
+    assignee: 'all',
+    status: 'all',
   };
 }

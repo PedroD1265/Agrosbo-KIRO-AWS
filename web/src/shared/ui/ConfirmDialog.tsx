@@ -7,7 +7,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 
 interface Props {
   open: boolean;
@@ -26,20 +26,18 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = "Eliminar",
-  cancelLabel = "Cancelar",
+  confirmLabel = 'Eliminar',
+  cancelLabel = 'Cancelar',
   destructive = true,
   onConfirm,
-  testId = "confirm",
+  testId = 'confirm',
 }: Props) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          {description && (
-            <AlertDialogDescription>{description}</AlertDialogDescription>
-          )}
+          {description && <AlertDialogDescription>{description}</AlertDialogDescription>}
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel data-testid={`button-cancel-${testId}`}>
@@ -49,8 +47,8 @@ export function ConfirmDialog({
             onClick={onConfirm}
             className={
               destructive
-                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                : ""
+                ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                : ''
             }
             data-testid={`button-confirm-${testId}`}
           >

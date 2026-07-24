@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 interface Props {
   children: React.ReactNode;
@@ -15,8 +15,8 @@ export function MobileActionBar({ children, className, hint }: Props) {
   return (
     <div
       className={cn(
-        "fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-30 md:hidden",
-        "border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur-md shadow-elevated",
+        'fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-30 md:hidden',
+        'border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur-md shadow-elevated',
         className,
       )}
     >

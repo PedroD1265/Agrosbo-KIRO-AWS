@@ -1,5 +1,5 @@
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 interface Props {
   className?: string;
@@ -11,11 +11,11 @@ interface Props {
 /**
  * Skeleton consistente para pantallas con mapa o paneles espaciales.
  */
-export function MapSkeleton({ className, height = 460, label = "Cargando capa espacial…" }: Props) {
+export function MapSkeleton({ className, height = 460, label = 'Cargando capa espacial…' }: Props) {
   return (
     <div
       className={cn(
-        "relative flex h-full w-full items-center justify-center overflow-hidden rounded-md border border-border/60 bg-muted/30",
+        'relative flex h-full w-full items-center justify-center overflow-hidden rounded-md border border-border/60 bg-muted/30',
         className,
       )}
       style={{ height }}

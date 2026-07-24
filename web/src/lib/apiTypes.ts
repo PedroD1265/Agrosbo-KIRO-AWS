@@ -4,13 +4,20 @@
  * These mirror the server-side interfaces that the API returns as JSON.
  * They live here so the frontend never imports directly from `api/src/*`.
  */
-import type { Campaign, ScopeType } from "@shared/schema";
+import type { Campaign, ScopeType } from '@shared/schema';
 
 // --- Campaign Summary (from api/src/campaignSummary.ts) ---
 export interface CampaignSummary {
   campaign: Campaign;
   tasks: { total: number; pending: number; in_progress: number; done: number; overdue: number };
-  irrigation: { total: number; done: number; scheduled: number; skipped: number; totalDurationMin: number; totalVolumeL: number };
+  irrigation: {
+    total: number;
+    done: number;
+    scheduled: number;
+    skipped: number;
+    totalDurationMin: number;
+    totalVolumeL: number;
+  };
   observations: { total: number; byType: Record<string, number> };
   harvest: {
     lots: number;
@@ -25,16 +32,17 @@ export interface CampaignSummary {
 }
 
 // --- Irrigation Advisor (from api/src/irrigationAdvisor.ts) ---
-export type IrrigationRecommendation = "irrigate_now" | "irrigate_soon" | "wait" | "monitor" | "unknown";
+export type IrrigationRecommendation =
+  'irrigate_now' | 'irrigate_soon' | 'wait' | 'monitor' | 'unknown';
 
 export interface IrrigationAdvice {
   scopeType: ScopeType;
   scopeId: string;
   scopeName: string;
   recommendation: IrrigationRecommendation;
-  severity: "critical" | "warn" | "info" | "ok";
+  severity: 'critical' | 'warn' | 'info' | 'ok';
   reason: string;
-  confidence: "high" | "medium" | "low";
+  confidence: 'high' | 'medium' | 'low';
   sourceData: {
     lastIrrigation: string | null;
     hoursSinceIrrigation: number | null;

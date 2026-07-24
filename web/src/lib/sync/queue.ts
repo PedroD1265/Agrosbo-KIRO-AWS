@@ -1,4 +1,4 @@
-import { idb, type QueuedMutation, type QueueDomain } from "@/lib/db/idb";
+import { idb, type QueuedMutation, type QueueDomain } from '@/lib/db/idb';
 
 export function makeClientId(prefix: string) {
   const r = Math.random().toString(36).slice(2, 10);
@@ -8,7 +8,7 @@ export function makeClientId(prefix: string) {
 export interface EnqueueInput {
   clientId: string;
   domain: QueueDomain;
-  method: "POST" | "PUT" | "PATCH" | "DELETE";
+  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   url: string;
   body: unknown;
   invalidateKeys: string[][];
@@ -18,7 +18,7 @@ export async function enqueue(input: EnqueueInput): Promise<QueuedMutation> {
   const now = Date.now();
   const item: QueuedMutation = {
     ...input,
-    status: "pending",
+    status: 'pending',
     attempts: 0,
     createdAt: now,
     updatedAt: now,
@@ -28,16 +28,16 @@ export async function enqueue(input: EnqueueInput): Promise<QueuedMutation> {
 }
 
 export async function listPending() {
-  return idb.mutations.where("status").anyOf("pending", "failed").sortBy("createdAt");
+  return idb.mutations.where('status').anyOf('pending', 'failed').sortBy('createdAt');
 }
 
 export async function listAll() {
-  return idb.mutations.orderBy("createdAt").toArray();
+  return idb.mutations.orderBy('createdAt').toArray();
 }
 
 export async function setStatus(
   clientId: string,
-  status: QueuedMutation["status"],
+  status: QueuedMutation['status'],
   patch: Partial<QueuedMutation> = {},
 ) {
   await idb.mutations.update(clientId, { status, updatedAt: Date.now(), ...patch });
@@ -53,21 +53,21 @@ export async function counts() {
   let syncing = 0;
   let failed = 0;
   for (const m of all) {
-    if (m.status === "pending") pending++;
-    else if (m.status === "syncing") syncing++;
-    else if (m.status === "failed") failed++;
+    if (m.status === 'pending') pending++;
+    else if (m.status === 'syncing') syncing++;
+    else if (m.status === 'failed') failed++;
   }
   return { pending, syncing, failed, total: all.length };
 }
 
 export async function clearFailed() {
-  const failed = await idb.mutations.where("status").equals("failed").primaryKeys();
+  const failed = await idb.mutations.where('status').equals('failed').primaryKeys();
   await idb.mutations.bulkDelete(failed);
 }
 
 export async function retryFailed() {
   await idb.mutations
-    .where("status")
-    .equals("failed")
-    .modify({ status: "pending", attempts: 0, lastError: undefined, updatedAt: Date.now() });
+    .where('status')
+    .equals('failed')
+    .modify({ status: 'pending', attempts: 0, lastError: undefined, updatedAt: Date.now() });
 }

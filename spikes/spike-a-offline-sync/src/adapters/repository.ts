@@ -8,7 +8,9 @@ import { HarvestDuplicateKey } from '../domain/types.js';
 
 export interface SyncRepository {
   /** Check if a client_op_id was already processed (idempotency). */
-  findByClientOpId(clientOpId: string): Promise<{ status: string; resolved_entity_id: string | null } | null>;
+  findByClientOpId(
+    clientOpId: string,
+  ): Promise<{ status: string; resolved_entity_id: string | null } | null>;
 
   /** Record a sync operation as applied. */
   recordApplied(params: {
@@ -40,7 +42,12 @@ export interface SyncRepository {
   createProducer(params: { name: string; externalRef?: string }): Promise<string>;
 
   /** Create a parcel and return server id. */
-  createParcel(params: { producerId: string; name: string; gpsLat?: number; gpsLng?: number }): Promise<string>;
+  createParcel(params: {
+    producerId: string;
+    name: string;
+    gpsLat?: number;
+    gpsLng?: number;
+  }): Promise<string>;
 
   /** Create a harvest and return server id. */
   createHarvest(params: {

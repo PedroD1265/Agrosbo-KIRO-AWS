@@ -1,26 +1,28 @@
-import { useState, type FormEvent } from "react";
-import { useNavigate, useLocation, Navigate } from "react-router-dom";
-import { useAuth } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { useState, type FormEvent } from 'react';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { useAuth } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 
-interface LocationState { from?: { pathname: string } }
+interface LocationState {
+  from?: { pathname: string };
+}
 
 export default function LoginPage() {
   const { user, login, loading, enforcement } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [loginVal, setLoginVal] = useState("");
-  const [password, setPassword] = useState("");
+  const [loginVal, setLoginVal] = useState('');
+  const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (loading) return null;
   if (user) {
-    const dest = (location.state as LocationState)?.from?.pathname ?? "/today";
+    const dest = (location.state as LocationState)?.from?.pathname ?? '/today';
     return <Navigate to={dest} replace />;
   }
 
@@ -30,10 +32,10 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await login(loginVal.trim(), password);
-      const dest = (location.state as LocationState)?.from?.pathname ?? "/today";
+      const dest = (location.state as LocationState)?.from?.pathname ?? '/today';
       navigate(dest, { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al iniciar sesión");
+      setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
     } finally {
       setSubmitting(false);
     }
@@ -50,10 +52,12 @@ export default function LoginPage() {
               </div>
               <div>
                 <h1 className="text-lg font-bold leading-tight">AgrosBO</h1>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Iniciar sesión</p>
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">
+                  Iniciar sesión
+                </p>
               </div>
             </div>
-            {enforcement === "off" && (
+            {enforcement === 'off' && (
               <p className="text-[11px] text-status-warn pt-1" data-testid="text-auth-off-hint">
                 Modo desarrollo · auth desactivada (puedes entrar sin sesión)
               </p>
@@ -85,10 +89,17 @@ export default function LoginPage() {
               />
             </div>
             {error && (
-              <p className="text-xs text-status-critical" data-testid="text-login-error">{error}</p>
+              <p className="text-xs text-status-critical" data-testid="text-login-error">
+                {error}
+              </p>
             )}
-            <Button type="submit" className="w-full" disabled={submitting} data-testid="button-login-submit">
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Entrar"}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={submitting}
+              data-testid="button-login-submit"
+            >
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Entrar'}
             </Button>
           </form>
         </CardContent>

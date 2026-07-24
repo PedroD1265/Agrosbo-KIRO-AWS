@@ -5,18 +5,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { EmptyState } from "@/shared/ui/EmptyState";
-import { FileSearch } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/table';
+import { EmptyState } from '@/shared/ui/EmptyState';
+import { FileSearch } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 export interface Column<T> {
   header: string;
   accessor: (row: T) => React.ReactNode;
   className?: string;
-  align?: "left" | "right" | "center";
+  align?: 'left' | 'right' | 'center';
 }
 
 interface Props<T> {
@@ -28,7 +28,14 @@ interface Props<T> {
   dense?: boolean;
 }
 
-export function ReportTable<T>({ columns, rows, isLoading, emptyMessage, rowKey, dense }: Props<T>) {
+export function ReportTable<T>({
+  columns,
+  rows,
+  isLoading,
+  emptyMessage,
+  rowKey,
+  dense,
+}: Props<T>) {
   if (isLoading) {
     return (
       <Card className="overflow-hidden p-3">
@@ -47,15 +54,15 @@ export function ReportTable<T>({ columns, rows, isLoading, emptyMessage, rowKey,
         <EmptyState
           icon={FileSearch}
           title="Sin resultados"
-          description={emptyMessage ?? "No hay datos para los filtros seleccionados."}
+          description={emptyMessage ?? 'No hay datos para los filtros seleccionados.'}
           compact
         />
       </Card>
     );
   }
 
-  const alignClass = (a?: "left" | "right" | "center") =>
-    a === "right" ? "text-right" : a === "center" ? "text-center" : "text-left";
+  const alignClass = (a?: 'left' | 'right' | 'center') =>
+    a === 'right' ? 'text-right' : a === 'center' ? 'text-center' : 'text-left';
 
   return (
     <Card className="overflow-hidden">
@@ -67,7 +74,7 @@ export function ReportTable<T>({ columns, rows, isLoading, emptyMessage, rowKey,
                 <TableHead
                   key={col.header}
                   className={cn(
-                    "h-10 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground",
+                    'h-10 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
                     alignClass(col.align),
                     col.className,
                   )}
@@ -82,16 +89,16 @@ export function ReportTable<T>({ columns, rows, isLoading, emptyMessage, rowKey,
               <TableRow
                 key={rowKey(row)}
                 className={cn(
-                  "border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors",
-                  idx % 2 === 1 && "bg-muted/10",
+                  'border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors',
+                  idx % 2 === 1 && 'bg-muted/10',
                 )}
               >
                 {columns.map((col) => (
                   <TableCell
                     key={col.header}
                     className={cn(
-                      dense ? "py-2" : "py-3",
-                      "px-4 text-sm",
+                      dense ? 'py-2' : 'py-3',
+                      'px-4 text-sm',
                       alignClass(col.align),
                       col.className,
                     )}

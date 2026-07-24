@@ -1,13 +1,13 @@
-import { LayoutDashboard, ListChecks, Droplets, NotebookPen, MoreHorizontal } from "lucide-react";
-import { NavLink } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { LayoutDashboard, ListChecks, Droplets, NotebookPen, MoreHorizontal } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 const items = [
-  { to: "/today", icon: LayoutDashboard, label: "Hoy" },
-  { to: "/tasks", icon: ListChecks, label: "Tareas" },
-  { to: "/irrigation", icon: Droplets, label: "Riego" },
-  { to: "/observations", icon: NotebookPen, label: "Observar" },
-  { to: "/more", icon: MoreHorizontal, label: "Más" },
+  { to: '/today', icon: LayoutDashboard, label: 'Hoy' },
+  { to: '/tasks', icon: ListChecks, label: 'Tareas' },
+  { to: '/irrigation', icon: Droplets, label: 'Riego' },
+  { to: '/observations', icon: NotebookPen, label: 'Observar' },
+  { to: '/more', icon: MoreHorizontal, label: 'Más' },
 ];
 
 export function BottomNav() {
@@ -20,8 +20,8 @@ export function BottomNav() {
               to={it.to}
               className={({ isActive }) =>
                 cn(
-                  "relative flex flex-col items-center gap-1 px-1 py-2.5 text-[10px] font-medium transition-colors",
-                  isActive ? "text-primary" : "text-muted-foreground active:text-foreground",
+                  'relative flex flex-col items-center gap-1 px-1 py-2.5 text-[10px] font-medium transition-colors',
+                  isActive ? 'text-primary' : 'text-muted-foreground active:text-foreground',
                 )
               }
             >

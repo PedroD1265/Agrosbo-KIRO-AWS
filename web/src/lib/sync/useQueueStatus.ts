@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { counts as queueCounts } from "@/lib/sync/queue";
-import { subscribeQueue, triggerSync } from "@/lib/sync/engine";
+import { useEffect, useState } from 'react';
+import { counts as queueCounts } from '@/lib/sync/queue';
+import { subscribeQueue, triggerSync } from '@/lib/sync/engine';
 
 export interface QueueStatusSnapshot {
   online: boolean;
@@ -10,7 +10,7 @@ export interface QueueStatusSnapshot {
 }
 
 const initial: QueueStatusSnapshot = {
-  online: typeof navigator !== "undefined" ? navigator.onLine : true,
+  online: typeof navigator !== 'undefined' ? navigator.onLine : true,
   pending: 0,
   syncing: 0,
   failed: 0,
@@ -25,7 +25,7 @@ export function useQueueStatus() {
       const c = await queueCounts();
       if (cancelled) return;
       setSnap({
-        online: typeof navigator !== "undefined" ? navigator.onLine : true,
+        online: typeof navigator !== 'undefined' ? navigator.onLine : true,
         ...c,
       });
     };
@@ -34,14 +34,14 @@ export function useQueueStatus() {
     const off = subscribeQueue(refresh);
     const onOnline = () => refresh();
     const onOffline = () => refresh();
-    window.addEventListener("online", onOnline);
-    window.addEventListener("offline", onOffline);
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
     const interval = window.setInterval(refresh, 4000);
     return () => {
       cancelled = true;
       off();
-      window.removeEventListener("online", onOnline);
-      window.removeEventListener("offline", onOffline);
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
       window.clearInterval(interval);
     };
   }, []);

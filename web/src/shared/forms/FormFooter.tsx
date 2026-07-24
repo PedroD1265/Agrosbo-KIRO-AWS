@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
-import { OfflineHint } from "./OfflineHint";
+import { cn } from '@/lib/utils';
+import { OfflineHint } from './OfflineHint';
 
 interface Props {
   /** Si true, hace el footer "sticky" en mobile dentro de un drawer scrollable */
@@ -30,14 +30,16 @@ export function FormFooter({
   return (
     <div
       className={cn(
-        "-mx-6 mt-2 border-t border-border/60 bg-card px-6 pt-3",
-        "pb-[calc(0.75rem+env(safe-area-inset-bottom))]",
-        sticky && "sticky bottom-0 z-10",
+        '-mx-6 mt-2 border-t border-border/60 bg-card px-6 pt-3',
+        'pb-[calc(0.75rem+env(safe-area-inset-bottom))]',
+        sticky && 'sticky bottom-0 z-10',
         className,
       )}
     >
       {offlineAware ? (
-        <div className="mb-2"><OfflineHint /></div>
+        <div className="mb-2">
+          <OfflineHint />
+        </div>
       ) : hint ? (
         <p className="mb-2 text-[11px] text-muted-foreground">{hint}</p>
       ) : null}

@@ -1,34 +1,34 @@
-import { QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { AppLayout } from "@/app-shell/AppLayout";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import { queryClient } from "@/lib/queryClient";
-import { AuthProvider } from "@/lib/auth";
-import { RequireAuth } from "@/lib/RequireAuth";
-import Today from "./pages/Today";
-import MapPage from "./pages/Map";
-import Blocks from "./pages/Blocks";
-import BlockDetail from "./pages/BlockDetail";
-import Greenhouses from "./pages/Greenhouses";
-import GreenhouseDetail from "./pages/GreenhouseDetail";
-import Campaigns from "./pages/Campaigns";
-import CampaignDetail from "./pages/CampaignDetail";
-import Applications from "./pages/Applications";
-import Beekeeping from "./pages/Beekeeping";
-import Irrigation from "./pages/Irrigation";
-import Tasks from "./pages/Tasks";
-import Observations from "./pages/Observations";
-import Inventory from "./pages/Inventory";
-import Harvest from "./pages/Harvest";
-import Expenses from "./pages/Expenses";
-import Reports from "./pages/Reports";
-import Integrations from "./pages/Integrations";
-import Settings from "./pages/Settings";
-import More from "./pages/More";
-import NotFound from "./pages/NotFound";
-import Login from "./pages/Login";
+import { QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { AppLayout } from '@/app-shell/AppLayout';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { queryClient } from '@/lib/queryClient';
+import { AuthProvider } from '@/lib/auth';
+import { RequireAuth } from '@/lib/RequireAuth';
+import Today from './pages/Today';
+import MapPage from './pages/Map';
+import Blocks from './pages/Blocks';
+import BlockDetail from './pages/BlockDetail';
+import Greenhouses from './pages/Greenhouses';
+import GreenhouseDetail from './pages/GreenhouseDetail';
+import Campaigns from './pages/Campaigns';
+import CampaignDetail from './pages/CampaignDetail';
+import Applications from './pages/Applications';
+import Beekeeping from './pages/Beekeeping';
+import Irrigation from './pages/Irrigation';
+import Tasks from './pages/Tasks';
+import Observations from './pages/Observations';
+import Inventory from './pages/Inventory';
+import Harvest from './pages/Harvest';
+import Expenses from './pages/Expenses';
+import Reports from './pages/Reports';
+import Integrations from './pages/Integrations';
+import Settings from './pages/Settings';
+import More from './pages/More';
+import NotFound from './pages/NotFound';
+import Login from './pages/Login';
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -67,7 +67,11 @@ const App = () => (
                 <Route path="/integrations" element={<Integrations />} />
                 <Route
                   path="/settings"
-                  element={<RequireAuth roles={["admin"]}><Settings /></RequireAuth>}
+                  element={
+                    <RequireAuth roles={['admin']}>
+                      <Settings />
+                    </RequireAuth>
+                  }
                 />
                 <Route path="/more" element={<More />} />
                 <Route path="*" element={<NotFound />} />

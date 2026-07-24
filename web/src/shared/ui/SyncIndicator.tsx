@@ -1,6 +1,6 @@
-import { AlertTriangle, Cloud, CloudOff, RefreshCw } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useSyncStatus } from "@/hooks/useSyncStatus";
+import { AlertTriangle, Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useSyncStatus } from '@/hooks/useSyncStatus';
 
 interface Props {
   className?: string;
@@ -8,11 +8,7 @@ interface Props {
   pending?: number;
 }
 
-export function SyncIndicator({
-  className,
-  online: onlineProp,
-  pending: pendingProp,
-}: Props) {
+export function SyncIndicator({ className, online: onlineProp, pending: pendingProp }: Props) {
   const { online, pending, syncing, failed, triggerSync } = useSyncStatus();
   const isOnline = onlineProp ?? online;
   const pendingCount = (pendingProp ?? pending) + syncing;
@@ -22,13 +18,13 @@ export function SyncIndicator({
       <span
         data-testid="sync-status-offline"
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full bg-status-critical-soft px-2.5 py-1 text-xs font-medium text-status-critical",
+          'inline-flex items-center gap-1.5 rounded-full bg-status-critical-soft px-2.5 py-1 text-xs font-medium text-status-critical',
           className,
         )}
-        title={pendingCount > 0 ? `${pendingCount} en cola local` : "Sin conexión"}
+        title={pendingCount > 0 ? `${pendingCount} en cola local` : 'Sin conexión'}
       >
         <CloudOff className="h-3.5 w-3.5" /> Offline
-        {pendingCount > 0 ? ` · ${pendingCount}` : ""}
+        {pendingCount > 0 ? ` · ${pendingCount}` : ''}
       </span>
     );
   }
@@ -40,7 +36,7 @@ export function SyncIndicator({
         onClick={() => triggerSync()}
         data-testid="sync-status-failed"
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full bg-status-critical-soft px-2.5 py-1 text-xs font-medium text-status-critical hover:opacity-90",
+          'inline-flex items-center gap-1.5 rounded-full bg-status-critical-soft px-2.5 py-1 text-xs font-medium text-status-critical hover:opacity-90',
           className,
         )}
         title="Reintentar sincronización"
@@ -57,12 +53,12 @@ export function SyncIndicator({
         onClick={() => triggerSync()}
         data-testid="sync-status-pending"
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full bg-status-sync-soft px-2.5 py-1 text-xs font-medium text-status-sync hover:opacity-90",
+          'inline-flex items-center gap-1.5 rounded-full bg-status-sync-soft px-2.5 py-1 text-xs font-medium text-status-sync hover:opacity-90',
           className,
         )}
         title="Sincronizar ahora"
       >
-        <RefreshCw className={cn("h-3.5 w-3.5", syncing > 0 && "animate-spin")} />
+        <RefreshCw className={cn('h-3.5 w-3.5', syncing > 0 && 'animate-spin')} />
         {pendingCount} por sincronizar
       </button>
     );
@@ -72,7 +68,7 @@ export function SyncIndicator({
     <span
       data-testid="sync-status-ok"
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full bg-status-ok-soft px-2.5 py-1 text-xs font-medium text-status-ok",
+        'inline-flex items-center gap-1.5 rounded-full bg-status-ok-soft px-2.5 py-1 text-xs font-medium text-status-ok',
         className,
       )}
     >

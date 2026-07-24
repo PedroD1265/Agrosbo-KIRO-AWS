@@ -1,4 +1,4 @@
-import { useQueueStatus } from "@/lib/sync/useQueueStatus";
+import { useQueueStatus } from '@/lib/sync/useQueueStatus';
 
 /**
  * Backwards-compatible facade. The real source of truth is the offline

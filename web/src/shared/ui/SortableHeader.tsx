@@ -1,13 +1,13 @@
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Props<K extends string> {
   label: string;
   sortKey: K;
   active: K | null;
-  direction: "asc" | "desc";
+  direction: 'asc' | 'desc';
   onSort: (key: K) => void;
-  align?: "left" | "right";
+  align?: 'left' | 'right';
   className?: string;
 }
 
@@ -22,16 +22,16 @@ export function SortableHeader<K extends string>({
   active,
   direction,
   onSort,
-  align = "left",
+  align = 'left',
   className,
 }: Props<K>) {
   const isActive = active === sortKey;
-  const Icon = !isActive ? ArrowUpDown : direction === "asc" ? ArrowUp : ArrowDown;
+  const Icon = !isActive ? ArrowUpDown : direction === 'asc' ? ArrowUp : ArrowDown;
   return (
     <th
       className={cn(
-        "px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground",
-        align === "right" ? "text-right" : "text-left",
+        'px-4 py-3 text-xs font-medium uppercase tracking-wide text-muted-foreground',
+        align === 'right' ? 'text-right' : 'text-left',
         className,
       )}
     >
@@ -39,19 +39,19 @@ export function SortableHeader<K extends string>({
         type="button"
         onClick={() => onSort(sortKey)}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-sm transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-          isActive && "text-foreground",
-          align === "right" && "flex-row-reverse",
+          'inline-flex items-center gap-1.5 rounded-sm transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+          isActive && 'text-foreground',
+          align === 'right' && 'flex-row-reverse',
         )}
       >
         <span>{label}</span>
-        <Icon className={cn("h-3 w-3 opacity-60", isActive && "opacity-100")} />
+        <Icon className={cn('h-3 w-3 opacity-60', isActive && 'opacity-100')} />
       </button>
     </th>
   );
 }
 
-export function useSortState<K extends string>(initial: K, initialDir: "asc" | "desc" = "asc") {
+export function useSortState<K extends string>(initial: K, initialDir: 'asc' | 'desc' = 'asc') {
   // Tiny seam to keep table sort state with predictable toggling.
   // Returns a tuple suitable for direct destructure in pages.
   // (Implemented as a hook factory to avoid pulling React in here.)

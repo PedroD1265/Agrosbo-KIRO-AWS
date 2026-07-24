@@ -1,19 +1,19 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient } from '@tanstack/react-query';
 
 async function defaultFetcher({ queryKey }: { queryKey: readonly unknown[] }) {
   const url = queryKey
-    .map((seg) => (typeof seg === "string" ? seg : String(seg)))
-    .join("/")
-    .replace(/\/+/g, "/");
+    .map((seg) => (typeof seg === 'string' ? seg : String(seg)))
+    .join('/')
+    .replace(/\/+/g, '/');
 
   const res = await fetch(url, {
-    credentials: "include",
-    headers: { Accept: "application/json" },
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
   });
 
   if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`${res.status} ${res.statusText}${body ? ` · ${body}` : ""}`);
+    const body = await res.text().catch(() => '');
+    throw new Error(`${res.status} ${res.statusText}${body ? ` · ${body}` : ''}`);
   }
   return res.json();
 }
@@ -32,7 +32,7 @@ export const queryClient = new QueryClient({
   },
 });
 
-export type ApiMethod = "POST" | "PUT" | "PATCH" | "DELETE";
+export type ApiMethod = 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export async function apiRequest<T = unknown>(
   method: ApiMethod,
@@ -41,13 +41,13 @@ export async function apiRequest<T = unknown>(
 ): Promise<T> {
   const res = await fetch(url, {
     method,
-    credentials: "include",
-    headers: body ? { "Content-Type": "application/json" } : undefined,
+    credentials: 'include',
+    headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
 
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
+    const text = await res.text().catch(() => '');
     let message = `${res.status} ${res.statusText}`;
     try {
       const parsed = JSON.parse(text);
