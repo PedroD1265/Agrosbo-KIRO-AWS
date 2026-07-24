@@ -57,3 +57,19 @@ Esta regla es provisional y puede cambiar tras observar datos reales.
 - La detección de posibles duplicados es una advertencia, nunca una acción
   automática.
 - Este es el mayor riesgo técnico y se valida primero en el Spike A.
+
+## Resultado del Spike A
+
+Validado con 22 tests (13 PostgreSQL + 7 IndexedDB + 2 concurrencia). Estado:
+PASS.
+
+Hallazgos incorporados:
+- `temp_entity_id` es TEXT (no UUID) con validación: max 128 chars, alfanumérico
+  + hyphens + underscores.
+- `client_op_id` es UUID v4 validado.
+- La detección de duplicados ocurre ANTES del INSERT, no después.
+- Concurrencia multi-dispositivo simultánea tiene una ventana de carrera
+  documentada. Para el MVP single-device, no es un problema. Para producción
+  futura: advisory lock o serializable isolation.
+- La persistencia en IndexedDB (probada con fake-indexeddb) sobrevive a la
+  destrucción y recreación de la instancia de la cola.

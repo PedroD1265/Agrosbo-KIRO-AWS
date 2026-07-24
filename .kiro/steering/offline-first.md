@@ -23,6 +23,24 @@ de dominio ni de integridad de balances.
 Cada operación local MUST tener: client_op_id, temp_entity_id, operation_type,
 payload, dependency_op_ids, created_at, attempts, status, last_error.
 
+## Convención de identificadores
+
+- client_op_id: MUST ser UUID v4.
+- temp_entity_id: MUST ser TEXT no vacío, máximo 128 caracteres, solo
+  alfanumérico + guiones + guiones bajos.
+- server IDs: UUID v4 generados por PostgreSQL.
+- MUST validar formato antes de procesar un batch; rechazar si algún
+  identificador viola el formato.
+
+## Persistencia del cliente
+
+- MUST persistir la cola en IndexedDB (no solo en memoria).
+- MUST sobrevivir a la destrucción y recreación de la instancia.
+- MUST conservar blobs pendientes y su relación con la operación de metadata.
+- MUST archivar una operación ONLY después de confirmación exitosa.
+- MUST mantener operaciones fallidas para reintento.
+- MUST NOT perder operaciones pendientes ante cierre de la app.
+
 ## Sincronización
 
 - MUST procesar operaciones en orden de dependencias.

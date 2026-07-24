@@ -12,6 +12,7 @@
 import { SyncBatch, SyncResult, OperationResult, SyncOperation } from '../domain/types.js';
 import { sortByDependencies } from '../domain/dependency-sort.js';
 import { buildHarvestDuplicateKey } from '../domain/duplicate-detection.js';
+import { validateSyncOperation } from '../domain/validation.js';
 import { SyncRepository } from '../adapters/repository.js';
 import { StorageAdapter } from '../adapters/storage.js';
 
@@ -24,6 +25,16 @@ export class SyncService {
   ) {}
 
   async processBatch(batch: SyncBatch): Promise<SyncResult> {
+    // Validate all operations before processing
+    for (const op of batch.operations) {
+      const errors = validateSyncOperation(op);
+      if (errors.length > 0) {
+        throw new Error(
+          `Validation failed for op ${op.client_op_id}: ${errors.map((e) => e.message).join(', ')}`,
+        );
+      }
+    }
+
     const sorted = sortByDependencies(batch.operations);
     const reconciliationMap: Record<string, string> = {};
     const results: OperationResult[] = [];

@@ -15,7 +15,8 @@ export class PgLocalRepository implements SyncRepository {
 
   constructor(connectionString?: string) {
     this.pool = new Pool({
-      connectionString: connectionString || 'postgresql://spike:spike_local_only@127.0.0.1:54320/agrosbo_spike',
+      connectionString:
+        connectionString || 'postgresql://spike:spike_local_only@127.0.0.1:54320/agrosbo_spike',
     });
   }
 

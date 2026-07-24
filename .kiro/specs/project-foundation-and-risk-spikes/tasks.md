@@ -12,31 +12,31 @@ NO ejecutar estas tareas hasta recibir autorización explícita.
 
 ## Grupo 0 - Fundación (Checkpoint 0)
 
-- [ ] 0.1 Crear la estructura de carpetas del repositorio (`/web`, `/api`,
+- [x] 0.1 Crear la estructura de carpetas del repositorio (`/web`, `/api`,
   `/infra`, `/docs`, `/spikes`, `.kiro`).
   - Evidencia: árbol de directorios.
   - Dependencias: ninguna.
   - Requisitos: R1.
 
-- [ ] 0.2 [paralelizable] Configurar herramientas de calidad en la raíz
+- [x] 0.2 [paralelizable] Configurar herramientas de calidad en la raíz
   (formato, lint, typecheck, build) sin lógica de negocio.
   - Evidencia: comandos ejecutables en verde sobre un archivo trivial.
   - Dependencias: 0.1.
   - Requisitos: R2, R8.
 
-- [ ] 0.3 [paralelizable] Añadir gestión de secretos fuera del código y
+- [x] 0.3 [paralelizable] Añadir gestión de secretos fuera del código y
   `.gitignore` que excluya credenciales y artefactos locales.
   - Evidencia: verificación de que no hay secretos versionados.
   - Dependencias: 0.1.
   - Requisitos: R8.
 
-- [ ] 0.4 [paralelizable] Crear los Hooks básicos autorizados (secret scan,
+- [x] 0.4 [paralelizable] Crear los Hooks básicos autorizados (secret scan,
   format, lint, typecheck, unit tests, build).
   - Evidencia: hooks creados y funcionales.
   - Dependencias: 0.2.
   - Requisitos: R2, R8.
 
-- [ ] 0.5 Preparar la definición de infraestructura de laboratorio (CDK stack)
+- [x] 0.5 Preparar la definición de infraestructura de laboratorio (CDK stack)
   sin desplegarlo aún. Documentar comandos de creación/destrucción y límites de
   costo. Recursos: Aurora PostgreSQL Serverless v2 + Data API, bucket S3, con
   prefijo `agrosbo-dev-spike`.
@@ -50,31 +50,31 @@ DETENER tras completar Grupo 0. Entregar informe de checkpoint.
 
 Requiere: Checkpoint 0 aprobado + infraestructura de lab desplegada.
 
-- [ ] A.1 Definir el esquema desechable `spike_a` y el contrato del lote de
+- [x] A.1 Definir el esquema desechable `spike_a` y el contrato del lote de
   operaciones (client_op_id, temp_entity_id, dependency_op_ids, etc.).
   - Evidencia: definición del contrato y del esquema.
   - Dependencias: 0.5 (infra lab desplegada).
   - Requisitos: R3.
 
-- [ ] A.2 Implementar el procesamiento `POST /sync-spike`: orden por
+- [x] A.2 Implementar el procesamiento `POST /sync-spike`: orden por
   dependencias, transacción corta por operación, reconciliación temp->server.
   - Evidencia: log con mapa de IDs reconciliados.
   - Dependencias: A.1.
   - Requisitos: R4.1, R4.3, R4.4.
 
-- [ ] A.3 Implementar idempotencia por client_op_id y probar reintento sin
+- [x] A.3 Implementar idempotencia por client_op_id y probar reintento sin
   duplicados.
   - Evidencia: corrida que reenvía el lote y muestra 0 duplicados.
   - Dependencias: A.2.
   - Requisitos: R4.2.
 
-- [ ] A.4 Probar aislamiento de fallo: una operación falla y las independientes
+- [x] A.4 Probar aislamiento de fallo: una operación falla y las independientes
   ya confirmadas permanecen.
   - Evidencia: log mostrando fallo aislado y estado consistente.
   - Dependencias: A.2.
   - Requisitos: R4.5, R4.6.
 
-- [ ] A.5 Probar detección de posible duplicado de cosecha: coinciden
+- [x] A.5 Probar detección de posible duplicado de cosecha: coinciden
   cooperative_id, producer_id, parcel_id, product_state, harvested_date y
   quantity_kg (redondeada a 2 decimales). Se marca como `possible_duplicate`
   para revisión humana. No se fusiona, elimina, sobrescribe, rechaza ni modifica
@@ -83,14 +83,14 @@ Requiere: Checkpoint 0 aprobado + infraestructura de lab desplegada.
   - Dependencias: A.2.
   - Requisitos: R4.7, R4.8, R4.9.
 
-- [ ] A.6 Probar que la subida de archivos está separada de la transacción
+- [x] A.6 Probar que la subida de archivos está separada de la transacción
   PostgreSQL (simulada o real con bucket de lab).
   - Evidencia: log mostrando subida a S3 independiente de la transacción de
     metadata.
   - Dependencias: A.2.
   - Requisitos: R4 (offline-first.md archivos).
 
-- [ ] A.7 Escribir `/spikes/spike-a-offline-sync/RESULTS.md` con PASS/PARTIAL/
+- [x] A.7 Escribir `/spikes/spike-a-offline-sync/RESULTS.md` con PASS/PARTIAL/
   FAIL por criterio.
   - Evidencia: RESULTS.md.
   - Dependencias: A.3, A.4, A.5, A.6.
