@@ -34,7 +34,7 @@ import {
   parseAndImport,
 } from './csv.js';
 import { claim, complete, release, claimTx, completeTx } from './idempotency.js';
-import { hasDatabaseUrl } from './db.js';
+import { usesTransactionalDatabaseStorage } from './storage.js';
 import type { IStorage } from './storage.js';
 import type { DbStorage } from './dbStorage.js';
 
@@ -79,11 +79,15 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
       return fn(req, res, next);
     }
 
-    if (!hasDatabaseUrl) {
+    if (!usesTransactionalDatabaseStorage()) {
       const claimResult = await claim(key);
 
       if (claimResult.type === 'completed') {
         res.setHeader('X-Idempotent-Replay', '1');
+        // Replay: 204 responses have a null body
+        if (claimResult.body === null) {
+          return res.status(claimResult.status).end();
+        }
         return res.status(claimResult.status).json(claimResult.body);
       }
       if (claimResult.type === 'processing') {
@@ -103,10 +107,21 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
       const token = claimResult.token;
       let captured: { status: number; body: unknown } | null = null;
       const originalJson = res.json.bind(res);
+      const originalSend = res.send.bind(res);
+      const originalEnd = res.end.bind(res);
+
       res.json = ((body: unknown) => {
         captured = { status: res.statusCode, body };
         return res;
       }) as Response['json'];
+      res.send = ((body?: unknown) => {
+        if (!captured) captured = { status: res.statusCode, body: body ?? null };
+        return res;
+      }) as Response['send'];
+      res.end = ((...args: unknown[]) => {
+        if (!captured) captured = { status: res.statusCode, body: null };
+        return (originalEnd as (...a: unknown[]) => Response)(...args);
+      }) as unknown as Response['end'];
 
       let handlerError: unknown = null;
       try {
@@ -115,6 +130,8 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
         handlerError = err;
       }
       res.json = originalJson;
+      res.send = originalSend;
+      res.end = originalEnd as Response['end'];
 
       const cap = captured as { status: number; body: unknown } | null;
       if (handlerError || !cap) {
@@ -125,6 +142,7 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
 
       if (cap.status >= 500) {
         await release(key, token);
+        if (cap.body === null) return res.status(cap.status).end();
         return res.status(cap.status).json(cap.body);
       }
 
@@ -139,6 +157,7 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
         });
       }
 
+      if (cap.body === null) return res.status(cap.status).end();
       return res.status(cap.status).json(cap.body);
     }
 
@@ -190,10 +209,21 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
 
         let captured: { status: number; body: unknown } | null = null;
         const originalJson = res.json.bind(res);
+        const originalSend = res.send.bind(res);
+        const originalEnd = res.end.bind(res);
+
         res.json = ((body: unknown) => {
           captured = { status: res.statusCode, body };
           return res;
         }) as Response['json'];
+        res.send = ((body?: unknown) => {
+          if (!captured) captured = { status: res.statusCode, body: body ?? null };
+          return res;
+        }) as Response['send'];
+        res.end = ((...args: unknown[]) => {
+          if (!captured) captured = { status: res.statusCode, body: null };
+          return (originalEnd as (...a: unknown[]) => Response)(...args);
+        }) as unknown as Response['end'];
 
         let handlerError: unknown = null;
         try {
@@ -202,6 +232,8 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
           handlerError = err;
         } finally {
           res.json = originalJson;
+          res.send = originalSend;
+          res.end = originalEnd as Response['end'];
         }
 
         if (handlerError) {
@@ -222,6 +254,10 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
           for (const [h, v] of Object.entries(respHolder.current.headers)) {
             res.setHeader(h, v);
           }
+        }
+        // 204 responses have null body
+        if (respHolder.current.body === null) {
+          return res.status(respHolder.current.status).end();
         }
         return res.status(respHolder.current.status).json(respHolder.current.body);
       }
@@ -406,7 +442,7 @@ export function registerRoutes(router: Router) {
       const id = String(req.params.id as string);
       const campaigns = await getStorage(req).listCampaigns();
       const campaign = campaigns.find((c) => c.id === id);
-      if (!campaign) return notFound(res, 'Campaña');
+      if (!campaign) return notFound(res, 'CampaÃ±a');
       const [tasks, irrigation, observations, harvest, movements] = await Promise.all([
         storage.listTasks(),
         storage.listIrrigationEvents(),
@@ -424,7 +460,7 @@ export function registerRoutes(router: Router) {
     idempotent(async (req, res) => {
       const data = updateCampaignSchema.parse(req.body);
       const updated = await getStorage(req).updateCampaign(String(req.params.id as string), data);
-      if (!updated) return notFound(res, 'Campaña');
+      if (!updated) return notFound(res, 'CampaÃ±a');
       res.json(updated);
     }),
   );
@@ -432,7 +468,7 @@ export function registerRoutes(router: Router) {
     '/campaigns/:id',
     idempotent(async (req, res) => {
       const ok = await getStorage(req).deleteCampaign(String(req.params.id as string));
-      if (!ok) return notFound(res, 'Campaña');
+      if (!ok) return notFound(res, 'CampaÃ±a');
       res.json({ ok: true });
     }),
   );
@@ -536,7 +572,7 @@ export function registerRoutes(router: Router) {
     '/observations/:id',
     idempotent(async (req, res) => {
       const ok = await getStorage(req).deleteObservation(String(req.params.id as string));
-      if (!ok) return notFound(res, 'Observación');
+      if (!ok) return notFound(res, 'ObservaciÃ³n');
       res.json({ ok: true });
     }),
   );
@@ -547,7 +583,7 @@ export function registerRoutes(router: Router) {
       const obsId = String(req.params.id as string);
       const observations = await getStorage(req).listObservations();
       const obs = observations.find((o) => o.id === obsId);
-      if (!obs) return notFound(res, 'Observación');
+      if (!obs) return notFound(res, 'ObservaciÃ³n');
       const body = z
         .object({
           title: z.string().min(1).optional(),
@@ -712,12 +748,12 @@ export function registerRoutes(router: Router) {
       } catch (err) {
         const reqLog = (req as Request).log ?? apiLog;
         reqLog.warn('weather forecast unavailable', { err: (err as Error).message });
-        res.status(503).json({ error: 'Pronóstico no disponible' });
+        res.status(503).json({ error: 'PronÃ³stico no disponible' });
       }
     }),
   );
 
-  /* Alerts — derived from current state via rules engine */
+  /* Alerts â€” derived from current state via rules engine */
   router.get(
     '/alerts',
     asyncHandler(async (req, res) => {
@@ -765,6 +801,8 @@ export function registerRoutes(router: Router) {
   router.post(
     '/applications',
     requireRole('admin', 'tecnico', 'encargado'),
+    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
+    // TODO(uow): pass drizzle tx from claim into createApplication to fully unify.
     idempotent(async (req, res) => {
       const data = insertFieldApplicationSchema.parse(req.body);
       try {
@@ -847,6 +885,7 @@ export function registerRoutes(router: Router) {
   router.post(
     '/apiaries',
     requireRole('admin', 'tecnico', 'encargado'),
+    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertApiarySchema.parse(req.body);
       res.status(201).json(await createApiary(data));
@@ -859,6 +898,7 @@ export function registerRoutes(router: Router) {
   router.post(
     '/hives',
     requireRole('admin', 'tecnico', 'encargado'),
+    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertHiveSchema.parse(req.body);
       res.status(201).json(await createHive(data));
@@ -874,6 +914,7 @@ export function registerRoutes(router: Router) {
   router.post(
     '/hive-inspections',
     requireRole('admin', 'tecnico', 'encargado'),
+    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertHiveInspectionSchema.parse(req.body);
       try {
@@ -896,6 +937,7 @@ export function registerRoutes(router: Router) {
   router.post(
     '/honey-harvests',
     requireRole('admin', 'tecnico', 'encargado'),
+    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertHoneyHarvestSchema.parse(req.body);
       res.status(201).json(await createHoneyHarvest(data));
@@ -919,6 +961,9 @@ export function registerRoutes(router: Router) {
   );
   router.post(
     '/attachments',
+    // idempotency: external-storage â€” claim recorded; file write and DB insert happen
+    // independently (no shared tx). S3+PostgreSQL atomicity requires additional
+    // saga or compensating delete (tracked as TODO(cloud) in attachments.ts).
     idempotent(async (req, res) => {
       const data = insertAttachmentSchema.parse(req.body);
       try {
@@ -941,7 +986,7 @@ export function registerRoutes(router: Router) {
   );
 
   /* ================================================================
-   * Expenses + Labor (Finanzas agrícolas)
+   * Expenses + Labor (Finanzas agrÃ­colas)
    * ============================================================== */
   router.get(
     '/expenses',
@@ -962,6 +1007,7 @@ export function registerRoutes(router: Router) {
   router.post(
     '/expenses',
     requireRole('admin', 'tecnico', 'encargado', 'finanzas'),
+    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertExpenseSchema.parse(req.body);
       res.status(201).json(await createExpense(data));
@@ -970,11 +1016,13 @@ export function registerRoutes(router: Router) {
   router.delete(
     '/expenses/:id',
     requireRole('admin', 'tecnico', 'encargado', 'finanzas'),
+    // idempotency: external-db â€” HTTP claim recorded; business tx (deleteExpense)
+    // is independent. Tolerant-delete: already-deleted or never-existed â†’ 204.
     idempotent(async (req, res) => {
       const ok = await deleteExpense(req.params.id as string);
       if (!ok) {
-        // Tolerant-delete: ya borrado o nunca existió → tratar como éxito
-        // para que reintentos offline no marquen la mutación como error.
+        // Tolerant-delete: ya borrado o nunca existiÃ³ â†’ tratar como Ã©xito
+        // para que reintentos offline no marquen la mutaciÃ³n como error.
         return res.status(204).end();
       }
       res.status(204).end();
@@ -998,6 +1046,7 @@ export function registerRoutes(router: Router) {
   router.post(
     '/labor-costs',
     requireRole('admin', 'tecnico', 'encargado', 'finanzas'),
+    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertLaborCostSchema.parse(req.body);
       res.status(201).json(await createLaborCost(data));
@@ -1033,6 +1082,7 @@ export function registerRoutes(router: Router) {
   router.post(
     '/users',
     requireRole('admin'),
+    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertUserSchema.parse(req.body);
       res.status(201).json(await createUser(data));
@@ -1049,10 +1099,10 @@ export function registerRoutes(router: Router) {
         .parse(req.body);
       const found = await getUserByLogin(login);
       if (!found || !found.passwordHash || !found.user.active) {
-        return res.status(401).json({ error: 'Credenciales inválidas' });
+        return res.status(401).json({ error: 'Credenciales invÃ¡lidas' });
       }
       if (!verifyPassword(password, found.passwordHash)) {
-        return res.status(401).json({ error: 'Credenciales inválidas' });
+        return res.status(401).json({ error: 'Credenciales invÃ¡lidas' });
       }
       setSessionCookie(res, found.user.id);
       res.json({ user: found.user });
@@ -1083,7 +1133,7 @@ export function registerRoutes(router: Router) {
   );
 
   /* ================================================================
-   * Reports — CSV exports (Fase 4)
+   * Reports â€” CSV exports (Fase 4)
    * ============================================================== */
   function sendCsv(res: Response, name: string, csv: string) {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
@@ -1160,7 +1210,7 @@ export function registerRoutes(router: Router) {
   );
 
   /* ================================================================
-   * Health — replaced by /health/live and /health/ready (health.ts)
+   * Health â€” replaced by /health/live and /health/ready (health.ts)
    * ============================================================== */
 
   /* Settings */
@@ -1177,7 +1227,7 @@ export function registerRoutes(router: Router) {
   );
 
   /* ================================================================
-   * Integrations — Adapter Registry
+   * Integrations â€” Adapter Registry
    * ============================================================== */
 
   router.get(
@@ -1220,7 +1270,7 @@ export function registerRoutes(router: Router) {
   );
 
   /* ================================================================
-   * Integrations — CSV Export
+   * Integrations â€” CSV Export
    * ============================================================== */
 
   router.get(
@@ -1264,7 +1314,7 @@ export function registerRoutes(router: Router) {
   );
 
   /* ================================================================
-   * Integrations — CSV Import
+   * Integrations â€” CSV Import
    * ============================================================== */
 
   router.post(
@@ -1282,7 +1332,7 @@ export function registerRoutes(router: Router) {
 
   router.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof ZodError) {
-      return res.status(400).json({ error: 'Datos inválidos', issues: err.issues });
+      return res.status(400).json({ error: 'Datos invÃ¡lidos', issues: err.issues });
     }
     const reqLog = (_req as Request).log ?? apiLog;
     reqLog.error('unhandled api error', { err });

@@ -454,9 +454,28 @@ let singletonStorage: IStorage | null = null;
 
 export function getGlobalStorage(): IStorage {
   if (!singletonStorage) {
-    singletonStorage = env.useMemStorage ? new MemStorage() : new DbStorage();
+    const useDb = !env.useMemStorage;
+    if (env.databaseUrl && env.useMemStorage) {
+      storageLog.warn(
+        'DATABASE_URL is set but USE_MEM_STORAGE=1 is active — using MemStorage; data will NOT be persisted to PostgreSQL',
+      );
+    }
+    singletonStorage = useDb ? new DbStorage() : new MemStorage();
   }
   return singletonStorage;
+}
+
+/**
+ * Returns true only when the active global storage singleton is a DbStorage
+ * (i.e., backed by PostgreSQL or AWS RDS Data API).
+ *
+ * This is the canonical runtime check for whether idempotency claims should be
+ * executed inside a PostgreSQL transaction.  It is NOT equivalent to
+ * `Boolean(env.databaseUrl)` — if USE_MEM_STORAGE=1 is set alongside
+ * DATABASE_URL, this function returns false.
+ */
+export function usesTransactionalDatabaseStorage(): boolean {
+  return getGlobalStorage() instanceof DbStorage;
 }
 
 export const storage: IStorage = new Proxy({} as IStorage, {
