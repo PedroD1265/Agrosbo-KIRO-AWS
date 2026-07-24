@@ -26,6 +26,11 @@ export interface AttachmentStorage {
   deleteObject(key: string): Promise<boolean>;
 
   /**
+   * Write data buffer directly to storage key.
+   */
+  writeFile(key: string, data: Buffer): Promise<void>;
+
+  /**
    * Verify object exists and optionally check its size.
    */
   verifyObject(key: string): Promise<VerifyObjectResult>;

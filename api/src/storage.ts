@@ -50,6 +50,7 @@ import {
 } from './seed.js';
 
 export interface IStorage {
+  withTransaction?<T>(fn: (txStorage: IStorage, tx: any) => Promise<T>): Promise<T>;
   /* Blocks */
   listBlocks(): Promise<Block[]>;
   getBlock(id: string): Promise<Block | undefined>;
@@ -153,6 +154,10 @@ export class MemStorage implements IStorage {
   private resolveScopeName(type: ScopeType, id: string): string {
     if (type === 'block') return this.blocks.get(id)?.name ?? 'Bloque desconocido';
     return this.greenhouses.get(id)?.name ?? 'Invernadero desconocido';
+  }
+
+  async withTransaction<T>(fn: (txStorage: IStorage, tx: any) => Promise<T>): Promise<T> {
+    return await fn(this, null);
   }
 
   async listBlocks() {

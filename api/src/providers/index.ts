@@ -102,6 +102,42 @@ export function createProviders(
   return { identity, attachments, documents };
 }
 
+import { env } from '../env.js';
+import { decodeToken, COOKIE_NAME, loadUser } from '../auth.js';
+
+let activeProviders: Providers | null = null;
+
+export function getProviders(): Providers {
+  if (!activeProviders) {
+    activeProviders = createProviders(
+      {
+        authProvider: env.authProvider,
+        storageDriver: env.attachmentsStorageDriver,
+        docExtraction: env.documentExtractionProvider,
+      },
+      {
+        decodeToken,
+        loadUser: async (userId: string) => {
+          const user = await loadUser(userId);
+          if (!user) return null;
+          return {
+            id: user.id,
+            orgId: user.orgId,
+            role: user.role,
+            active: user.active,
+          };
+        },
+        cookieName: COOKIE_NAME,
+      },
+    );
+  }
+  return activeProviders;
+}
+
+export function setProviders(providers: Providers | null): void {
+  activeProviders = providers;
+}
+
 // Re-export types for convenience
 export type {
   IdentityProvider,

@@ -187,7 +187,7 @@ export function clearSessionCookie(res: Response) {
   res.setHeader('Set-Cookie', attrs.join('; '));
 }
 
-async function loadUser(userId: string): Promise<User | null> {
+export async function loadUser(userId: string): Promise<User | null> {
   if (!env.hasDatabase) return null;
   try {
     const [row] = await db.select().from(users).where(eq(users.id, userId));
@@ -209,24 +209,31 @@ async function loadUser(userId: string): Promise<User | null> {
   }
 }
 
+import { getProviders } from './providers/index.js';
+
 /**
- * Always runs. Parses cookie → req.user. Never blocks.
+ * Always runs. Resolves principal via IdentityProvider → req.user. Never blocks.
  * When AUTH_ENFORCEMENT=off and no session, attaches DEMO_USER so audit
  * fields keep working.
  */
 export function attachUser(): RequestHandler {
   return async (req: Request, _res: Response, next: NextFunction) => {
-    const token = readCookie(req, COOKIE_NAME);
-    if (token) {
-      const decoded = decodeToken(token);
-      if (decoded) {
-        const u = await loadUser(decoded.userId);
+    try {
+      const principal = await getProviders().identity.resolve({
+        headers: req.headers as Record<string, string | undefined>,
+        cookies: req.cookies as Record<string, string> | undefined,
+      });
+      if (principal) {
+        const u = await loadUser(principal.internalUserId);
         if (u) {
           req.user = u;
           return next();
         }
       }
+    } catch (err) {
+      log.warn('attachUser identity provider resolve failed', { err });
     }
+
     if (env.authEnforcement === 'off') {
       req.user = DEMO_USER;
       req.authBypass = true;

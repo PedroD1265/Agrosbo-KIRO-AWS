@@ -728,6 +728,7 @@ export type Task = z.infer<typeof taskSchema>;
 export const insertTaskSchema = taskSchema
   .omit({ id: true, scopeName: true, checklist: true })
   .extend({
+    id: z.string().optional(),
     status: taskStatusSchema.default('pending'),
   });
 export type InsertTask = z.infer<typeof insertTaskSchema>;

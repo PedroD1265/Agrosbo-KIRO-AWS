@@ -83,6 +83,8 @@ export async function listAttachments(
   return rows.map(rowToAttachment);
 }
 
+import { getProviders } from './providers/index.js';
+
 export async function createAttachment(input: InsertAttachment): Promise<Attachment> {
   if (!ALLOWED_MIME.has(input.mimeType)) {
     throw new AttachmentValidationError(`MIME no permitido: ${input.mimeType}`);
@@ -102,14 +104,15 @@ export async function createAttachment(input: InsertAttachment): Promise<Attachm
   }
   const id = `att-${randomUUID().slice(0, 10)}`;
   const safe = safeFileName(input.fileName);
-  const dir = path.join(UPLOAD_ROOT, input.entityType, input.entityId);
-  const diskName = `${id}-${safe}`;
-  const fullPath = path.join(dir, diskName);
-  assertWithinUploads(fullPath);
-  await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(fullPath, buf);
-  const remoteUrl = `/uploads/${input.entityType}/${input.entityId}/${diskName}`;
+  const key = `${input.entityType}/${input.entityId}/${id}-${safe}`;
+
+  const storageProvider = getProviders().attachments;
+  await storageProvider.writeFile(key, buf);
+
+  const downloadAccess = await storageProvider.getDownloadAccess(key);
+  const remoteUrl = downloadAccess.url;
   const now = new Date().toISOString();
+
   const [row] = await db
     .insert(attachments)
     .values({
@@ -133,11 +136,9 @@ export async function deleteAttachment(id: string): Promise<boolean> {
   const [row] = await db.select().from(attachments).where(eq(attachments.id, id));
   if (!row) return false;
   if (row.remoteUrl?.startsWith('/uploads/')) {
-    const rel = row.remoteUrl.replace(/^\/uploads\//, '');
-    const full = path.join(UPLOAD_ROOT, rel);
+    const key = row.remoteUrl.replace(/^\/uploads\//, '');
     try {
-      assertWithinUploads(full);
-      await fs.unlink(full);
+      await getProviders().attachments.deleteObject(key);
     } catch {
       /* best-effort */
     }

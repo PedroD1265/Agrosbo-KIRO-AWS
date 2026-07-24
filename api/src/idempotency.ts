@@ -101,66 +101,123 @@ function isUniqueViolation(err: unknown): boolean {
   return e.code === '23505' || e.cause?.code === '23505';
 }
 
-async function claimDbOnce(key: string): Promise<ClaimResult> {
+export async function claimTx(tx: any, key: string): Promise<ClaimResult> {
   const now = Date.now();
   const nowIso = new Date(now).toISOString();
   const expiresIso = new Date(now + IDEM_TTL_MS).toISOString();
   const staleCutoffIso = new Date(now - PROCESSING_STALE_MS).toISOString();
   const token = randomUUID();
 
-  return await db.transaction(async (tx: any) => {
+  try {
+    const inserted = await tx
+      .insert(idempotencyKeys)
+      .values({
+        key,
+        state: 'processing',
+        attemptId: token,
+        status: null,
+        body: null,
+        expiresAt: expiresIso,
+        createdAt: nowIso,
+      })
+      .onConflictDoNothing()
+      .returning();
+
+    if (inserted.length > 0) {
+      return { type: 'claimed', token };
+    }
+
     const existing = await tx
       .select()
       .from(idempotencyKeys)
       .where(eq(idempotencyKeys.key, key))
-      .for('update')
       .limit(1);
 
     const row = existing[0];
-    if (row && Date.parse(row.expiresAt) > now) {
+    if (!row) {
+      return { type: 'unavailable' };
+    }
+
+    if (Date.parse(row.expiresAt) > now) {
       if (row.state === 'completed') {
         return {
           type: 'completed',
           status: row.status as number,
           body: row.body,
-        } as ClaimResult;
+        };
       }
       if (row.createdAt > staleCutoffIso) {
-        return { type: 'processing' } as ClaimResult;
+        return { type: 'processing' };
       }
-      await tx.delete(idempotencyKeys).where(eq(idempotencyKeys.key, key));
-    } else if (row) {
-      await tx.delete(idempotencyKeys).where(eq(idempotencyKeys.key, key));
     }
 
-    await tx.insert(idempotencyKeys).values({
-      key,
-      state: 'processing',
-      attemptId: token,
-      status: null,
-      body: null,
-      expiresAt: expiresIso,
-      createdAt: nowIso,
-    });
+    const reclaimed = await tx
+      .update(idempotencyKeys)
+      .set({
+        state: 'processing',
+        attemptId: token,
+        status: null,
+        body: null,
+        createdAt: nowIso,
+        expiresAt: expiresIso,
+      })
+      .where(
+        and(
+          eq(idempotencyKeys.key, key),
+          sql`(${idempotencyKeys.expiresAt} < ${nowIso} OR (${idempotencyKeys.state} = 'processing' AND ${idempotencyKeys.createdAt} <= ${staleCutoffIso}))`,
+        ),
+      )
+      .returning();
 
-    return { type: 'claimed', token } as ClaimResult;
-  });
+    if (reclaimed.length > 0) {
+      return { type: 'claimed', token };
+    }
+
+    return { type: 'processing' };
+  } catch (err) {
+    idemLog.error('claimTx failed', { err, key });
+    return { type: 'unavailable' };
+  }
+}
+
+export async function completeTx(
+  tx: any,
+  key: string,
+  token: string,
+  status: number,
+  body: unknown,
+): Promise<void> {
+  const result = await tx
+    .update(idempotencyKeys)
+    .set({ state: 'completed', status, body: body as object })
+    .where(
+      and(
+        eq(idempotencyKeys.key, key),
+        eq(idempotencyKeys.attemptId, token),
+        eq(idempotencyKeys.state, 'processing'),
+      ),
+    )
+    .returning({ key: idempotencyKeys.key });
+
+  if (result.length === 0) {
+    throw new Error(`[idempotency] complete: claim lost (key stolen or expired) for ${key}`);
+  }
+}
+
+export async function releaseTx(tx: any, key: string, token: string): Promise<void> {
+  try {
+    await tx
+      .delete(idempotencyKeys)
+      .where(and(eq(idempotencyKeys.key, key), eq(idempotencyKeys.attemptId, token)));
+  } catch (err) {
+    idemLog.error('releaseTx failed', { err, key });
+  }
 }
 
 async function claimDb(key: string): Promise<ClaimResult> {
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      return await claimDbOnce(key);
-    } catch (err) {
-      if (isUniqueViolation(err)) {
-        continue;
-      }
-      idemLog.error('claim failed', { err, key });
-      return { type: 'unavailable' };
-    }
-  }
-  idemLog.error('claim retry exhausted', { key });
-  return { type: 'unavailable' };
+  return await db.transaction(async (tx: any) => {
+    return await claimTx(tx, key);
+  });
 }
 
 export async function claim(key: string): Promise<ClaimResult> {
