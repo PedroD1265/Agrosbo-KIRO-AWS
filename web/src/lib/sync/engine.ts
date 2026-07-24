@@ -225,10 +225,9 @@ export async function processQueueOnce(): Promise<void> {
         if (!giveUp) {
           nextAttemptForBackoff = Math.min(nextAttemptForBackoff, attempts);
           if (syncErr.retryAfterMs) {
-            overrideDelayMs = Math.min(
-              overrideDelayMs ?? Number.POSITIVE_INFINITY,
-              syncErr.retryAfterMs,
-            );
+            // Accumulate the *maximum* Retry-After across all failing mutations:
+            // we must wait at least as long as the strictest server requirement.
+            overrideDelayMs = Math.max(overrideDelayMs ?? 0, syncErr.retryAfterMs);
           }
         }
       }
@@ -242,7 +241,10 @@ export async function processQueueOnce(): Promise<void> {
 }
 
 function scheduleNext(attempts: number, overrideDelayMs?: number) {
-  const delay = overrideDelayMs ?? backoff(attempts);
+  // Always wait at least the exponential backoff; honor Retry-After only when
+  // it exceeds the backoff so we never retry more aggressively than the server
+  // requested but also never drop below the local back-pressure floor.
+  const delay = Math.max(backoff(attempts), overrideDelayMs ?? 0);
   if (scheduled !== null) window.clearTimeout(scheduled);
   scheduled = window.setTimeout(() => {
     scheduled = null;
