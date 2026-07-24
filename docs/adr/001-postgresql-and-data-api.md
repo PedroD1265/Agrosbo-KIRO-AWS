@@ -1,6 +1,6 @@
 # ADR 001 - PostgreSQL como fuente de verdad con RDS Data API
 
-Estado: Aceptado
+Estado: Accepted (vigente; ver Estado de supersesión al final)
 
 ## Contexto
 
@@ -39,3 +39,13 @@ sin sobrecargar la infraestructura del MVP.
   materializado.
 - Si en el futuro aparece un límite de rendimiento del Data API, se reevaluará
   RDS Proxy o conexiones directas en un ADR posterior.
+
+## Estado de supersesión
+
+- Estado: **Accepted** (vigente).
+- El giro de producto (ADR 006) no altera esta decisión: PostgreSQL sigue siendo
+  la fuente de verdad y RDS Data API el acceso preferido en Lambda.
+- Reforzado por ADR 007 (Data API para evitar pools de conexión en Lambda).
+- El contexto histórico menciona "trazabilidad de café"; esa parte del contexto
+  quedó superada por ADR 006, pero la decisión técnica de base de datos se
+  mantiene sin cambios.

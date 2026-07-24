@@ -1,6 +1,6 @@
 # ADR 004 - Snapshots inmutables y versionados
 
-Estado: Aceptado
+Estado: Deferred (ver Estado de supersesión al final)
 
 ## Contexto
 
@@ -38,3 +38,14 @@ debe reflejar exactamente el estado sellado, no el estado vivo.
   y package_sha256).
 - La cadena de versiones (replaces_snapshot_id) permite auditar reemplazos sin
   perder versiones previas.
+
+## Estado de supersesión
+
+- Estado: **Deferred**.
+- Los snapshots inmutables de embarque (`shipment_snapshot`) y el paquete de
+  evidencia sellado son propios de la trazabilidad de café. Tras el giro (ADR
+  006) quedan como **visión futura**, no como regla activa del MVP agrícola.
+- No se descarta: si se retoma el sellado/versionado de expedientes, esta
+  decisión (inmutabilidad, hashes, versión con `replaces_snapshot_id`) sigue
+  siendo válida.
+- El MVP actual NO implementa embarques, revisión de completitud ni sellado.

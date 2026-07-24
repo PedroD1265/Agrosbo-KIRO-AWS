@@ -1,80 +1,92 @@
 # AGROSBO - Tecnología
 
-Responsabilidad: stack y servicios aprobados. No repite reglas de dominio ni de
-integridad.
+Responsabilidad: stack y servicios, separando lo implementado de lo objetivo y
+lo diferido. No repite reglas de dominio ni de integridad.
 
-## Frontend
+## Implemented now (verificado en código)
 
-- React + TypeScript + Vite.
-- PWA con service worker.
-- IndexedDB para cola de operaciones, cache de lectura y blobs pendientes.
-- Publicación en AWS Amplify Hosting.
+### Frontend
+- React 18 + TypeScript + Vite 5.
+- React Router 6, React Query 5, Tailwind + shadcn/radix, recharts.
+- PWA con service worker (`web/public/sw.js`) y manifest.
+- IndexedDB vía Dexie: cola de mutaciones (`mutations`) y mapa temp→real
+  (`idMap`).
+- Comunicación con la API por **rutas relativas `/api/*`** (mismo origen),
+  `credentials: "include"`.
 
-## Autenticación
+### Backend
+- Express 5 como **modular monolith** (`api/src/routes.ts` registra todas las
+  rutas; módulos por dominio en `api/src/*.ts`).
+- Adaptador Lambda presente: `api/src/handlers/index.ts` con
+  `@vendia/serverless-express` (no desplegado).
+- Validación con Zod; contratos compartidos en `shared/`.
 
-- Amazon Cognito con grupos `capturista` y `trazador`.
-- API Gateway HTTP API con JWT authorizer nativo de Cognito.
+### Datos
+- PostgreSQL como fuente de verdad, acceso vía **Drizzle**.
+- `api/src/db.ts` elige **RDS Data API** (`aws-data-api/pg`) si `AWS_RDS_*`, o
+  **node-postgres** si `DATABASE_URL`.
+- **Modo memoria parcial** (`MemStorage`, `USE_MEM_STORAGE=1`): cubre SOLO el
+  subconjunto core del `IStorage` (blocks, greenhouses, campaigns, irrigation,
+  tasks, observations, inventory + movements, harvest, settings, alerts). NO
+  cubre adjuntos, gastos/mano de obra, aplicaciones, apicultura, usuarios ni
+  caché de clima (esos requieren PostgreSQL).
 
-## Backend
+### Autenticación
+- **Cookie de sesión firmada (HMAC)** con `SESSION_SECRET`; `AUTH_ENFORCEMENT`
+  on/off; RBAC de 5 roles (`admin`, `tecnico`, `encargado`, `operario`,
+  `finanzas`). NO Cognito.
 
-- API Gateway HTTP API.
-- Una Lambda principal en TypeScript organizada como modular monolith.
-- MUST separar handlers HTTP, servicios de aplicación y reglas de dominio.
+### Servicios y utilidades
+- Clima: **Open-Meteo** (`api/src/weather.ts`), sin API key, con caché memoria +
+  tabla `weatherCache`.
+- Alertas derivadas por reglas (`api/src/alertsEngine.ts`).
+- Reportes CSV en servidor (`api/src/reports.ts`, `api/src/csv.ts`).
+- Adjuntos en **disco local** (`api/src/attachments.ts`, carpeta `uploads/`),
+  metadata en PostgreSQL. Validación MIME (imágenes/PDF) y ≤ 10 MB.
+- Mapa espacial propio en **SVG/GeoJSON** (`web/src/components/map`), sin
+  proveedor de tiles.
+- Idempotencia HTTP persistente (`api/src/idempotency.ts`, tabla
+  `idempotency_keys`) con fallback en memoria.
+
+## Hackathon target (planificado, NO desplegado)
+
+### Frontend
+- Amazon **S3** (estático) + **CloudFront** (origen único). PWA.
+
+### API
+- **API Gateway HTTP API** + **AWS Lambda** ejecutando el Express vía adaptador
+  serverless. Un solo Lambda (modular monolith), no una Lambda por endpoint.
+
+### Datos
+- **Aurora PostgreSQL Serverless v2** + **RDS Data API** (acceso preferido en
+  Lambda para evitar pools de conexión). Drizzle. Migraciones reproducibles.
+
+### Archivos
+- **Amazon S3** + **URLs prefirmadas**; metadata en PostgreSQL. Requiere migrar
+  los adjuntos de disco local a S3 antes del despliegue Lambda (ADR 007).
+
+### Seguridad
+- Cookie actual como solución **provisional del hackathon** (ADR 008);
+  `AUTH_ENFORCEMENT=on`; `SESSION_SECRET` en **Secrets Manager**; cookies
+  `Secure`; protección CSRF; **Cognito diferido**.
+
+### Operación
+- **CloudWatch** (logs/métricas mínimas), **AWS CDK** (infra reproducible),
+  ambientes reproducibles.
+
+## Deferred (NO usar sin una Spec que lo justifique)
+
+- **Amazon Cognito** (auth gestionada).
+- **Amazon Bedrock** (copiloto conversacional).
+- **Amazon Textract** (extracción documental).
+- **EventBridge / SQS / API Gateway WebSocket** (sin flujo que lo requiera).
+- **PostGIS** (no necesario para el MVP; JSONB/GeoJSON basta).
+- **RDS Proxy**, **DynamoDB** como base principal, **Step Functions**,
+  **App Runner**, **Azure**.
+
+## Reglas
+
+- MUST separar rutas HTTP, orquestación por dominio y contratos compartidos.
 - MUST NOT crear una Lambda por endpoint.
-- Una Lambda documental separada SOLO si la extracción lo requiere.
-
-## Base de datos
-
-- Aurora PostgreSQL Serverless v2.
-- Acceso mediante RDS Data API.
-- Transacciones mediante Data API.
-- PostgreSQL es la única fuente de verdad.
-- MUST NOT usar DynamoDB como base principal.
-- MUST NOT usar RDS Proxy en el MVP.
-
-## Archivos
-
-- Amazon S3 con URLs prefirmadas.
-- Fotografías, documentos y paquetes en S3; su metadata en PostgreSQL.
-
-## Extracción documental
-
-- Amazon Textract como proveedor inicial.
-- Documentos de una sola página en el MVP.
-- La persona selecciona una de las tres categorías; no hay clasificación
-  automática en el MVP.
-- MUST NOT usar Step Functions en el MVP.
-- MUST NOT usar Bedrock para explicar bloqueadores.
-- Azure Document Intelligence SOLO puede reemplazar a Textract si el spike
-  comparativo demuestra ventaja clara.
-- MUST NOT mantener dos pipelines documentales activos en producción.
-
-## Observabilidad e infraestructura
-
-- CloudWatch para logs y métricas.
-- AWS CDK para infraestructura mínima reproducible.
-- MUST NOT maximizar el número de servicios.
-
-## Infraestructura de laboratorio (spikes)
-
-- La primera Spec crea únicamente recursos mínimos de laboratorio necesarios
-  para ejecutar los spikes.
-- Recursos de lab: bucket S3, Aurora PostgreSQL Serverless v2 + Data API (solo
-  si Spike B lo necesita), variables y secretos de laboratorio.
-- MUST nombrar todos los recursos de lab con prefijo `agrosbo-dev-spike`.
-- MUST incluir comandos de creación y destrucción documentados.
-- MUST establecer límites de costo (alarma de CloudWatch si aplica).
-- MUST NOT crear infraestructura de producción durante los spikes.
-
-## Infraestructura de producción (Spec posterior)
-
-- production-infrastructure-and-deployment cubre: ambientes, despliegue público,
-  seguridad final, observabilidad, dominios, hardening y reproducibilidad.
-- MUST NOT bloquear las Specs iniciales con dependencias tardías de infra.
-
-## MUST NOT (arquitectura descartada)
-
-- MUST NOT usar AWS App Runner.
-- MUST NOT usar Step Functions.
-- MUST NOT usar Amazon Bedrock en el MVP.
-- MUST NOT usar Azure AI Search.
+- MUST NOT declarar servicios diferidos como implementados.
+- MUST NOT añadir servicios AWS solo por aumentar cantidad de logos.

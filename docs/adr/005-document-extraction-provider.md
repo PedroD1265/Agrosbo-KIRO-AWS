@@ -1,6 +1,6 @@
 # ADR 005 - Proveedor de extracción documental
 
-Estado: Propuesto (pendiente del resultado del spike comparativo)
+Estado: Deferred (antes "Propuesto"; ver Estado de supersesión al final)
 
 ## Contexto
 
@@ -46,3 +46,16 @@ disponibilidad de créditos ni mantener dos pipelines.
   proveedor elegido.
 - La integración documental se aísla detrás de una interfaz para poder cambiar
   de proveedor sin afectar el resto del backend.
+
+## Estado de supersesión
+
+- Estado: **Deferred** (antes "Propuesto"; el Spike C no se ejecutó).
+- La extracción documental (Textract / Azure Document Intelligence) era parte de
+  la trazabilidad de café. Tras el giro (ADR 006) queda **diferida**: no forma
+  parte del MVP agrícola ni del alcance del hackathon.
+- **Textract y Azure NO están implementados** ni referenciados por el código de
+  la aplicación (solo aparecían como variables de laboratorio del Spike C, ahora
+  retiradas de `.env.example` y documentadas aquí como integración experimental
+  diferida).
+- Reactivación: requiere una Spec futura que justifique la extracción documental
+  (p. ej. digitalización de facturas de insumos o certificados).
