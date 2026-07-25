@@ -20,10 +20,24 @@ const ALLOWED_MIME = new Set([
 ]);
 const MAX_BYTES = 10 * 1024 * 1024;
 
+import { createLogger } from './logger.js';
+import type { AttachmentStorage } from './providers/attachments/types.js';
+import type { DatabaseExecutor } from './executor.js';
+
+const attachmentLog = createLogger('attachments');
+
 export class AttachmentValidationError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'AttachmentValidationError';
+  }
+}
+
+export class AttachmentDeleteError extends Error {
+  readonly code = 'ATTACHMENT_DELETE_FAILED';
+  constructor(message: string, public cause?: unknown) {
+    super(message);
+    this.name = 'AttachmentDeleteError';
   }
 }
 
@@ -44,6 +58,7 @@ function assertWithinUploads(fullPath: string): void {
 function rowToAttachment(r: typeof attachments.$inferSelect): Attachment {
   const out: Attachment = {
     id: r.id,
+    objectKey: r.objectKey,
     entityType: r.entityType,
     entityId: r.entityId,
     fileName: r.fileName,
@@ -85,7 +100,15 @@ export async function listAttachments(
 
 import { getProviders } from './providers/index.js';
 
-export async function createAttachment(input: InsertAttachment): Promise<Attachment> {
+export interface CreateAttachmentOptions {
+  storageProvider?: AttachmentStorage;
+  executor?: DatabaseExecutor;
+}
+
+export async function createAttachment(
+  input: InsertAttachment,
+  opts?: CreateAttachmentOptions,
+): Promise<Attachment> {
   if (!ALLOWED_MIME.has(input.mimeType)) {
     throw new AttachmentValidationError(`MIME no permitido: ${input.mimeType}`);
   }
@@ -104,55 +127,80 @@ export async function createAttachment(input: InsertAttachment): Promise<Attachm
   }
   const id = `att-${randomUUID().slice(0, 10)}`;
   const safe = safeFileName(input.fileName);
-  const key = `${input.entityType}/${input.entityId}/${id}-${safe}`;
+  const objectKey = `${input.entityType}/${input.entityId}/${id}-${safe}`;
 
-  const storageProvider = getProviders().attachments;
-  await storageProvider.writeFile(key, buf);
+  const storageProvider = opts?.storageProvider ?? getProviders().attachments;
+  const dbExec = opts?.executor ?? db;
 
-  const downloadAccess = await storageProvider.getDownloadAccess(key);
-  const remoteUrl = downloadAccess.url;
-  const now = new Date().toISOString();
-
-  const [row] = await db
-    .insert(attachments)
-    .values({
-      id,
-      entityType: input.entityType,
-      entityId: input.entityId,
-      fileName: safe,
-      mimeType: input.mimeType,
-      sizeBytes: buf.byteLength,
-      localStatus: 'uploaded',
-      remoteUrl,
-      createdAt: now,
-      uploadedAt: now,
-      createdBy: input.createdBy ?? null,
-    })
-    .returning();
-  return rowToAttachment(row);
-}
-
-export async function deleteAttachment(id: string): Promise<boolean> {
-  const [row] = await db.select().from(attachments).where(eq(attachments.id, id));
-  if (!row) return false;
-
-  // Derive the canonical storage key from the record's own fields.
-  // IMPORTANT: the key was generated as `entityType/entityId/id-fileName`
-  // (see createAttachment above).  We reconstruct it here so that we never
-  // try to parse a potentially-expired or provider-specific remoteUrl.
-  //
-  // TODO(cloud): when ATTACHMENTS_STORAGE_DRIVER=s3, the storage key and the
-  // presigned remoteUrl diverge — a dedicated `object_key` column will be
-  // required (tracked as schema migration pending S3 activation).
-  const canonicalKey = `${row.entityType}/${row.entityId}/${row.id}-${row.fileName}`;
+  await storageProvider.writeFile(objectKey, buf);
 
   try {
-    await getProviders().attachments.deleteObject(canonicalKey);
-  } catch {
-    /* best-effort — proceed to delete the DB record even if object removal fails */
+    const downloadAccess = await storageProvider.getDownloadAccess(objectKey);
+    const remoteUrl = downloadAccess.url;
+    const now = new Date().toISOString();
+
+    const [row] = await dbExec
+      .insert(attachments)
+      .values({
+        id,
+        objectKey,
+        entityType: input.entityType,
+        entityId: input.entityId,
+        fileName: safe,
+        mimeType: input.mimeType,
+        sizeBytes: buf.byteLength,
+        localStatus: 'uploaded',
+        remoteUrl,
+        createdAt: now,
+        uploadedAt: now,
+        createdBy: input.createdBy ?? null,
+      })
+      .returning();
+
+    if (!row) {
+      throw new Error('Insert returned no row');
+    }
+
+    return rowToAttachment(row);
+  } catch (mainErr) {
+    try {
+      await storageProvider.deleteObject(objectKey);
+    } catch (cleanupErr) {
+      attachmentLog.error('attachment creation cleanup failed', {
+        objectKey,
+        mainErr,
+        cleanupErr,
+      });
+    }
+    throw mainErr;
+  }
+}
+
+export interface DeleteAttachmentOptions {
+  storageProvider?: AttachmentStorage;
+  executor?: DatabaseExecutor;
+}
+
+export async function deleteAttachment(
+  id: string,
+  opts?: DeleteAttachmentOptions,
+): Promise<boolean> {
+  const dbExec = opts?.executor ?? db;
+  const storageProvider = opts?.storageProvider ?? getProviders().attachments;
+
+  const [row] = await dbExec.select().from(attachments).where(eq(attachments.id, id));
+  if (!row) return false;
+
+  try {
+    await storageProvider.deleteObject(row.objectKey);
+  } catch (err) {
+    throw new AttachmentDeleteError(
+      `Fallo al eliminar objeto storage '${row.objectKey}': ${err instanceof Error ? err.message : String(err)}`,
+      err,
+    );
   }
 
-  await db.delete(attachments).where(eq(attachments.id, id));
+  await dbExec.delete(attachments).where(eq(attachments.id, id));
   return true;
 }
 

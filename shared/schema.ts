@@ -353,6 +353,7 @@ export const attachments = pgTable(
   'attachments',
   {
     id: varchar('id').primaryKey(),
+    objectKey: text('object_key').notNull(),
     entityType: attachmentEntityTypeEnum('entity_type').notNull(),
     entityId: varchar('entity_id').notNull(),
     fileName: text('file_name').notNull(),
@@ -368,6 +369,7 @@ export const attachments = pgTable(
   },
   (t) => ({
     entityIdx: index('attachments_entity_idx').on(t.entityType, t.entityId),
+    objectKeyUq: uniqueIndex('attachments_object_key_uq').on(t.objectKey),
     sizeCk: check('attachments_size_ck', sql`${t.sizeBytes} >= 0 AND ${t.sizeBytes} <= 10485760`),
   }),
 );
@@ -1137,6 +1139,7 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 /* ----- Attachment zod ----- */
 export const attachmentSchema = z.object({
   id: z.string(),
+  objectKey: z.string(),
   entityType: attachmentEntityTypeSchema,
   entityId: z.string().min(1),
   fileName: z.string().min(1),

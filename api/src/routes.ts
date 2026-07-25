@@ -319,6 +319,7 @@ import {
   createAttachment,
   deleteAttachment,
   AttachmentValidationError,
+  AttachmentDeleteError,
 } from './attachments.js';
 import {
   listExpenses,
@@ -975,9 +976,7 @@ export function registerRoutes(router: Router) {
   );
   router.post(
     '/attachments',
-    // idempotency: external-storage â€” claim recorded; file write and DB insert happen
-    // independently (no shared tx). S3+PostgreSQL atomicity requires additional
-    // saga or compensating delete (tracked as TODO(cloud) in attachments.ts).
+    // external side effect — file write and DB metadata with explicit compensating delete on failure.
     idempotent(async (req, res) => {
       const data = insertAttachmentSchema.parse(req.body);
       try {
@@ -993,9 +992,16 @@ export function registerRoutes(router: Router) {
   router.delete(
     '/attachments/:id',
     asyncHandler(async (req, res) => {
-      const ok = await deleteAttachment(req.params.id as string);
-      if (!ok) return notFound(res, 'Adjunto');
-      res.status(204).end();
+      try {
+        const ok = await deleteAttachment(req.params.id as string);
+        if (!ok) return notFound(res, 'Adjunto');
+        res.status(204).end();
+      } catch (err) {
+        if (err instanceof AttachmentDeleteError) {
+          return res.status(500).json({ error: err.message, code: err.code });
+        }
+        throw err;
+      }
     }),
   );
 
