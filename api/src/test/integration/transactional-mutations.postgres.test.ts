@@ -604,4 +604,141 @@ describe('Transactional HTTP Mutations (PostgreSQL)', () => {
     const completedKey = keys.find((k: { state: string }) => k.state === 'completed');
     expect(completedKey).toBeUndefined();
   });
+
+  // ====================================================================
+  // 10. Attachment Post-Transaction Compensation & Retry (PostgreSQL)
+  // ====================================================================
+  it('Attachment Rollback Compensation: completeTx failure cleans up metadata & storage file, retry & replay duplicate-free', async () => {
+    const timestamp = Date.now();
+    const entityId = `t-att-fail-${timestamp}`;
+    const idemKeyStr = `attachment-complete-fail-${timestamp}`;
+    const sampleText = 'test data';
+    const dataBase64 = Buffer.from(sampleText).toString('base64');
+
+    const attachmentPayload = {
+      entityType: 'task',
+      entityId,
+      fileName: 'doc.pdf',
+      mimeType: 'application/pdf',
+      sizeBytes: sampleText.length,
+      dataBase64,
+    };
+
+    // 1. Create temporary PostgreSQL trigger & function forcing completeTx failure
+    await pool.query(`
+      CREATE OR REPLACE FUNCTION test_fail_attachment_complete()
+      RETURNS trigger AS $$
+      BEGIN
+        IF NEW.state = 'completed'
+           AND NEW.key LIKE '%attachment-complete-fail-%' THEN
+          RAISE EXCEPTION 'forced completeTx failure';
+        END IF;
+        RETURN NEW;
+      END;
+      $$ LANGUAGE plpgsql;
+
+      DROP TRIGGER IF EXISTS test_fail_attachment_complete ON idempotency_keys;
+
+      CREATE TRIGGER test_fail_attachment_complete
+      BEFORE UPDATE ON idempotency_keys
+      FOR EACH ROW
+      EXECUTE FUNCTION test_fail_attachment_complete();
+    `);
+
+    try {
+      // 2. First Request: completeTx will trigger exception
+      const res1 = await post('/attachments', attachmentPayload, idemKeyStr);
+      expect(res1.status).toBeGreaterThanOrEqual(500);
+
+      // Verify DB metadata was rolled back (0 rows)
+      const [{ count: dbCount1 }] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.attachments)
+        .where(eq(schema.attachments.entityId, entityId));
+      expect(dbCount1).toBe(0);
+
+      // Verify idempotency key was NOT marked completed
+      const keys1 = await db
+        .select()
+        .from(schema.idempotencyKeys)
+        .where(sql`${schema.idempotencyKeys.key} LIKE ${'%' + idemKeyStr}`);
+      const completedKey1 = keys1.find((k: { state: string }) => k.state === 'completed');
+      expect(completedKey1).toBeUndefined();
+
+      // Verify no residual file exists in uploads/task/{entityId}
+      const uploadDir = path.resolve(process.cwd(), 'uploads', 'task', entityId);
+      let dirExistsBeforeRetry = false;
+      try {
+        const files = await fs.readdir(uploadDir);
+        dirExistsBeforeRetry = files.length > 0;
+      } catch {
+        dirExistsBeforeRetry = false;
+      }
+      expect(dirExistsBeforeRetry).toBe(false);
+
+      // 3. Drop trigger and function for retry
+      await pool.query(`
+        DROP TRIGGER IF EXISTS test_fail_attachment_complete ON idempotency_keys;
+        DROP FUNCTION IF EXISTS test_fail_attachment_complete();
+      `);
+
+      // 4. Retry: Send exact same request with same key
+      const res2 = await post('/attachments', attachmentPayload, idemKeyStr);
+      expect(res2.status).toBe(201);
+
+      const body2 = (await res2.json()) as { id: string; objectKey: string };
+      expect(body2.id).toBeTruthy();
+      expect(body2.objectKey).toBeTruthy();
+
+      // Verify DB metadata has exactly 1 row
+      const [{ count: dbCount2 }] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.attachments)
+        .where(eq(schema.attachments.entityId, entityId));
+      expect(dbCount2).toBe(1);
+
+      // Verify exactly 1 file on disk
+      const fullFilePath = path.resolve(process.cwd(), 'uploads', body2.objectKey);
+      const fileStat2 = await fs.stat(fullFilePath);
+      expect(fileStat2.size).toBe(sampleText.length);
+
+      // 5. Replay: Send third request with same key
+      const res3 = await post('/attachments', attachmentPayload, idemKeyStr);
+      expect(res3.status).toBe(201);
+      expect(res3.headers.get('X-Idempotent-Replay')).toBe('1');
+
+      const body3 = (await res3.json()) as { id: string };
+      expect(body3.id).toBe(body2.id);
+
+      // Verify still exactly 1 row in DB
+      const [{ count: dbCount3 }] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.attachments)
+        .where(eq(schema.attachments.entityId, entityId));
+      expect(dbCount3).toBe(1);
+
+      // Verify still exactly 1 file on disk
+      const filesAfterReplay = await fs.readdir(uploadDir);
+      expect(filesAfterReplay.length).toBe(1);
+
+      // Cleanup created file & DB row
+      try {
+        await fs.unlink(fullFilePath);
+        await fs.rmdir(uploadDir);
+      } catch {
+        /* ignore cleanup */
+      }
+      await db.delete(schema.attachments).where(eq(schema.attachments.entityId, entityId));
+    } finally {
+      // Ensure trigger and function are always dropped
+      try {
+        await pool.query(`
+          DROP TRIGGER IF EXISTS test_fail_attachment_complete ON idempotency_keys;
+          DROP FUNCTION IF EXISTS test_fail_attachment_complete();
+        `);
+      } catch {
+        /* ignore */
+      }
+    }
+  });
 });
