@@ -396,4 +396,222 @@ describe('Transactional HTTP Mutations (PostgreSQL)', () => {
       .where(eq(schema.expenses.id, id));
     expect(remaining).toBe(0);
   });
+
+  // ====================================================================
+  // 6. POST /api/apiaries — 2 concurrent + 3rd replay
+  // ====================================================================
+  it('2 concurrent POST /api/apiaries + 3rd replay → exactly 1 apiary, 1 idempotency key', async () => {
+    const key = `apiary-concurrent-${Date.now()}`;
+    const payload = {
+      name: `Apiario Concurrente ${Date.now()}`,
+      location: 'Valle Central',
+      status: 'ok',
+    };
+
+    const [r1, r2] = await Promise.all([
+      post('/apiaries', payload, key),
+      post('/apiaries', payload, key),
+    ]);
+
+    const settled = await Promise.all(
+      [r1, r2].map((r) =>
+        r.status === 201 ? r : retryUntilSettled(() => post('/apiaries', payload, key)),
+      ),
+    );
+
+    for (const r of settled) expect(r.status).toBe(201);
+
+    const ids = new Set(
+      await Promise.all(settled.map(async (r) => ((await r.json()) as { id: string }).id)),
+    );
+    expect(ids.size).toBe(1);
+    const apiaryId = [...ids][0]!;
+
+    // 3rd request: replay call
+    const replayRes = await post('/apiaries', payload, key);
+    expect(replayRes.status).toBe(201);
+    expect(replayRes.headers.get('X-Idempotent-Replay')).toBe('1');
+    const replayBody = (await replayRes.json()) as { id: string };
+    expect(replayBody.id).toBe(apiaryId);
+
+    // Verify DB
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.apiaries)
+      .where(eq(schema.apiaries.id, apiaryId));
+    expect(count).toBe(1);
+
+    const keys = await db
+      .select()
+      .from(schema.idempotencyKeys)
+      .where(sql`${schema.idempotencyKeys.key} LIKE ${'%' + key}`);
+    expect(keys.length).toBe(1);
+    expect(keys[0].state).toBe('completed');
+  });
+
+  // ====================================================================
+  // 7. POST /api/hives — 2 concurrent + 3rd replay
+  // ====================================================================
+  it('2 concurrent POST /api/hives + 3rd replay → exactly 1 hive, 1 idempotency key', async () => {
+    const key = `hive-concurrent-${Date.now()}`;
+    const payload = {
+      apiaryId: 'ap-test-1',
+      code: `H-${Date.now().toString().slice(-4)}`,
+      status: 'ok',
+      queenStatus: 'seen',
+      colonyStrength: 'strong',
+      broodLevel: 'high',
+      honeyStores: 'high',
+    };
+
+    const [r1, r2] = await Promise.all([
+      post('/hives', payload, key),
+      post('/hives', payload, key),
+    ]);
+
+    const settled = await Promise.all(
+      [r1, r2].map((r) =>
+        r.status === 201 ? r : retryUntilSettled(() => post('/hives', payload, key)),
+      ),
+    );
+
+    for (const r of settled) expect(r.status).toBe(201);
+
+    const ids = new Set(
+      await Promise.all(settled.map(async (r) => ((await r.json()) as { id: string }).id)),
+    );
+    expect(ids.size).toBe(1);
+    const hiveId = [...ids][0]!;
+
+    const replayRes = await post('/hives', payload, key);
+    expect(replayRes.status).toBe(201);
+    expect(replayRes.headers.get('X-Idempotent-Replay')).toBe('1');
+    const replayBody = (await replayRes.json()) as { id: string };
+    expect(replayBody.id).toBe(hiveId);
+
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.hives)
+      .where(eq(schema.hives.id, hiveId));
+    expect(count).toBe(1);
+
+    const keys = await db
+      .select()
+      .from(schema.idempotencyKeys)
+      .where(sql`${schema.idempotencyKeys.key} LIKE ${'%' + key}`);
+    expect(keys.length).toBe(1);
+    expect(keys[0].state).toBe('completed');
+  });
+
+  // ====================================================================
+  // 8. POST /api/honey-harvests — 2 concurrent + 3rd replay
+  // ====================================================================
+  it('2 concurrent POST /api/honey-harvests + 3rd replay → exactly 1 harvest, 1 idempotency key', async () => {
+    const key = `harvest-concurrent-${Date.now()}`;
+    const payload = {
+      apiaryId: 'ap-test-1',
+      date: new Date().toISOString().slice(0, 10),
+      quantity: 50,
+      unit: 'kg',
+    };
+
+    const [r1, r2] = await Promise.all([
+      post('/honey-harvests', payload, key),
+      post('/honey-harvests', payload, key),
+    ]);
+
+    const settled = await Promise.all(
+      [r1, r2].map((r) =>
+        r.status === 201 ? r : retryUntilSettled(() => post('/honey-harvests', payload, key)),
+      ),
+    );
+
+    for (const r of settled) expect(r.status).toBe(201);
+
+    const ids = new Set(
+      await Promise.all(settled.map(async (r) => ((await r.json()) as { id: string }).id)),
+    );
+    expect(ids.size).toBe(1);
+    const harvestId = [...ids][0]!;
+
+    const replayRes = await post('/honey-harvests', payload, key);
+    expect(replayRes.status).toBe(201);
+    expect(replayRes.headers.get('X-Idempotent-Replay')).toBe('1');
+    const replayBody = (await replayRes.json()) as { id: string };
+    expect(replayBody.id).toBe(harvestId);
+
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.honeyHarvests)
+      .where(eq(schema.honeyHarvests.id, harvestId));
+    expect(count).toBe(1);
+
+    const keys = await db
+      .select()
+      .from(schema.idempotencyKeys)
+      .where(sql`${schema.idempotencyKeys.key} LIKE ${'%' + key}`);
+    expect(keys.length).toBe(1);
+    expect(keys[0].state).toBe('completed');
+  });
+
+  // ====================================================================
+  // 9. Composite Hive Inspection Rollback on FK Failure
+  // ====================================================================
+  it('Composite Inspection Rollback: FK failure on non-existent hiveId → 0 inspection, 0 movement, stock unchanged, key not completed', async () => {
+    const key = `insp-rollback-${Date.now()}`;
+    const nonExistentHiveId = 'hv-does-not-exist-999';
+
+    const [beforeItem] = await db
+      .select()
+      .from(schema.inventoryItems)
+      .where(eq(schema.inventoryItems.id, 'iv-test-1'));
+    const stockBefore = beforeItem.stock;
+
+    const [beforeMovCount] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.inventoryMovements)
+      .where(eq(schema.inventoryMovements.itemId, 'iv-test-1'));
+
+    const payload = {
+      hiveId: nonExistentHiveId,
+      inspectedAt: new Date().toISOString(),
+      inspector: 'Inspector Test',
+      queenSeen: true,
+      queenStatus: 'seen',
+      colonyStrength: 'strong',
+      broodLevel: 'high',
+      honeyStores: 'medium',
+      inventoryItemId: 'iv-test-1',
+      quantityUsed: 3,
+    };
+
+    const res = await post('/hive-inspections', payload, key);
+    expect(res.status).toBeGreaterThanOrEqual(500);
+
+    // Verify DB post-failure state
+    const [{ inspCount }] = await db
+      .select({ inspCount: sql<number>`count(*)::int` })
+      .from(schema.hiveInspections)
+      .where(eq(schema.hiveInspections.hiveId, nonExistentHiveId));
+    expect(inspCount).toBe(0);
+
+    const [afterMovCount] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.inventoryMovements)
+      .where(eq(schema.inventoryMovements.itemId, 'iv-test-1'));
+    expect(afterMovCount.count).toBe(beforeMovCount.count);
+
+    const [afterItem] = await db
+      .select()
+      .from(schema.inventoryItems)
+      .where(eq(schema.inventoryItems.id, 'iv-test-1'));
+    expect(afterItem.stock).toBe(stockBefore);
+
+    const keys = await db
+      .select()
+      .from(schema.idempotencyKeys)
+      .where(sql`${schema.idempotencyKeys.key} LIKE ${'%' + key}`);
+    const completedKey = keys.find((k: { state: string }) => k.state === 'completed');
+    expect(completedKey).toBeUndefined();
+  });
 });
