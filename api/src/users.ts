@@ -38,10 +38,14 @@ export async function listUsers(): Promise<User[]> {
   return rows.map(rowToUser);
 }
 
-export async function createUser(input: InsertUser & { password?: string }): Promise<User> {
+export async function createUser(
+  input: InsertUser & { password?: string },
+  executor?: any,
+): Promise<User> {
+  const dbExec = executor ?? db;
   const id = `usr-${randomUUID().slice(0, 10)}`;
   const passwordHash = input.password ? hashPassword(input.password) : null;
-  const [row] = await db
+  const [row] = await dbExec
     .insert(users)
     .values({
       id,

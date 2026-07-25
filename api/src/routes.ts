@@ -37,6 +37,7 @@ import { claim, complete, release, claimTx, completeTx } from './idempotency.js'
 import { usesTransactionalDatabaseStorage } from './storage.js';
 import type { IStorage } from './storage.js';
 import type { DbStorage } from './dbStorage.js';
+import { db } from './db.js';
 
 declare module 'express-serve-static-core' {
   interface Request {
@@ -805,8 +806,14 @@ export function registerRoutes(router: Router) {
     // TODO(uow): pass drizzle tx from claim into createApplication to fully unify.
     idempotent(async (req, res) => {
       const data = insertFieldApplicationSchema.parse(req.body);
+      const reqStorage = getStorage(req);
       try {
-        res.status(201).json(await createApplication(data));
+        res.status(201).json(
+          await createApplication(data, {
+            storage: reqStorage,
+            executor: (reqStorage as any).db ?? db,
+          }),
+        );
       } catch (err) {
         if (err instanceof InventoryStockError) {
           return res.status(409).json({ error: err.message });
@@ -917,8 +924,14 @@ export function registerRoutes(router: Router) {
     // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertHiveInspectionSchema.parse(req.body);
+      const reqStorage = getStorage(req);
       try {
-        res.status(201).json(await createInspection(data));
+        res.status(201).json(
+          await createInspection(data, {
+            storage: reqStorage,
+            executor: (reqStorage as any).db ?? db,
+          }),
+        );
       } catch (err) {
         if (err instanceof InventoryStockError) {
           return res.status(409).json({ error: err.message });
@@ -1010,7 +1023,7 @@ export function registerRoutes(router: Router) {
     // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertExpenseSchema.parse(req.body);
-      res.status(201).json(await createExpense(data));
+      res.status(201).json(await createExpense(data, (getStorage(req) as any).executor ?? db));
     }),
   );
   router.delete(
@@ -1019,7 +1032,10 @@ export function registerRoutes(router: Router) {
     // idempotency: external-db â€” HTTP claim recorded; business tx (deleteExpense)
     // is independent. Tolerant-delete: already-deleted or never-existed â†’ 204.
     idempotent(async (req, res) => {
-      const ok = await deleteExpense(req.params.id as string);
+      const ok = await deleteExpense(
+        req.params.id as string,
+        (getStorage(req) as any).executor ?? db,
+      );
       if (!ok) {
         // Tolerant-delete: ya borrado o nunca existiÃ³ â†’ tratar como Ã©xito
         // para que reintentos offline no marquen la mutaciÃ³n como error.
@@ -1049,7 +1065,7 @@ export function registerRoutes(router: Router) {
     // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertLaborCostSchema.parse(req.body);
-      res.status(201).json(await createLaborCost(data));
+      res.status(201).json(await createLaborCost(data, (getStorage(req) as any).executor ?? db));
     }),
   );
   router.get(
@@ -1085,7 +1101,7 @@ export function registerRoutes(router: Router) {
     // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertUserSchema.parse(req.body);
-      res.status(201).json(await createUser(data));
+      res.status(201).json(await createUser(data, (getStorage(req) as any).executor ?? db));
     }),
   );
   router.post(

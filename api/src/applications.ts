@@ -64,18 +64,23 @@ export class InventoryItemNotFoundError extends Error {
   }
 }
 
-export async function createApplication(input: InsertFieldApplication): Promise<FieldApplication> {
+export async function createApplication(
+  input: InsertFieldApplication,
+  opts?: { storage?: any; executor?: any },
+): Promise<FieldApplication> {
+  const stg = opts?.storage ?? storage;
+  const dbExec = opts?.executor ?? db;
   const id = `fa-${randomUUID().slice(0, 8)}`;
   const scopeName = await resolveScopeName(input.scopeType, input.scopeId);
   let movementId: string | null = null;
   const wantsMovement =
     !!input.inventoryItemId && typeof input.quantityUsed === 'number' && input.quantityUsed > 0;
   if (wantsMovement) {
-    const items = await storage.listInventory();
-    if (!items.some((it) => it.id === input.inventoryItemId)) {
+    const items = await stg.listInventory();
+    if (!items.some((it: any) => it.id === input.inventoryItemId)) {
       throw new InventoryItemNotFoundError(input.inventoryItemId!);
     }
-    const result = await storage.createInventoryMovement({
+    const result = await stg.createInventoryMovement({
       itemId: input.inventoryItemId!,
       delta: -input.quantityUsed!,
       note: `Aplicación: ${input.productName}`,
@@ -92,52 +97,33 @@ export async function createApplication(input: InsertFieldApplication): Promise<
           .toISOString()
           .slice(0, 10)
       : null;
-  let row: typeof fieldApplications.$inferSelect | undefined;
-  try {
-    [row] = await db
-      .insert(fieldApplications)
-      .values({
-        id,
-        scopeType: input.scopeType,
-        scopeId: input.scopeId,
-        scopeName,
-        campaignId: input.campaignId ?? null,
-        applicationType: input.applicationType,
-        productName: input.productName,
-        inventoryItemId: input.inventoryItemId ?? null,
-        dose: input.dose ?? null,
-        doseUnit: input.doseUnit ?? null,
-        quantityUsed: input.quantityUsed ?? null,
-        method: input.method ?? null,
-        appliedAt: input.appliedAt,
-        responsible: input.responsible,
-        targetProblem: input.targetProblem ?? null,
-        sourceTaskId: input.sourceTaskId ?? null,
-        sourceObservationId: input.sourceObservationId ?? null,
-        preHarvestIntervalDays: input.preHarvestIntervalDays ?? null,
-        safeHarvestDate,
-        notes: input.notes ?? null,
-        movementId,
-        createdAt: new Date().toISOString(),
-      })
-      .returning();
-  } catch (err) {
-    if (wantsMovement && input.inventoryItemId && typeof input.quantityUsed === 'number') {
-      try {
-        await storage.createInventoryMovement({
-          itemId: input.inventoryItemId,
-          delta: input.quantityUsed,
-          note: `Reversa por fallo de aplicación`,
-          scopeType: input.scopeType,
-          scopeId: input.scopeId,
-          at: new Date().toISOString(),
-        });
-      } catch {
-        /* best-effort */
-      }
-    }
-    throw err;
-  }
+  const [row] = await dbExec
+    .insert(fieldApplications)
+    .values({
+      id,
+      scopeType: input.scopeType,
+      scopeId: input.scopeId,
+      scopeName,
+      campaignId: input.campaignId ?? null,
+      applicationType: input.applicationType,
+      productName: input.productName,
+      inventoryItemId: input.inventoryItemId ?? null,
+      dose: input.dose ?? null,
+      doseUnit: input.doseUnit ?? null,
+      quantityUsed: input.quantityUsed ?? null,
+      method: input.method ?? null,
+      appliedAt: input.appliedAt,
+      responsible: input.responsible,
+      targetProblem: input.targetProblem ?? null,
+      sourceTaskId: input.sourceTaskId ?? null,
+      sourceObservationId: input.sourceObservationId ?? null,
+      preHarvestIntervalDays: input.preHarvestIntervalDays ?? null,
+      safeHarvestDate,
+      notes: input.notes ?? null,
+      movementId,
+      createdAt: new Date().toISOString(),
+    })
+    .returning();
   if (!row) throw new Error('Insert returned no row');
   return rowToApplication(row);
 }
