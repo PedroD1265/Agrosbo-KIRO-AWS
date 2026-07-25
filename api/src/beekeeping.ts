@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { eq, desc } from 'drizzle-orm';
 import { db } from './db.js';
+import type { DatabaseExecutor } from './executor.js';
 import {
   apiaries,
   hives,
@@ -138,7 +139,7 @@ export class HiveInventoryItemNotFoundError extends Error {
 
 export async function createInspection(
   input: InsertHiveInspection,
-  opts?: { storage?: any; executor?: any },
+  opts?: { storage?: any; executor?: DatabaseExecutor },
 ): Promise<HiveInspection> {
   const stg = opts?.storage ?? storage;
   const dbExec = opts?.executor ?? db;

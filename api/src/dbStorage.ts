@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { eq, desc, sql, and, gte } from 'drizzle-orm';
 import { db } from './db.js';
+import type { DatabaseExecutor } from './executor.js';
 import {
   blocks,
   greenhouses,
@@ -240,7 +241,7 @@ export class DbStorage implements IStorage {
   }
 
   /** Expose the underlying executor (db or tx) for service functions that need raw access. */
-  get executor(): any {
+  get executor(): DatabaseExecutor {
     return this.client;
   }
 

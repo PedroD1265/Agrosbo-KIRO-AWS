@@ -38,6 +38,11 @@ import { usesTransactionalDatabaseStorage } from './storage.js';
 import type { IStorage } from './storage.js';
 import type { DbStorage } from './dbStorage.js';
 import { db } from './db.js';
+import {
+  requireDatabaseExecutor,
+  isTransactionalStorage,
+  DatabaseRequiredError,
+} from './executor.js';
 
 declare module 'express-serve-static-core' {
   interface Request {
@@ -811,7 +816,7 @@ export function registerRoutes(router: Router) {
         res.status(201).json(
           await createApplication(data, {
             storage: reqStorage,
-            executor: (reqStorage as any).db ?? db,
+            executor: requireDatabaseExecutor(reqStorage),
           }),
         );
       } catch (err) {
@@ -929,7 +934,7 @@ export function registerRoutes(router: Router) {
         res.status(201).json(
           await createInspection(data, {
             storage: reqStorage,
-            executor: (reqStorage as any).db ?? db,
+            executor: requireDatabaseExecutor(reqStorage),
           }),
         );
       } catch (err) {
@@ -1023,7 +1028,7 @@ export function registerRoutes(router: Router) {
     // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertExpenseSchema.parse(req.body);
-      res.status(201).json(await createExpense(data, (getStorage(req) as any).executor ?? db));
+      res.status(201).json(await createExpense(data, requireDatabaseExecutor(getStorage(req))));
     }),
   );
   router.delete(
@@ -1034,7 +1039,7 @@ export function registerRoutes(router: Router) {
     idempotent(async (req, res) => {
       const ok = await deleteExpense(
         req.params.id as string,
-        (getStorage(req) as any).executor ?? db,
+        requireDatabaseExecutor(getStorage(req)),
       );
       if (!ok) {
         // Tolerant-delete: ya borrado o nunca existiÃ³ â†’ tratar como Ã©xito
@@ -1065,7 +1070,7 @@ export function registerRoutes(router: Router) {
     // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertLaborCostSchema.parse(req.body);
-      res.status(201).json(await createLaborCost(data, (getStorage(req) as any).executor ?? db));
+      res.status(201).json(await createLaborCost(data, requireDatabaseExecutor(getStorage(req))));
     }),
   );
   router.get(
@@ -1101,7 +1106,7 @@ export function registerRoutes(router: Router) {
     // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertUserSchema.parse(req.body);
-      res.status(201).json(await createUser(data, (getStorage(req) as any).executor ?? db));
+      res.status(201).json(await createUser(data, requireDatabaseExecutor(getStorage(req))));
     }),
   );
   router.post(
@@ -1349,6 +1354,12 @@ export function registerRoutes(router: Router) {
   router.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof ZodError) {
       return res.status(400).json({ error: 'Datos invÃ¡lidos', issues: err.issues });
+    }
+    if (err instanceof DatabaseRequiredError) {
+      return res.status(503).json({
+        error: err.message,
+        code: err.code,
+      });
     }
     const reqLog = (_req as Request).log ?? apiLog;
     reqLog.error('unhandled api error', { err });

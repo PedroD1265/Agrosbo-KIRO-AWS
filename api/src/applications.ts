@@ -64,9 +64,11 @@ export class InventoryItemNotFoundError extends Error {
   }
 }
 
+import type { DatabaseExecutor } from './executor.js';
+
 export async function createApplication(
   input: InsertFieldApplication,
-  opts?: { storage?: any; executor?: any },
+  opts?: { storage?: any; executor?: DatabaseExecutor },
 ): Promise<FieldApplication> {
   const stg = opts?.storage ?? storage;
   const dbExec = opts?.executor ?? db;

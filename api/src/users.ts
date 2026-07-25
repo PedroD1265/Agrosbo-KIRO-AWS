@@ -1,3 +1,4 @@
+import type { DatabaseExecutor } from './executor.js';
 import { randomUUID, scryptSync, randomBytes, timingSafeEqual } from 'node:crypto';
 import { eq, desc } from 'drizzle-orm';
 import { db } from './db.js';
@@ -40,7 +41,7 @@ export async function listUsers(): Promise<User[]> {
 
 export async function createUser(
   input: InsertUser & { password?: string },
-  executor?: any,
+  executor?: DatabaseExecutor,
 ): Promise<User> {
   const dbExec = executor ?? db;
   const id = `usr-${randomUUID().slice(0, 10)}`;

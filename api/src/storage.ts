@@ -484,4 +484,8 @@ export const storage: IStorage = new Proxy({} as IStorage, {
     const val = s[prop];
     return typeof val === 'function' ? val.bind(s) : val;
   },
+  has(_target, prop) {
+    const s = getGlobalStorage() as any;
+    return prop in s;
+  },
 });

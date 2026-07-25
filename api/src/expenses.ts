@@ -1,3 +1,4 @@
+import type { DatabaseExecutor } from './executor.js';
 import { randomUUID } from 'node:crypto';
 import { eq, desc, and, gte, lte, sql } from 'drizzle-orm';
 import { db } from './db.js';
@@ -75,7 +76,10 @@ export async function listExpenses(f: ExpenseFilter = {}): Promise<Expense[]> {
   return rows.map(rowToExpense);
 }
 
-export async function createExpense(input: InsertExpense, executor?: any): Promise<Expense> {
+export async function createExpense(
+  input: InsertExpense,
+  executor?: DatabaseExecutor,
+): Promise<Expense> {
   const dbExec = executor ?? db;
   const id = `exp-${randomUUID().slice(0, 10)}`;
   const [row] = await dbExec
@@ -99,7 +103,7 @@ export async function createExpense(input: InsertExpense, executor?: any): Promi
   return rowToExpense(row);
 }
 
-export async function deleteExpense(id: string, executor?: any): Promise<boolean> {
+export async function deleteExpense(id: string, executor?: DatabaseExecutor): Promise<boolean> {
   const run = async (exec: any) => {
     const [target] = await exec.select().from(expenses).where(eq(expenses.id, id));
     if (!target) return false;
@@ -132,7 +136,10 @@ export async function listLaborCosts(f: ExpenseFilter = {}): Promise<LaborCost[]
   return rows.map(rowToLabor);
 }
 
-export async function createLaborCost(input: InsertLaborCost, executor?: any): Promise<LaborCost> {
+export async function createLaborCost(
+  input: InsertLaborCost,
+  executor?: DatabaseExecutor,
+): Promise<LaborCost> {
   const id = `lc-${randomUUID().slice(0, 10)}`;
   const expenseId = `exp-${randomUUID().slice(0, 10)}`;
   const now = new Date().toISOString();
