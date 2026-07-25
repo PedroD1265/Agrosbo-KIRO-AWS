@@ -62,16 +62,40 @@ Ejecución por checkpoints. No se crean recursos cloud. Commits locales.
 
 ## Grupo I — Idempotencia [depende de M]
 
-- [ ] I.1 Corregir orphan cleanup (expiración explícita, no borrado
+- [x] I.1 Corregir orphan cleanup (expiración explícita, no borrado
   indiscriminado).
   - Requisitos: R5.
-- [ ] I.2 Asegurar atomicidad claim→efecto→complete dentro de transacción.
+- [x] I.2 Asegurar atomicidad claim→efecto→complete dentro de transacción.
   - Requisitos: R5.
-- [ ] I.3 Añadir tests concurrentes: 2 y 10 solicitudes simultáneas, fallo
+- [x] I.3 Añadir tests concurrentes: 2 y 10 solicitudes simultáneas, fallo
   post-claim, confirmación perdida, retry 409, claves independientes.
   - Requisitos: R5, R15.
-- [ ] I.4 Verificar semántica compatible memoria/PostgreSQL.
+- [x] I.4 Verificar semántica compatible memoria/PostgreSQL.
   - Requisitos: R15.
+- [x] I.5 Typed transactional executor (eliminación de `as any` casts).
+  - Requisitos: R5.
+- [x] I.6 Application UoW (10 concurrent → 1 app + 1 movement + stock).
+  - Requisitos: R5, R15.
+- [x] I.7 Hive-inspection UoW (10 concurrent → 1 inspection + 1 movement).
+  - Requisitos: R5, R15.
+- [x] I.8 Labor-cost UoW (1 labor + 1 expense linked, replay same).
+  - Requisitos: R5, R15.
+- [x] I.9 Users UoW (2 concurrent → 1 user, no passwordHash).
+  - Requisitos: R5, R15.
+- [x] I.10 DELETE 204 replay verification.
+  - Requisitos: R5, R15.
+- [x] I.11 Stale concurrent (integration tests 10/12).
+  - Requisitos: R5.
+- [x] I.12 Retry-After/backoff (production computeRetryDelay export + tests).
+  - Requisitos: R5.
+- [x] I.13 MemStorage HTTP override (storage-runtime + health import safety).
+  - Requisitos: R5, R15.
+- [x] I.14 Attachment evidence (canonical key, no remoteUrl as identity).
+  - Requisitos: R13.
+- [x] I.15 Encoded URL test (credentials with @, :, /, %20).
+  - Requisitos: R8.
+- [x] I.16 Review matrix (7 Copilot threads mapped to commits + tests).
+  - Requisitos: R11.
 
 ## Grupo H — Health y runtime [depende de P]
 
