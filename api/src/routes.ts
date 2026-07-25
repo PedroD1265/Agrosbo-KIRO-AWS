@@ -34,10 +34,7 @@ import {
   parseAndImport,
 } from './csv.js';
 import { claim, complete, release, claimTx, completeTx } from './idempotency.js';
-import { usesTransactionalDatabaseStorage } from './storage.js';
 import type { IStorage } from './storage.js';
-import type { DbStorage } from './dbStorage.js';
-import { db } from './db.js';
 import {
   requireDatabaseExecutor,
   isTransactionalStorage,
@@ -131,6 +128,7 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
           }
 
           const token = claimResult.token;
+          const prevStorage = req.storage;
           req.storage = txStorage;
 
           let captured: { status: number; body: unknown } | null = null;
@@ -157,6 +155,7 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
           } catch (err) {
             handlerError = err;
           } finally {
+            req.storage = prevStorage;
             res.json = originalJson;
             res.send = originalSend;
             res.end = originalEnd as Response['end'];
