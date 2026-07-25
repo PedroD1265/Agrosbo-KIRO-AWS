@@ -240,11 +240,17 @@ export async function processQueueOnce(): Promise<void> {
   }
 }
 
+/**
+ * Compute the retry delay respecting both exponential backoff and Retry-After.
+ * Exported for testability. This is the production scheduling logic.
+ */
+export function computeRetryDelay(attempts: number, retryAfterMs?: number): number {
+  const exponential = Math.min(30_000, BASE_DELAY * 2 ** Math.max(0, attempts - 1));
+  return Math.max(exponential, retryAfterMs ?? 0);
+}
+
 function scheduleNext(attempts: number, overrideDelayMs?: number) {
-  // Always wait at least the exponential backoff; honor Retry-After only when
-  // it exceeds the backoff so we never retry more aggressively than the server
-  // requested but also never drop below the local back-pressure floor.
-  const delay = Math.max(backoff(attempts), overrideDelayMs ?? 0);
+  const delay = computeRetryDelay(attempts, overrideDelayMs);
   if (scheduled !== null) window.clearTimeout(scheduled);
   scheduled = window.setTimeout(() => {
     scheduled = null;

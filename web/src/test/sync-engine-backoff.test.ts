@@ -1,82 +1,74 @@
 ﻿import { describe, it, expect } from 'vitest';
+import { computeRetryDelay } from '@/lib/sync/engine';
 
 /**
  * sync-engine-backoff.test.ts
  *
- * Tests for the backoff/Retry-After scheduling logic in engine.ts.
+ * Tests the PRODUCTION computeRetryDelay function exported from engine.ts.
+ * No local copies of the algorithm — imports the real function.
  *
- * The corrected invariant (previously broken):
- *   delay = max(backoff(attempts), retryAfterMs ?? 0)
- *
- * This ensures the client NEVER retries more aggressively than the
- * exponential backoff floor, even when Retry-After is small.
+ * Invariant: delay = max(backoff(attempts), retryAfterMs ?? 0)
+ * where backoff(n) = min(30000, 1500 * 2^max(0, n-1))
  */
 
-function backoff(attempts: number): number {
-  const BASE_DELAY = 1500;
-  return Math.min(30_000, BASE_DELAY * 2 ** Math.max(0, attempts - 1));
-}
-
-/**
- * Mirrors the corrected scheduleNext delay calculation from engine.ts.
- */
-function resolveDelay(attempts: number, retryAfterMs?: number): number {
-  return Math.max(backoff(attempts), retryAfterMs ?? 0);
-}
-
-describe('Sync Engine Backoff + Retry-After scheduling', () => {
-  it('backoff(1) = 1500ms (BASE_DELAY * 2^0)', () => {
-    expect(backoff(1)).toBe(1500);
+describe('computeRetryDelay (production export from engine.ts)', () => {
+  it('attempts=1 → 1500ms (BASE_DELAY * 2^0)', () => {
+    expect(computeRetryDelay(1)).toBe(1500);
   });
 
-  it('backoff(2) = 3000ms', () => {
-    expect(backoff(2)).toBe(3000);
+  it('attempts=2 → 3000ms (BASE_DELAY * 2^1)', () => {
+    expect(computeRetryDelay(2)).toBe(3000);
   });
 
-  it('backoff(5) = 24000ms', () => {
-    expect(backoff(5)).toBe(24000);
+  it('attempts=3 → 6000ms', () => {
+    expect(computeRetryDelay(3)).toBe(6000);
   });
 
-  it('backoff caps at 30000ms', () => {
-    expect(backoff(20)).toBe(30000);
+  it('attempts=5 → 24000ms', () => {
+    expect(computeRetryDelay(5)).toBe(24000);
   });
 
-  it('Retry-After=2000ms + backoff=6000ms -> delay=6000ms (backoff wins)', () => {
-    // attempts=3 -> backoff = 1500 * 2^2 = 6000
-    const delay = resolveDelay(3, 2000);
-    expect(delay).toBe(6000);
+  it('caps at 30000ms regardless of attempts', () => {
+    expect(computeRetryDelay(20)).toBe(30000);
+    expect(computeRetryDelay(100)).toBe(30000);
   });
 
-  it('Retry-After=10000ms + backoff=3000ms -> delay=10000ms (Retry-After wins)', () => {
-    // attempts=2 -> backoff = 1500 * 2^1 = 3000
-    const delay = resolveDelay(2, 10000);
-    expect(delay).toBe(10000);
+  it('backoff=6000 + Retry-After=2000 → 6000 (backoff wins)', () => {
+    // attempts=3 → backoff = 1500 * 2^2 = 6000
+    expect(computeRetryDelay(3, 2000)).toBe(6000);
   });
 
-  it('No Retry-After -> delay = backoff(attempts)', () => {
-    expect(resolveDelay(2, undefined)).toBe(backoff(2));
-    expect(resolveDelay(4, undefined)).toBe(backoff(4));
+  it('backoff=3000 + Retry-After=10000 → 10000 (Retry-After wins)', () => {
+    // attempts=2 → backoff = 1500 * 2^1 = 3000
+    expect(computeRetryDelay(2, 10000)).toBe(10000);
   });
 
-  it('Retry-After=0 -> delay = backoff (floor wins, never 0)', () => {
-    // Retry-After: 0 should not allow immediate retry
-    const delay = resolveDelay(1, 0);
-    expect(delay).toBe(backoff(1)); // 1500
+  it('no Retry-After → delay equals backoff', () => {
+    expect(computeRetryDelay(2, undefined)).toBe(3000);
+    expect(computeRetryDelay(4, undefined)).toBe(12000);
   });
 
-  it('Multiple mutations: overrideDelayMs accumulates with Math.max, not Math.min', () => {
-    // Simulate processing 3 mutations with different Retry-After headers
-    let accumulated: number = 0;
+  it('Retry-After=0 → delay = backoff (never retries at 0ms)', () => {
+    expect(computeRetryDelay(1, 0)).toBe(1500);
+  });
+
+  it('multiple operations: max(Retry-After values) determines override', () => {
+    // Simulate accumulation: the engine uses Math.max across mutations
     const retryHeaders = [2000, 10000, 5000];
-
-    for (const r of retryHeaders) {
-      accumulated = Math.max(accumulated, r);
-    }
-
-    // Result must be the maximum, not the minimum
+    const accumulated = Math.max(...retryHeaders);
     expect(accumulated).toBe(10000);
-    // Final delay respects backoff floor too
-    const finalDelay = resolveDelay(1, accumulated);
-    expect(finalDelay).toBe(10000); // max(1500, 10000)
+    // Final delay: max(backoff(1)=1500, 10000) = 10000
+    expect(computeRetryDelay(1, accumulated)).toBe(10000);
+  });
+
+  it('no retry occurs before the computed delay (contract)', () => {
+    // For any attempts + retryAfter combination, the result must be >= both inputs
+    for (let a = 1; a <= 6; a++) {
+      for (const ra of [0, 500, 2000, 5000, 15000, 50000]) {
+        const delay = computeRetryDelay(a, ra);
+        expect(delay).toBeGreaterThanOrEqual(ra);
+        expect(delay).toBeGreaterThanOrEqual(1500); // minimum backoff floor
+      }
+    }
   });
 });
