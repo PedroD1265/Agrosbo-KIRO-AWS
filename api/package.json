@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --ignore \"../web/**\" --ignore \"dist/**\" src/index.ts",
+    "dev": "tsx watch --ignore \"../web/**\" --ignore \"dist/**\" src/server.ts",
     "build": "tsc -b",
     "clean": "node ../scripts/clean.mjs api",
     "test:integration": "vitest run --config ../vitest.integration.config.ts",

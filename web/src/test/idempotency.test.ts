@@ -107,18 +107,16 @@ describe('idempotency (memory backend)', () => {
     if (rB2.type === 'completed') expect(rB2.body).toEqual({ b: true });
   });
 
-  it('409 processing is reintentable after stale timeout', async () => {
-    // This test manipulates the internal state to simulate a stale processing entry.
-    // In the memory backend, entries older than PROCESSING_STALE_MS (10min) are
-    // considered stale and can be re-claimed.
+  it('fresh processing entry blocks re-claim (not stale yet)', async () => {
+    // Verifies the immediate behaviour: a non-stale key returns 'processing'
+    // when claimed again. Stale recovery (after PROCESSING_STALE_MS) is
+    // demonstrated in the PostgreSQL integration suite (test 10/12) because
+    // the memory backend cannot fast-forward time without mocking Date.
     const { claim } = await import('../../../api/src/idempotency');
-    const key = `test-stale-${Date.now()}`;
+    const key = `test-fresh-processing-${Date.now()}`;
     const r1 = await claim(key);
     expect(r1.type).toBe('claimed');
 
-    // The memory implementation checks `now - createdAt < PROCESSING_STALE_MS`.
-    // We can't easily fast-forward time here without mocking Date, but we can
-    // verify the contract: a fresh claim on a non-stale key returns 'processing'.
     const r2 = await claim(key);
     expect(r2.type).toBe('processing');
   });
