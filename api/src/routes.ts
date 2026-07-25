@@ -41,6 +41,12 @@ import {
   DatabaseRequiredError,
 } from './executor.js';
 
+import {
+  registerTransactionCompensation,
+  runTransactionCompensations,
+  type TransactionCompensation,
+} from './transaction-compensations.js';
+
 declare module 'express-serve-static-core' {
   interface Request {
     storage?: IStorage;
@@ -92,6 +98,10 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
           headers?: Record<string, string>;
         } | null;
       } = { current: null };
+
+      const prevCompensations = req.transactionCompensations;
+      const compensations: TransactionCompensation[] = [];
+      req.transactionCompensations = compensations;
 
       try {
         await currentStorage.withTransaction(async (txStorage, tx) => {
@@ -196,7 +206,10 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
             return res.status(respHolder.current.status).json(respHolder.current.body);
           }
         }
+        await runTransactionCompensations(compensations, err);
         throw err;
+      } finally {
+        req.transactionCompensations = prevCompensations;
       }
       return;
     }
@@ -983,7 +996,11 @@ export function registerRoutes(router: Router) {
       const executor = requireDatabaseExecutor(reqStorage);
       const storageProvider = getProviders().attachments;
       try {
-        res.status(201).json(await createAttachment(data, { executor, storageProvider }));
+        const created = await createAttachment(data, { executor, storageProvider });
+        registerTransactionCompensation(req, async () => {
+          await storageProvider.deleteObject(created.objectKey);
+        });
+        res.status(201).json(created);
       } catch (err) {
         if (err instanceof AttachmentValidationError) {
           return res.status(422).json({ error: err.message });
