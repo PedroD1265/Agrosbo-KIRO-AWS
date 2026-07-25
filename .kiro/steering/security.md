@@ -25,16 +25,16 @@ diferido.
   aplicaciones, gastos/mano de obra, usuarios). Matriz en
   `web/src/lib/permissions.ts`.
 
-## Requisitos de producción (hackathon target)
+## Arquitectura de identidad objetivo (staging/producción)
 
-- MUST `AUTH_ENFORCEMENT=on`.
-- MUST `SESSION_SECRET` gestionado con **Secrets Manager** (no en código ni en
-  variables versionadas).
-- MUST cookies `Secure` (dominio único vía CloudFront).
-- MUST protección **CSRF** para mutaciones (token o verificación de origen);
-  hoy solo se mitiga parcialmente con `SameSite=Lax`.
-- SHOULD servir frontend y API en el **mismo origen** para conservar cookies y
-  las URLs relativas del cliente.
+- **Amazon Cognito User Pool** para staging y producción (ADR 010).
+- **JWT authorizer** de API Gateway HTTP API.
+- Usuario interno vinculado por `sub` (subject) de Cognito; roles y membresías
+  en PostgreSQL.
+- Proveedor local de sesión (`LocalSessionIdentityProvider`) únicamente para
+  desarrollo y tests.
+- `APP_AUTH_PROVIDER=local-session|cognito-jwt` determina el proveedor activo.
+- En producción, `cognito-jwt` es obligatorio; `local-session` está prohibido.
 
 ## Secretos
 

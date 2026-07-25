@@ -36,13 +36,18 @@ automatización completa por IA.
 
 ## Uso de AWS (objetivo del hackathon)
 
-S3 (estático) + CloudFront + API Gateway HTTP API + Lambda (Express serverless)
-+ Aurora PostgreSQL Serverless v2 + RDS Data API + S3 (adjuntos) + URLs
-prefirmadas + Secrets Manager + CloudWatch + CDK.
+Amplify Hosting (frontend PWA) + API Gateway HTTP API + Lambda (Express
+serverless) + Aurora PostgreSQL Serverless v2 + RDS Data API + Amazon Cognito
+(User Pool + JWT authorizer) + S3 (adjuntos) + URLs prefirmadas + Secrets
+Manager + CloudWatch + CDK.
+
+Diferenciadores aprobados (requieren Spec propia):
+- Amazon Bedrock (copiloto de datos con tool calling).
+- Textract o Azure Document Intelligence (extracción documental, benchmark
+  pendiente — ADR 013).
 
 - MUST justificar cada servicio por el código.
-- MUST NOT usar Cognito, Bedrock, Textract, EventBridge, SQS o WebSocket sin una
-  Spec que lo requiera.
+- MUST NOT activar Bedrock, Textract o Azure DI sin una Spec que lo respalde.
 - MUST NOT sumar servicios solo por cantidad.
 
 ## Uso de Kiro (demostrable)

@@ -1,0 +1,117 @@
+import { createServer, type Server } from 'node:http';
+import { app } from './app.js';
+import { env, parsePort } from './env.js';
+import { log } from './logger.js';
+import { seedDatabase } from './dbStorage.js';
+import { initIdempotency } from './idempotency.js';
+import { initRevokedSessions } from './auth.js';
+import { markReady } from './health.js';
+
+function resolvePort(): number {
+  const argv = process.argv;
+  const flagIdx = argv.findIndex((a) => a === '--port' || a === '-p');
+  if (flagIdx !== -1 && argv[flagIdx + 1]) {
+    return parsePort(argv[flagIdx + 1], env.port);
+  }
+  for (const a of argv) {
+    if (a.startsWith('--port=')) {
+      return parsePort(a.slice('--port='.length), env.port);
+    }
+  }
+  return env.port;
+}
+
+const PORT = resolvePort();
+
+export interface StartServerOptions {
+  port?: number;
+  host?: string;
+  initializeServices?: boolean;
+  setupFrontend?: boolean;
+}
+
+export async function startServer(options: StartServerOptions = {}): Promise<Server> {
+  const {
+    port = PORT,
+    host = '0.0.0.0',
+    initializeServices = true,
+    setupFrontend = true,
+  } = options;
+
+  const httpServer = createServer(app);
+
+  if (initializeServices && env.hasDatabase) {
+    try {
+      await seedDatabase();
+      log.info('database seed verified');
+    } catch (err) {
+      log.error('seed failed', { err });
+    }
+    try {
+      await initIdempotency();
+      log.info('idempotency cache initialized');
+    } catch (err) {
+      log.error('FATAL: idempotency init failed', { err });
+      log.error('refusing to start — protected writes would all fail with 503');
+      process.exit(1);
+    }
+    try {
+      await initRevokedSessions();
+    } catch (err) {
+      log.warn('revoked sessions init failed — blocklist empty after restart', { err });
+    }
+  } else if (!initializeServices) {
+    log.info('skipping service initialization (explicitly disabled)');
+  } else {
+    log.info('skipping DB seed (in-memory mode)');
+  }
+
+  if (setupFrontend) {
+    if (env.isProd) {
+      const { setupStatic } = await import('./vite.js');
+      setupStatic(app);
+    } else {
+      const { setupViteDev } = await import('./vite.js');
+      await setupViteDev(app, httpServer);
+    }
+  }
+
+  if (env.authEnforcement === 'off') {
+    log.warn("AUTH_ENFORCEMENT=off — API is open access (set to 'on' in production)");
+  }
+
+  markReady();
+
+  if (!process.env.LAMBDA_TASK_ROOT) {
+    await new Promise<void>((resolve, reject) => {
+      httpServer.listen(port, host, () => {
+        const addr = httpServer.address();
+        const actualPort = typeof addr === 'object' && addr !== null ? addr.port : port;
+        log.info(`listening on http://${host}:${actualPort}`, {
+          port: actualPort,
+          env: env.nodeEnv,
+          storage: env.hasDatabase ? 'postgres' : 'memory',
+          auth: env.authEnforcement,
+        });
+        resolve();
+      });
+      httpServer.once('error', reject);
+    });
+  } else {
+    log.info('Running in Lambda mode (listen skipped)');
+  }
+
+  return httpServer;
+}
+
+// Only auto-start when this file is the direct entrypoint (not when imported).
+import { pathToFileURL } from 'node:url';
+const isDirectExecution =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isDirectExecution) {
+  startServer().catch((err) => {
+    log.error('fatal startup error', { err });
+    process.exit(1);
+  });
+}

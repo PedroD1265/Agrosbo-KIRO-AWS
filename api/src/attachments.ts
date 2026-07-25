@@ -20,10 +20,27 @@ const ALLOWED_MIME = new Set([
 ]);
 const MAX_BYTES = 10 * 1024 * 1024;
 
+import { createLogger } from './logger.js';
+import type { AttachmentStorage } from './providers/attachments/types.js';
+import type { DatabaseExecutor } from './executor.js';
+
+const attachmentLog = createLogger('attachments');
+
 export class AttachmentValidationError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'AttachmentValidationError';
+  }
+}
+
+export class AttachmentDeleteError extends Error {
+  readonly code = 'ATTACHMENT_DELETE_FAILED';
+  constructor(
+    message: string,
+    public cause?: unknown,
+  ) {
+    super(message);
+    this.name = 'AttachmentDeleteError';
   }
 }
 
@@ -44,6 +61,7 @@ function assertWithinUploads(fullPath: string): void {
 function rowToAttachment(r: typeof attachments.$inferSelect): Attachment {
   const out: Attachment = {
     id: r.id,
+    objectKey: r.objectKey,
     entityType: r.entityType,
     entityId: r.entityId,
     fileName: r.fileName,
@@ -83,7 +101,17 @@ export async function listAttachments(
   return rows.map(rowToAttachment);
 }
 
-export async function createAttachment(input: InsertAttachment): Promise<Attachment> {
+import { getProviders } from './providers/index.js';
+
+export interface CreateAttachmentOptions {
+  storageProvider: AttachmentStorage;
+  executor: DatabaseExecutor;
+}
+
+export async function createAttachment(
+  input: InsertAttachment,
+  opts: CreateAttachmentOptions,
+): Promise<Attachment> {
   if (!ALLOWED_MIME.has(input.mimeType)) {
     throw new AttachmentValidationError(`MIME no permitido: ${input.mimeType}`);
   }
@@ -102,47 +130,79 @@ export async function createAttachment(input: InsertAttachment): Promise<Attachm
   }
   const id = `att-${randomUUID().slice(0, 10)}`;
   const safe = safeFileName(input.fileName);
-  const dir = path.join(UPLOAD_ROOT, input.entityType, input.entityId);
-  const diskName = `${id}-${safe}`;
-  const fullPath = path.join(dir, diskName);
-  assertWithinUploads(fullPath);
-  await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(fullPath, buf);
-  const remoteUrl = `/uploads/${input.entityType}/${input.entityId}/${diskName}`;
-  const now = new Date().toISOString();
-  const [row] = await db
-    .insert(attachments)
-    .values({
-      id,
-      entityType: input.entityType,
-      entityId: input.entityId,
-      fileName: safe,
-      mimeType: input.mimeType,
-      sizeBytes: buf.byteLength,
-      localStatus: 'uploaded',
-      remoteUrl,
-      createdAt: now,
-      uploadedAt: now,
-      createdBy: input.createdBy ?? null,
-    })
-    .returning();
-  return rowToAttachment(row);
+  const objectKey = `${input.entityType}/${input.entityId}/${id}-${safe}`;
+
+  const { executor, storageProvider } = opts;
+
+  await storageProvider.writeFile(objectKey, buf);
+
+  try {
+    const downloadAccess = await storageProvider.getDownloadAccess(objectKey);
+    const remoteUrl = downloadAccess.url;
+    const now = new Date().toISOString();
+
+    const [row] = await executor
+      .insert(attachments)
+      .values({
+        id,
+        objectKey,
+        entityType: input.entityType,
+        entityId: input.entityId,
+        fileName: safe,
+        mimeType: input.mimeType,
+        sizeBytes: buf.byteLength,
+        localStatus: 'uploaded',
+        remoteUrl,
+        createdAt: now,
+        uploadedAt: now,
+        createdBy: input.createdBy ?? null,
+      })
+      .returning();
+
+    if (!row) {
+      throw new Error('Insert returned no row');
+    }
+
+    return rowToAttachment(row);
+  } catch (mainErr) {
+    try {
+      await storageProvider.deleteObject(objectKey);
+    } catch (cleanupErr) {
+      attachmentLog.error('attachment creation cleanup failed', {
+        objectKey,
+        mainErr,
+        cleanupErr,
+      });
+    }
+    throw mainErr;
+  }
 }
 
-export async function deleteAttachment(id: string): Promise<boolean> {
-  const [row] = await db.select().from(attachments).where(eq(attachments.id, id));
+export interface DeleteAttachmentOptions {
+  storageProvider?: AttachmentStorage;
+  executor?: DatabaseExecutor;
+}
+
+export async function deleteAttachment(
+  id: string,
+  opts?: DeleteAttachmentOptions,
+): Promise<boolean> {
+  const dbExec = opts?.executor ?? db;
+  const storageProvider = opts?.storageProvider ?? getProviders().attachments;
+
+  const [row] = await dbExec.select().from(attachments).where(eq(attachments.id, id));
   if (!row) return false;
-  if (row.remoteUrl?.startsWith('/uploads/')) {
-    const rel = row.remoteUrl.replace(/^\/uploads\//, '');
-    const full = path.join(UPLOAD_ROOT, rel);
-    try {
-      assertWithinUploads(full);
-      await fs.unlink(full);
-    } catch {
-      /* best-effort */
-    }
+
+  try {
+    await storageProvider.deleteObject(row.objectKey);
+  } catch (err) {
+    throw new AttachmentDeleteError(
+      `Fallo al eliminar objeto storage '${row.objectKey}': ${err instanceof Error ? err.message : String(err)}`,
+      err,
+    );
   }
-  await db.delete(attachments).where(eq(attachments.id, id));
+
+  await dbExec.delete(attachments).where(eq(attachments.id, id));
   return true;
 }
 

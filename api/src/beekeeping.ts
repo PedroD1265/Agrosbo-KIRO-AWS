@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { eq, desc } from 'drizzle-orm';
 import { db } from './db.js';
+import type { DatabaseExecutor } from './executor.js';
 import {
   apiaries,
   hives,
@@ -15,7 +16,7 @@ import {
   type InsertHiveInspection,
   type InsertHoneyHarvest,
 } from '@agrosbo/shared/schema.js';
-import { storage, InventoryStockError } from './storage.js';
+import { storage, InventoryStockError, type IStorage } from './storage.js';
 
 const rowToApiary = (r: typeof apiaries.$inferSelect): Apiary => ({
   id: r.id,
@@ -76,9 +77,13 @@ export async function listApiaries(): Promise<Apiary[]> {
   if (!db) return [];
   return (await db.select().from(apiaries).orderBy(desc(apiaries.createdAt))).map(rowToApiary);
 }
-export async function createApiary(input: InsertApiary): Promise<Apiary> {
+
+export async function createApiary(
+  input: InsertApiary,
+  executor: DatabaseExecutor,
+): Promise<Apiary> {
   const id = `ap-${randomUUID().slice(0, 8)}`;
-  const [row] = await db
+  const [row] = await executor
     .insert(apiaries)
     .values({
       id,
@@ -98,9 +103,10 @@ export async function listHives(): Promise<Hive[]> {
   if (!db) return [];
   return (await db.select().from(hives).orderBy(desc(hives.createdAt))).map(rowToHive);
 }
-export async function createHive(input: InsertHive): Promise<Hive> {
+
+export async function createHive(input: InsertHive, executor: DatabaseExecutor): Promise<Hive> {
   const id = `hv-${randomUUID().slice(0, 8)}`;
-  const [row] = await db
+  const [row] = await executor
     .insert(hives)
     .values({
       id,
@@ -136,17 +142,21 @@ export class HiveInventoryItemNotFoundError extends Error {
   }
 }
 
-export async function createInspection(input: InsertHiveInspection): Promise<HiveInspection> {
+export async function createInspection(
+  input: InsertHiveInspection,
+  opts: { storage: IStorage; executor: DatabaseExecutor },
+): Promise<HiveInspection> {
+  const { storage: stg, executor: dbExec } = opts;
   const id = `hi-${randomUUID().slice(0, 8)}`;
   let movementId: string | null = null;
   const wantsMovement =
     !!input.inventoryItemId && typeof input.quantityUsed === 'number' && input.quantityUsed > 0;
   if (wantsMovement) {
-    const items = await storage.listInventory();
+    const items = await stg.listInventory();
     if (!items.some((it) => it.id === input.inventoryItemId)) {
       throw new HiveInventoryItemNotFoundError(input.inventoryItemId!);
     }
-    const r = await storage.createInventoryMovement({
+    const r = await stg.createInventoryMovement({
       itemId: input.inventoryItemId!,
       delta: -input.quantityUsed!,
       note: `Inspección colmena (tratamiento/alimentación)`,
@@ -155,56 +165,39 @@ export async function createInspection(input: InsertHiveInspection): Promise<Hiv
     if (!r) throw new HiveInventoryItemNotFoundError(input.inventoryItemId!);
     movementId = r.movement.id;
   }
-  let row: typeof hiveInspections.$inferSelect | undefined;
-  try {
-    [row] = await db
-      .insert(hiveInspections)
-      .values({
-        id,
-        hiveId: input.hiveId,
-        inspectedAt: input.inspectedAt,
-        inspector: input.inspector,
-        queenSeen: input.queenSeen,
-        queenStatus: input.queenStatus,
-        colonyStrength: input.colonyStrength,
-        broodLevel: input.broodLevel,
-        honeyStores: input.honeyStores,
-        pestsOrDisease: input.pestsOrDisease ?? null,
-        feedingGiven: input.feedingGiven ?? null,
-        treatmentGiven: input.treatmentGiven ?? null,
-        inventoryItemId: input.inventoryItemId ?? null,
-        quantityUsed: input.quantityUsed ?? null,
-        movementId,
-        notes: input.notes ?? null,
-        hasPhotos: input.hasPhotos,
-        createdAt: new Date().toISOString(),
-      })
-      .returning();
-    await db
-      .update(hives)
-      .set({
-        lastInspectionAt: input.inspectedAt,
-        queenStatus: input.queenStatus,
-        colonyStrength: input.colonyStrength,
-        broodLevel: input.broodLevel,
-        honeyStores: input.honeyStores,
-      })
-      .where(eq(hives.id, input.hiveId));
-  } catch (err) {
-    if (wantsMovement && input.inventoryItemId && typeof input.quantityUsed === 'number') {
-      try {
-        await storage.createInventoryMovement({
-          itemId: input.inventoryItemId,
-          delta: input.quantityUsed,
-          note: `Reversa por fallo de inspección`,
-          at: new Date().toISOString(),
-        });
-      } catch {
-        /* best-effort */
-      }
-    }
-    throw err;
-  }
+  const [row] = await dbExec
+    .insert(hiveInspections)
+    .values({
+      id,
+      hiveId: input.hiveId,
+      inspectedAt: input.inspectedAt,
+      inspector: input.inspector,
+      queenSeen: input.queenSeen,
+      queenStatus: input.queenStatus,
+      colonyStrength: input.colonyStrength,
+      broodLevel: input.broodLevel,
+      honeyStores: input.honeyStores,
+      pestsOrDisease: input.pestsOrDisease ?? null,
+      feedingGiven: input.feedingGiven ?? null,
+      treatmentGiven: input.treatmentGiven ?? null,
+      inventoryItemId: input.inventoryItemId ?? null,
+      quantityUsed: input.quantityUsed ?? null,
+      movementId,
+      notes: input.notes ?? null,
+      hasPhotos: input.hasPhotos,
+      createdAt: new Date().toISOString(),
+    })
+    .returning();
+  await dbExec
+    .update(hives)
+    .set({
+      lastInspectionAt: input.inspectedAt,
+      queenStatus: input.queenStatus,
+      colonyStrength: input.colonyStrength,
+      broodLevel: input.broodLevel,
+      honeyStores: input.honeyStores,
+    })
+    .where(eq(hives.id, input.hiveId));
   if (!row) throw new Error('Insert returned no row');
   return rowToInspection(row);
 }
@@ -217,9 +210,13 @@ export async function listHoneyHarvests(): Promise<HoneyHarvest[]> {
     rowToHarvest,
   );
 }
-export async function createHoneyHarvest(input: InsertHoneyHarvest): Promise<HoneyHarvest> {
+
+export async function createHoneyHarvest(
+  input: InsertHoneyHarvest,
+  executor: DatabaseExecutor,
+): Promise<HoneyHarvest> {
   const id = `hh-${randomUUID().slice(0, 8)}`;
-  const [row] = await db
+  const [row] = await executor
     .insert(honeyHarvests)
     .values({
       id,

@@ -1,3 +1,4 @@
+import type { DatabaseExecutor } from './executor.js';
 import { randomUUID } from 'node:crypto';
 import { eq, desc, and, gte, lte, sql } from 'drizzle-orm';
 import { db } from './db.js';
@@ -75,9 +76,13 @@ export async function listExpenses(f: ExpenseFilter = {}): Promise<Expense[]> {
   return rows.map(rowToExpense);
 }
 
-export async function createExpense(input: InsertExpense): Promise<Expense> {
+export async function createExpense(
+  input: InsertExpense,
+  executor?: DatabaseExecutor,
+): Promise<Expense> {
+  const dbExec = executor ?? db;
   const id = `exp-${randomUUID().slice(0, 10)}`;
-  const [row] = await db
+  const [row] = await dbExec
     .insert(expenses)
     .values({
       id,
@@ -98,16 +103,20 @@ export async function createExpense(input: InsertExpense): Promise<Expense> {
   return rowToExpense(row);
 }
 
-export async function deleteExpense(id: string): Promise<boolean> {
-  return await db.transaction(async (tx: any) => {
-    const [target] = await tx.select().from(expenses).where(eq(expenses.id, id));
+export async function deleteExpense(id: string, executor?: DatabaseExecutor): Promise<boolean> {
+  const run = async (exec: any) => {
+    const [target] = await exec.select().from(expenses).where(eq(expenses.id, id));
     if (!target) return false;
     if (target.relatedEntityType === 'labor' && target.relatedEntityId) {
-      await tx.delete(laborCosts).where(eq(laborCosts.id, target.relatedEntityId));
+      await exec.delete(laborCosts).where(eq(laborCosts.id, target.relatedEntityId));
     }
-    await tx.delete(expenses).where(eq(expenses.id, id));
+    await exec.delete(expenses).where(eq(expenses.id, id));
     return true;
-  });
+  };
+  // If an executor (transaction) was provided, use it directly.
+  // Otherwise wrap in our own transaction for atomicity.
+  if (executor) return run(executor);
+  return db.transaction(async (tx: any) => run(tx));
 }
 
 export async function listLaborCosts(f: ExpenseFilter = {}): Promise<LaborCost[]> {
@@ -127,11 +136,14 @@ export async function listLaborCosts(f: ExpenseFilter = {}): Promise<LaborCost[]
   return rows.map(rowToLabor);
 }
 
-export async function createLaborCost(input: InsertLaborCost): Promise<LaborCost> {
+export async function createLaborCost(
+  input: InsertLaborCost,
+  executor?: DatabaseExecutor,
+): Promise<LaborCost> {
   const id = `lc-${randomUUID().slice(0, 10)}`;
   const expenseId = `exp-${randomUUID().slice(0, 10)}`;
   const now = new Date().toISOString();
-  return await db.transaction(async (tx: any) => {
+  const run = async (tx: any) => {
     await tx.insert(expenses).values({
       id: expenseId,
       scopeType: input.scopeType ?? null,
@@ -166,7 +178,9 @@ export async function createLaborCost(input: InsertLaborCost): Promise<LaborCost
       })
       .returning();
     return rowToLabor(row);
-  });
+  };
+  if (executor) return run(executor);
+  return db.transaction(async (tx: any) => run(tx));
 }
 
 export interface CostBreakdown {

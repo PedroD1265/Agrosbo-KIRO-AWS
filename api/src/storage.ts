@@ -50,6 +50,7 @@ import {
 } from './seed.js';
 
 export interface IStorage {
+  withTransaction?<T>(fn: (txStorage: IStorage, tx: any) => Promise<T>): Promise<T>;
   /* Blocks */
   listBlocks(): Promise<Block[]>;
   getBlock(id: string): Promise<Block | undefined>;
@@ -153,6 +154,10 @@ export class MemStorage implements IStorage {
   private resolveScopeName(type: ScopeType, id: string): string {
     if (type === 'block') return this.blocks.get(id)?.name ?? 'Bloque desconocido';
     return this.greenhouses.get(id)?.name ?? 'Invernadero desconocido';
+  }
+
+  async withTransaction<T>(fn: (txStorage: IStorage, tx: any) => Promise<T>): Promise<T> {
+    return await fn(this, null);
   }
 
   async listBlocks() {
@@ -445,10 +450,42 @@ import { createLogger } from './logger.js';
 
 const storageLog = createLogger('storage');
 
-if (env.useMemStorage) {
-  storageLog.warn('using in-memory storage', {
-    reason: env.databaseUrl ? 'USE_MEM_STORAGE=1' : 'DATABASE_URL not set',
-  });
+let singletonStorage: IStorage | null = null;
+
+export function getGlobalStorage(): IStorage {
+  if (!singletonStorage) {
+    const useDb = !env.useMemStorage;
+    if (env.databaseUrl && env.useMemStorage) {
+      storageLog.warn(
+        'DATABASE_URL is set but USE_MEM_STORAGE=1 is active — using MemStorage; data will NOT be persisted to PostgreSQL',
+      );
+    }
+    singletonStorage = useDb ? new DbStorage() : new MemStorage();
+  }
+  return singletonStorage;
 }
 
-export const storage: IStorage = env.useMemStorage ? new MemStorage() : new DbStorage();
+/**
+ * Returns true only when the active global storage singleton is a DbStorage
+ * (i.e., backed by PostgreSQL or AWS RDS Data API).
+ *
+ * This is the canonical runtime check for whether idempotency claims should be
+ * executed inside a PostgreSQL transaction.  It is NOT equivalent to
+ * `Boolean(env.databaseUrl)` — if USE_MEM_STORAGE=1 is set alongside
+ * DATABASE_URL, this function returns false.
+ */
+export function usesTransactionalDatabaseStorage(): boolean {
+  return getGlobalStorage() instanceof DbStorage;
+}
+
+export const storage: IStorage = new Proxy({} as IStorage, {
+  get(_target, prop) {
+    const s = getGlobalStorage() as any;
+    const val = s[prop];
+    return typeof val === 'function' ? val.bind(s) : val;
+  },
+  has(_target, prop) {
+    const s = getGlobalStorage() as any;
+    return prop in s;
+  },
+});

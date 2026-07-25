@@ -34,24 +34,29 @@ flowchart LR
 
 ## Hackathon target architecture
 
-- **Frontend**: S3 (estático) + CloudFront (origen único) + PWA.
+- **Frontend**: **AWS Amplify Hosting** (despliegues por rama; API URL
+  configurable; no depende de cookies same-origin). CloudFront separado solo si
+  se demuestra una necesidad específica.
 - **API**: API Gateway HTTP API + Lambda (Express serverless), modular monolith.
+- **Identidad**: **Amazon Cognito** User Pool + JWT authorizer; proveedor local
+  solo para dev/tests (ADR 010).
 - **Datos**: Aurora PostgreSQL Serverless v2 + RDS Data API; Drizzle; migraciones
   reproducibles.
 - **Archivos**: S3 + URLs prefirmadas; metadata en PostgreSQL.
-- **Seguridad**: cookie provisional (ADR 008); `AUTH_ENFORCEMENT=on`;
-  `SESSION_SECRET` en Secrets Manager; cookies Secure; CSRF; Cognito diferido.
+- **Seguridad**: Cognito JWT en staging/prod; proveedor local en dev; Secrets
+  Manager; RBAC en PostgreSQL.
 - **Operación**: CloudWatch; CDK; ambientes reproducibles.
+- **Diferenciadores aprobados**: Bedrock (copiloto, Spec #13); Textract o Azure
+  DI (extracción documental, benchmark ADR 013).
 
 ```mermaid
 flowchart LR
-  U[Navegador PWA] --> CF[CloudFront origen único]
-  CF -->|/ , assets| S3W[(S3 estático)]
-  CF -->|/uploads/*| S3U[(S3 adjuntos)]
-  CF -->|/api/*| AGW[API Gateway HTTP API]
+  U[Navegador PWA] --> AH[Amplify Hosting]
+  U -->|/api/* Bearer JWT| AGW[API Gateway HTTP API]
+  AGW -->|JWT authorizer| COG[Cognito User Pool]
   AGW --> L[Lambda: Express serverless]
   L -->|Data API| AUR[(Aurora Serverless v2)]
-  L -->|presigned| S3U
+  L -->|presigned| S3U[(S3 adjuntos)]
   L --> OM[Open-Meteo]
   L --> CW[CloudWatch]
   SM[Secrets Manager] --> L

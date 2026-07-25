@@ -33,7 +33,270 @@ import {
   harvestLotsToCSV,
   parseAndImport,
 } from './csv.js';
-import { claim, complete, release } from './idempotency.js';
+import { claim, complete, release, claimTx, completeTx } from './idempotency.js';
+import type { IStorage } from './storage.js';
+import {
+  requireDatabaseExecutor,
+  isTransactionalStorage,
+  DatabaseRequiredError,
+} from './executor.js';
+
+import {
+  registerTransactionCompensation,
+  runTransactionCompensations,
+  type TransactionCompensation,
+} from './transaction-compensations.js';
+import { getProviders } from './providers/index.js';
+
+declare module 'express-serve-static-core' {
+  interface Request {
+    storage?: IStorage;
+  }
+}
+
+class IdempotencyAbortError extends Error {
+  constructor(public reason: string) {
+    super(`Idempotency abort: ${reason}`);
+  }
+}
+
+export function getStorage(req: Request): IStorage {
+  return req.storage ?? storage;
+}
+
+const apiLog = createLogger('routes');
+
+function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    return fn(req, res, next).catch(next);
+  };
+}
+
+function notFound(res: Response, entityName: string) {
+  return res.status(404).json({ error: `${entityName} no encontrado` });
+}
+
+function idemKey(req: Request): string | null {
+  const k = req.header('x-idempotency-key');
+  if (!k) return null;
+  return `${req.method}:${req.baseUrl}${req.path}:${k}`;
+}
+
+export function idempotent(
+  fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>,
+) {
+  return asyncHandler(async (req, res, next) => {
+    const key = idemKey(req);
+    if (!key) {
+      return fn(req, res, next);
+    }
+
+    const currentStorage = getStorage(req);
+
+    if (isTransactionalStorage(currentStorage)) {
+      const respHolder: {
+        current: {
+          status: number;
+          body: unknown;
+          headers?: Record<string, string>;
+        } | null;
+      } = { current: null };
+
+      const prevCompensations = req.transactionCompensations;
+      const compensations: TransactionCompensation[] = [];
+      req.transactionCompensations = compensations;
+
+      try {
+        await currentStorage.withTransaction(async (txStorage, tx) => {
+          const claimResult = await claimTx(tx, key);
+
+          if (claimResult.type === 'completed') {
+            respHolder.current = {
+              status: claimResult.status,
+              body: claimResult.body,
+              headers: { 'X-Idempotent-Replay': '1' },
+            };
+            return;
+          }
+
+          if (claimResult.type === 'processing') {
+            respHolder.current = {
+              status: 409,
+              body: {
+                error: 'Solicitud duplicada en proceso',
+                code: 'IDEMPOTENCY_IN_PROGRESS',
+              },
+              headers: { 'Retry-After': '2' },
+            };
+            throw new IdempotencyAbortError('processing');
+          }
+
+          if (claimResult.type === 'unavailable') {
+            respHolder.current = {
+              status: 503,
+              body: { error: 'Servicio de idempotencia no disponible. Reintentar.' },
+              headers: { 'Retry-After': '5' },
+            };
+            throw new IdempotencyAbortError('unavailable');
+          }
+
+          const token = claimResult.token;
+          const prevStorage = req.storage;
+          req.storage = txStorage;
+
+          let captured: { status: number; body: unknown } | null = null;
+          const originalJson = res.json.bind(res);
+          const originalSend = res.send.bind(res);
+          const originalEnd = res.end.bind(res);
+
+          res.json = ((body: unknown) => {
+            captured = { status: res.statusCode, body };
+            return res;
+          }) as Response['json'];
+          res.send = ((body?: unknown) => {
+            if (!captured) captured = { status: res.statusCode, body: body ?? null };
+            return res;
+          }) as Response['send'];
+          res.end = ((...args: unknown[]) => {
+            if (!captured) captured = { status: res.statusCode, body: null };
+            return (originalEnd as (...a: unknown[]) => Response)(...args);
+          }) as unknown as Response['end'];
+
+          let handlerError: unknown = null;
+          try {
+            await fn(req, res, next);
+          } catch (err) {
+            handlerError = err;
+          } finally {
+            req.storage = prevStorage;
+            res.json = originalJson;
+            res.send = originalSend;
+            res.end = originalEnd as Response['end'];
+          }
+
+          if (handlerError) {
+            throw handlerError;
+          }
+
+          const cap = captured as { status: number; body: unknown } | null;
+          if (!cap || cap.status >= 500) {
+            throw new Error(`Handler error or no response: ${cap?.status}`);
+          }
+
+          await completeTx(tx, key, token, cap.status, cap.body);
+          respHolder.current = { status: cap.status, body: cap.body };
+        });
+
+        if (respHolder.current) {
+          if (respHolder.current.headers) {
+            for (const [h, v] of Object.entries(respHolder.current.headers)) {
+              res.setHeader(h, v);
+            }
+          }
+          if (respHolder.current.body === null) return res.status(respHolder.current.status).end();
+          return res.status(respHolder.current.status).json(respHolder.current.body);
+        }
+      } catch (err) {
+        if (err instanceof IdempotencyAbortError) {
+          if (respHolder.current) {
+            if (respHolder.current.headers) {
+              for (const [h, v] of Object.entries(respHolder.current.headers)) {
+                res.setHeader(h, v);
+              }
+            }
+            if (respHolder.current.body === null)
+              return res.status(respHolder.current.status).end();
+            return res.status(respHolder.current.status).json(respHolder.current.body);
+          }
+        }
+        await runTransactionCompensations(compensations, err);
+        throw err;
+      } finally {
+        req.transactionCompensations = prevCompensations;
+      }
+      return;
+    }
+
+    const claimResult = await claim(key);
+
+    if (claimResult.type === 'completed') {
+      res.setHeader('X-Idempotent-Replay', '1');
+      if (claimResult.body === null) {
+        return res.status(claimResult.status).end();
+      }
+      return res.status(claimResult.status).json(claimResult.body);
+    }
+    if (claimResult.type === 'processing') {
+      res.setHeader('Retry-After', '2');
+      return res.status(409).json({
+        error: 'Solicitud duplicada en proceso',
+        code: 'IDEMPOTENCY_IN_PROGRESS',
+      });
+    }
+    if (claimResult.type === 'unavailable') {
+      res.setHeader('Retry-After', '5');
+      return res.status(503).json({
+        error: 'Servicio de idempotencia no disponible. Reintentar.',
+      });
+    }
+
+    const token = claimResult.token;
+    let captured: { status: number; body: unknown } | null = null;
+    const originalJson = res.json.bind(res);
+    const originalSend = res.send.bind(res);
+    const originalEnd = res.end.bind(res);
+
+    res.json = ((body: unknown) => {
+      captured = { status: res.statusCode, body };
+      return res;
+    }) as Response['json'];
+    res.send = ((body?: unknown) => {
+      if (!captured) captured = { status: res.statusCode, body: body ?? null };
+      return res;
+    }) as Response['send'];
+    res.end = ((...args: unknown[]) => {
+      if (!captured) captured = { status: res.statusCode, body: null };
+      return (originalEnd as (...a: unknown[]) => Response)(...args);
+    }) as unknown as Response['end'];
+
+    let handlerError: unknown = null;
+    try {
+      await fn(req, res, next);
+    } catch (err) {
+      handlerError = err;
+    }
+    res.json = originalJson;
+    res.send = originalSend;
+    res.end = originalEnd as Response['end'];
+
+    const cap = captured as { status: number; body: unknown } | null;
+    if (handlerError || !cap) {
+      await release(key, token);
+      if (handlerError) throw handlerError;
+      return;
+    }
+
+    if (cap.status >= 500) {
+      await release(key, token);
+      if (cap.body === null) return res.status(cap.status).end();
+      return res.status(cap.status).json(cap.body);
+    }
+
+    try {
+      await complete(key, token, cap.status, cap.body);
+    } catch (err) {
+      apiLog.error('idempotency complete failed', { err });
+      await release(key, token);
+      res.setHeader('Retry-After', '5');
+      return res.status(503).json({
+        error: 'Servicio de idempotencia no disponible. Reintentar.',
+      });
+    }
+
+    if (cap.body === null) return res.status(cap.status).end();
+    return res.status(cap.status).json(cap.body);
+  });
+}
 import { createLogger } from './logger.js';
 import { getForecast } from './weather.js';
 import { deriveAlerts } from './alertsEngine.js';
@@ -72,6 +335,7 @@ import {
   createAttachment,
   deleteAttachment,
   AttachmentValidationError,
+  AttachmentDeleteError,
 } from './attachments.js';
 import {
   listExpenses,
@@ -103,112 +367,18 @@ import {
   honeyHarvestsCSV,
 } from './reports.js';
 
-const apiLog = createLogger('api');
-
-function notFound(res: Response, what: string) {
-  return res.status(404).json({ error: `${what} no encontrado` });
-}
-
-function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    fn(req, res, next).catch(next);
-  };
-}
-
-/* ------------------------------------------------------------------
- * Persistent idempotency cache (Postgres-backed with in-memory fallback).
- * Keyed by `${method}:${path}:${X-Idempotency-Key}` so the same key
- * can safely co-exist across distinct routes. TTL 24h enforced server-side.
- * Survives process restarts when DATABASE_URL is set.
- * ------------------------------------------------------------------ */
-function idemKey(req: Request): string | null {
-  const k = req.header('x-idempotency-key');
-  if (!k) return null;
-  return `${req.method}:${req.baseUrl}${req.path}:${k}`;
-}
-
-function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>) {
-  return asyncHandler(async (req, res, next) => {
-    const key = idemKey(req);
-    if (!key) {
-      return fn(req, res, next);
-    }
-
-    const claimResult = await claim(key);
-
-    if (claimResult.type === 'completed') {
-      res.setHeader('X-Idempotent-Replay', '1');
-      return res.status(claimResult.status).json(claimResult.body);
-    }
-    if (claimResult.type === 'processing') {
-      res.setHeader('Retry-After', '2');
-      return res.status(409).json({
-        error: 'Solicitud duplicada en proceso. Reintentar en breve.',
-      });
-    }
-    if (claimResult.type === 'unavailable') {
-      res.setHeader('Retry-After', '5');
-      return res.status(503).json({
-        error: 'Servicio de idempotencia no disponible. Reintentar.',
-      });
-    }
-
-    const token = claimResult.token;
-    let captured: { status: number; body: unknown } | null = null;
-    const originalJson = res.json.bind(res);
-    res.json = ((body: unknown) => {
-      captured = { status: res.statusCode, body };
-      return res;
-    }) as Response['json'];
-
-    let handlerError: unknown = null;
-    try {
-      await fn(req, res, next);
-    } catch (err) {
-      handlerError = err;
-    }
-
-    res.json = originalJson;
-
-    const cap = captured as { status: number; body: unknown } | null;
-    if (handlerError || !cap) {
-      await release(key, token);
-      if (handlerError) throw handlerError;
-      return;
-    }
-
-    if (cap.status >= 500) {
-      await release(key, token);
-      return res.status(cap.status).json(cap.body);
-    }
-
-    try {
-      await complete(key, token, cap.status, cap.body);
-    } catch (err) {
-      apiLog.error('idempotency complete failed', { err });
-      await release(key, token);
-      res.setHeader('Retry-After', '5');
-      return res.status(503).json({
-        error: 'Servicio de idempotencia no disponible. Reintentar.',
-      });
-    }
-
-    return res.status(cap.status).json(cap.body);
-  });
-}
-
 export function registerRoutes(router: Router) {
-  router.get('/health', (_req, res) => res.json({ ok: true }));
+  // Health endpoints registered separately via registerHealthRoutes (health.ts).
 
   /* Blocks */
   router.get(
     '/blocks',
-    asyncHandler(async (_req, res) => res.json(await storage.listBlocks())),
+    asyncHandler(async (req, res) => res.json(await getStorage(req).listBlocks())),
   );
   router.get(
     '/blocks/:id',
     asyncHandler(async (req, res) => {
-      const b = await storage.getBlock(req.params.id as string);
+      const b = await getStorage(req).getBlock(req.params.id as string);
       if (!b) return res.status(404).json({ error: 'Bloque no encontrado' });
       res.json(b);
     }),
@@ -217,14 +387,14 @@ export function registerRoutes(router: Router) {
     '/blocks',
     idempotent(async (req, res) => {
       const data = insertBlockSchema.parse(req.body);
-      res.status(201).json(await storage.createBlock(data));
+      res.status(201).json(await getStorage(req).createBlock(data));
     }),
   );
   router.patch(
     '/blocks/:id',
     idempotent(async (req, res) => {
       const data = updateBlockSchema.parse(req.body);
-      const updated = await storage.updateBlock(String(req.params.id as string), data);
+      const updated = await getStorage(req).updateBlock(String(req.params.id as string), data);
       if (!updated) return notFound(res, 'Bloque');
       res.json(updated);
     }),
@@ -232,7 +402,7 @@ export function registerRoutes(router: Router) {
   router.delete(
     '/blocks/:id',
     idempotent(async (req, res) => {
-      const ok = await storage.deleteBlock(String(req.params.id as string));
+      const ok = await getStorage(req).deleteBlock(String(req.params.id as string));
       if (!ok) return notFound(res, 'Bloque');
       res.json({ ok: true });
     }),
@@ -241,12 +411,12 @@ export function registerRoutes(router: Router) {
   /* Greenhouses */
   router.get(
     '/greenhouses',
-    asyncHandler(async (_req, res) => res.json(await storage.listGreenhouses())),
+    asyncHandler(async (req, res) => res.json(await getStorage(req).listGreenhouses())),
   );
   router.get(
     '/greenhouses/:id',
     asyncHandler(async (req, res) => {
-      const g = await storage.getGreenhouse(req.params.id as string);
+      const g = await getStorage(req).getGreenhouse(req.params.id as string);
       if (!g) return res.status(404).json({ error: 'Invernadero no encontrado' });
       res.json(g);
     }),
@@ -255,14 +425,14 @@ export function registerRoutes(router: Router) {
     '/greenhouses',
     idempotent(async (req, res) => {
       const data = insertGreenhouseSchema.parse(req.body);
-      res.status(201).json(await storage.createGreenhouse(data));
+      res.status(201).json(await getStorage(req).createGreenhouse(data));
     }),
   );
   router.patch(
     '/greenhouses/:id',
     idempotent(async (req, res) => {
       const data = updateGreenhouseSchema.parse(req.body);
-      const updated = await storage.updateGreenhouse(String(req.params.id as string), data);
+      const updated = await getStorage(req).updateGreenhouse(String(req.params.id as string), data);
       if (!updated) return notFound(res, 'Invernadero');
       res.json(updated);
     }),
@@ -270,7 +440,7 @@ export function registerRoutes(router: Router) {
   router.delete(
     '/greenhouses/:id',
     idempotent(async (req, res) => {
-      const ok = await storage.deleteGreenhouse(String(req.params.id as string));
+      const ok = await getStorage(req).deleteGreenhouse(String(req.params.id as string));
       if (!ok) return notFound(res, 'Invernadero');
       res.json({ ok: true });
     }),
@@ -279,20 +449,20 @@ export function registerRoutes(router: Router) {
   /* Campaigns */
   router.get(
     '/campaigns',
-    asyncHandler(async (_req, res) => res.json(await storage.listCampaigns())),
+    asyncHandler(async (req, res) => res.json(await getStorage(req).listCampaigns())),
   );
   router.post(
     '/campaigns',
     idempotent(async (req, res) => {
       const data = insertCampaignSchema.parse(req.body);
-      res.status(201).json(await storage.createCampaign(data));
+      res.status(201).json(await getStorage(req).createCampaign(data));
     }),
   );
   router.get(
     '/campaigns/:id/summary',
     asyncHandler(async (req, res) => {
       const id = String(req.params.id as string);
-      const campaigns = await storage.listCampaigns();
+      const campaigns = await getStorage(req).listCampaigns();
       const campaign = campaigns.find((c) => c.id === id);
       if (!campaign) return notFound(res, 'Campaña');
       const [tasks, irrigation, observations, harvest, movements] = await Promise.all([
@@ -311,7 +481,7 @@ export function registerRoutes(router: Router) {
     '/campaigns/:id',
     idempotent(async (req, res) => {
       const data = updateCampaignSchema.parse(req.body);
-      const updated = await storage.updateCampaign(String(req.params.id as string), data);
+      const updated = await getStorage(req).updateCampaign(String(req.params.id as string), data);
       if (!updated) return notFound(res, 'Campaña');
       res.json(updated);
     }),
@@ -319,7 +489,7 @@ export function registerRoutes(router: Router) {
   router.delete(
     '/campaigns/:id',
     idempotent(async (req, res) => {
-      const ok = await storage.deleteCampaign(String(req.params.id as string));
+      const ok = await getStorage(req).deleteCampaign(String(req.params.id as string));
       if (!ok) return notFound(res, 'Campaña');
       res.json({ ok: true });
     }),
@@ -328,19 +498,19 @@ export function registerRoutes(router: Router) {
   /* Irrigation */
   router.get(
     '/irrigation-events',
-    asyncHandler(async (_req, res) => res.json(await storage.listIrrigationEvents())),
+    asyncHandler(async (req, res) => res.json(await getStorage(req).listIrrigationEvents())),
   );
   router.post(
     '/irrigation-events',
     idempotent(async (req, res) => {
       const data = insertIrrigationEventSchema.parse(req.body);
-      res.status(201).json(await storage.createIrrigationEvent(data));
+      res.status(201).json(await getStorage(req).createIrrigationEvent(data));
     }),
   );
   router.post(
     '/irrigation-events/:id/done',
     idempotent(async (req, res) => {
-      const ev = await storage.markIrrigationDone(String(req.params.id as string));
+      const ev = await getStorage(req).markIrrigationDone(String(req.params.id as string));
       if (!ev) return res.status(404).json({ error: 'Evento no encontrado' });
       res.json(ev);
     }),
@@ -349,7 +519,10 @@ export function registerRoutes(router: Router) {
     '/irrigation-events/:id',
     idempotent(async (req, res) => {
       const data = updateIrrigationEventSchema.parse(req.body);
-      const updated = await storage.updateIrrigationEvent(String(req.params.id as string), data);
+      const updated = await getStorage(req).updateIrrigationEvent(
+        String(req.params.id as string),
+        data,
+      );
       if (!updated) return notFound(res, 'Evento de riego');
       res.json(updated);
     }),
@@ -357,7 +530,7 @@ export function registerRoutes(router: Router) {
   router.delete(
     '/irrigation-events/:id',
     idempotent(async (req, res) => {
-      const ok = await storage.deleteIrrigationEvent(String(req.params.id as string));
+      const ok = await getStorage(req).deleteIrrigationEvent(String(req.params.id as string));
       if (!ok) return notFound(res, 'Evento de riego');
       res.json({ ok: true });
     }),
@@ -366,20 +539,23 @@ export function registerRoutes(router: Router) {
   /* Tasks */
   router.get(
     '/tasks',
-    asyncHandler(async (_req, res) => res.json(await storage.listTasks())),
+    asyncHandler(async (req, res) => res.json(await getStorage(req).listTasks())),
   );
   router.post(
     '/tasks',
     idempotent(async (req, res) => {
       const data = insertTaskSchema.parse(req.body);
-      res.status(201).json(await storage.createTask(data));
+      res.status(201).json(await getStorage(req).createTask(data));
     }),
   );
   router.patch(
     '/tasks/:id/status',
     idempotent(async (req, res) => {
       const { status } = z.object({ status: taskStatusSchema }).parse(req.body);
-      const updated = await storage.updateTaskStatus(String(req.params.id as string), status);
+      const updated = await getStorage(req).updateTaskStatus(
+        String(req.params.id as string),
+        status,
+      );
       if (!updated) return res.status(404).json({ error: 'Tarea no encontrada' });
       res.json(updated);
     }),
@@ -388,7 +564,7 @@ export function registerRoutes(router: Router) {
     '/tasks/:id',
     idempotent(async (req, res) => {
       const data = updateTaskSchema.parse(req.body);
-      const updated = await storage.updateTask(String(req.params.id as string), data);
+      const updated = await getStorage(req).updateTask(String(req.params.id as string), data);
       if (!updated) return notFound(res, 'Tarea');
       res.json(updated);
     }),
@@ -396,7 +572,7 @@ export function registerRoutes(router: Router) {
   router.delete(
     '/tasks/:id',
     idempotent(async (req, res) => {
-      const ok = await storage.deleteTask(String(req.params.id as string));
+      const ok = await getStorage(req).deleteTask(String(req.params.id as string));
       if (!ok) return notFound(res, 'Tarea');
       res.json({ ok: true });
     }),
@@ -405,19 +581,19 @@ export function registerRoutes(router: Router) {
   /* Observations */
   router.get(
     '/observations',
-    asyncHandler(async (_req, res) => res.json(await storage.listObservations())),
+    asyncHandler(async (req, res) => res.json(await getStorage(req).listObservations())),
   );
   router.post(
     '/observations',
     idempotent(async (req, res) => {
       const data = insertObservationSchema.parse(req.body);
-      res.status(201).json(await storage.createObservation(data));
+      res.status(201).json(await getStorage(req).createObservation(data));
     }),
   );
   router.delete(
     '/observations/:id',
     idempotent(async (req, res) => {
-      const ok = await storage.deleteObservation(String(req.params.id as string));
+      const ok = await getStorage(req).deleteObservation(String(req.params.id as string));
       if (!ok) return notFound(res, 'Observación');
       res.json({ ok: true });
     }),
@@ -427,7 +603,7 @@ export function registerRoutes(router: Router) {
     '/observations/:id/tasks',
     idempotent(async (req, res) => {
       const obsId = String(req.params.id as string);
-      const observations = await storage.listObservations();
+      const observations = await getStorage(req).listObservations();
       const obs = observations.find((o) => o.id === obsId);
       if (!obs) return notFound(res, 'Observación');
       const body = z
@@ -439,7 +615,7 @@ export function registerRoutes(router: Router) {
           notes: z.string().optional(),
         })
         .parse(req.body);
-      const task = await storage.createTask({
+      const task = await getStorage(req).createTask({
         title: body.title ?? `Atender: ${obs.text.slice(0, 60)}`,
         scopeType: obs.scopeType,
         scopeId: obs.scopeId,
@@ -457,14 +633,14 @@ export function registerRoutes(router: Router) {
   /* Inventory */
   router.get(
     '/inventory',
-    asyncHandler(async (_req, res) => res.json(await storage.listInventory())),
+    asyncHandler(async (req, res) => res.json(await getStorage(req).listInventory())),
   );
   router.post(
     '/inventory',
     requireRole('admin', 'tecnico', 'encargado'),
     idempotent(async (req, res) => {
       const data = insertInventoryItemSchema.parse(req.body);
-      res.status(201).json(await storage.createInventoryItem(data));
+      res.status(201).json(await getStorage(req).createInventoryItem(data));
     }),
   );
   router.patch(
@@ -487,7 +663,7 @@ export function registerRoutes(router: Router) {
         ? new Date(`${body.lastMovement}T00:00:00.000Z`).toISOString()
         : undefined;
       try {
-        const result = await storage.createInventoryMovement({
+        const result = await getStorage(req).createInventoryMovement({
           itemId: String(req.params.id as string),
           delta: body.delta,
           note: body.note,
@@ -511,14 +687,14 @@ export function registerRoutes(router: Router) {
   router.get(
     '/inventory/:id/movements',
     asyncHandler(async (req, res) => {
-      const movs = await storage.listInventoryMovements(String(req.params.id as string));
+      const movs = await getStorage(req).listInventoryMovements(String(req.params.id as string));
       res.json(movs);
     }),
   );
   router.get(
     '/inventory-movements',
-    asyncHandler(async (_req, res) => {
-      res.json(await storage.listInventoryMovements());
+    asyncHandler(async (req, res) => {
+      res.json(await getStorage(req).listInventoryMovements());
     }),
   );
   router.patch(
@@ -526,7 +702,10 @@ export function registerRoutes(router: Router) {
     requireRole('admin', 'tecnico', 'encargado'),
     idempotent(async (req, res) => {
       const data = updateInventoryItemSchema.parse(req.body);
-      const updated = await storage.updateInventoryItem(String(req.params.id as string), data);
+      const updated = await getStorage(req).updateInventoryItem(
+        String(req.params.id as string),
+        data,
+      );
       if (!updated) return notFound(res, 'Insumo');
       res.json(updated);
     }),
@@ -535,7 +714,7 @@ export function registerRoutes(router: Router) {
     '/inventory/:id',
     requireRole('admin', 'tecnico', 'encargado'),
     idempotent(async (req, res) => {
-      const ok = await storage.deleteInventoryItem(String(req.params.id as string));
+      const ok = await getStorage(req).deleteInventoryItem(String(req.params.id as string));
       if (!ok) return notFound(res, 'Insumo');
       res.json({ ok: true });
     }),
@@ -544,14 +723,14 @@ export function registerRoutes(router: Router) {
   /* Harvest */
   router.get(
     '/harvest-lots',
-    asyncHandler(async (_req, res) => res.json(await storage.listHarvestLots())),
+    asyncHandler(async (req, res) => res.json(await getStorage(req).listHarvestLots())),
   );
   router.post(
     '/harvest-lots',
     requireRole('admin', 'tecnico', 'encargado'),
     idempotent(async (req, res) => {
       const data = insertHarvestLotSchema.parse(req.body);
-      res.status(201).json(await storage.createHarvestLot(data));
+      res.status(201).json(await getStorage(req).createHarvestLot(data));
     }),
   );
   router.patch(
@@ -559,7 +738,7 @@ export function registerRoutes(router: Router) {
     requireRole('admin', 'tecnico', 'encargado'),
     idempotent(async (req, res) => {
       const data = updateHarvestLotSchema.parse(req.body);
-      const updated = await storage.updateHarvestLot(String(req.params.id as string), data);
+      const updated = await getStorage(req).updateHarvestLot(String(req.params.id as string), data);
       if (!updated) return notFound(res, 'Lote');
       res.json(updated);
     }),
@@ -568,7 +747,7 @@ export function registerRoutes(router: Router) {
     '/harvest-lots/:id',
     requireRole('admin', 'tecnico', 'encargado'),
     idempotent(async (req, res) => {
-      const ok = await storage.deleteHarvestLot(String(req.params.id as string));
+      const ok = await getStorage(req).deleteHarvestLot(String(req.params.id as string));
       if (!ok) return notFound(res, 'Lote');
       res.json({ ok: true });
     }),
@@ -596,10 +775,10 @@ export function registerRoutes(router: Router) {
     }),
   );
 
-  /* Alerts — derived from current state via rules engine */
+  /* Alerts â€” derived from current state via rules engine */
   router.get(
     '/alerts',
-    asyncHandler(async (_req, res) => {
+    asyncHandler(async (req, res) => {
       const [blocks, greenhouses, inventory, irrigation, observations, tasks, applications, hives] =
         await Promise.all([
           storage.listBlocks(),
@@ -631,7 +810,7 @@ export function registerRoutes(router: Router) {
    * ============================================================== */
   router.get(
     '/crops',
-    asyncHandler(async (_req, res) => res.json(CROP_CATALOG)),
+    asyncHandler(async (req, res) => res.json(CROP_CATALOG)),
   );
 
   /* ================================================================
@@ -639,15 +818,21 @@ export function registerRoutes(router: Router) {
    * ============================================================== */
   router.get(
     '/applications',
-    asyncHandler(async (_req, res) => res.json(await listApplications())),
+    asyncHandler(async (req, res) => res.json(await listApplications())),
   );
   router.post(
     '/applications',
     requireRole('admin', 'tecnico', 'encargado'),
     idempotent(async (req, res) => {
       const data = insertFieldApplicationSchema.parse(req.body);
+      const reqStorage = getStorage(req);
       try {
-        res.status(201).json(await createApplication(data));
+        res.status(201).json(
+          await createApplication(data, {
+            storage: reqStorage,
+            executor: requireDatabaseExecutor(reqStorage),
+          }),
+        );
       } catch (err) {
         if (err instanceof InventoryStockError) {
           return res.status(409).json({ error: err.message });
@@ -721,26 +906,28 @@ export function registerRoutes(router: Router) {
    * ============================================================== */
   router.get(
     '/apiaries',
-    asyncHandler(async (_req, res) => res.json(await listApiaries())),
+    asyncHandler(async (req, res) => res.json(await listApiaries())),
   );
   router.post(
     '/apiaries',
     requireRole('admin', 'tecnico', 'encargado'),
     idempotent(async (req, res) => {
       const data = insertApiarySchema.parse(req.body);
-      res.status(201).json(await createApiary(data));
+      const reqStorage = getStorage(req);
+      res.status(201).json(await createApiary(data, requireDatabaseExecutor(reqStorage)));
     }),
   );
   router.get(
     '/hives',
-    asyncHandler(async (_req, res) => res.json(await listHives())),
+    asyncHandler(async (req, res) => res.json(await listHives())),
   );
   router.post(
     '/hives',
     requireRole('admin', 'tecnico', 'encargado'),
     idempotent(async (req, res) => {
       const data = insertHiveSchema.parse(req.body);
-      res.status(201).json(await createHive(data));
+      const reqStorage = getStorage(req);
+      res.status(201).json(await createHive(data, requireDatabaseExecutor(reqStorage)));
     }),
   );
   router.get(
@@ -755,8 +942,14 @@ export function registerRoutes(router: Router) {
     requireRole('admin', 'tecnico', 'encargado'),
     idempotent(async (req, res) => {
       const data = insertHiveInspectionSchema.parse(req.body);
+      const reqStorage = getStorage(req);
       try {
-        res.status(201).json(await createInspection(data));
+        res.status(201).json(
+          await createInspection(data, {
+            storage: reqStorage,
+            executor: requireDatabaseExecutor(reqStorage),
+          }),
+        );
       } catch (err) {
         if (err instanceof InventoryStockError) {
           return res.status(409).json({ error: err.message });
@@ -770,14 +963,15 @@ export function registerRoutes(router: Router) {
   );
   router.get(
     '/honey-harvests',
-    asyncHandler(async (_req, res) => res.json(await listHoneyHarvests())),
+    asyncHandler(async (req, res) => res.json(await listHoneyHarvests())),
   );
   router.post(
     '/honey-harvests',
     requireRole('admin', 'tecnico', 'encargado'),
     idempotent(async (req, res) => {
       const data = insertHoneyHarvestSchema.parse(req.body);
-      res.status(201).json(await createHoneyHarvest(data));
+      const reqStorage = getStorage(req);
+      res.status(201).json(await createHoneyHarvest(data, requireDatabaseExecutor(reqStorage)));
     }),
   );
 
@@ -798,10 +992,18 @@ export function registerRoutes(router: Router) {
   );
   router.post(
     '/attachments',
+    // external side effect — file write and DB metadata with explicit compensating delete on failure.
     idempotent(async (req, res) => {
       const data = insertAttachmentSchema.parse(req.body);
+      const reqStorage = getStorage(req);
+      const executor = requireDatabaseExecutor(reqStorage);
+      const storageProvider = getProviders().attachments;
       try {
-        res.status(201).json(await createAttachment(data));
+        const created = await createAttachment(data, { executor, storageProvider });
+        registerTransactionCompensation(req, async () => {
+          await storageProvider.deleteObject(created.objectKey);
+        });
+        res.status(201).json(created);
       } catch (err) {
         if (err instanceof AttachmentValidationError) {
           return res.status(422).json({ error: err.message });
@@ -813,9 +1015,16 @@ export function registerRoutes(router: Router) {
   router.delete(
     '/attachments/:id',
     asyncHandler(async (req, res) => {
-      const ok = await deleteAttachment(req.params.id as string);
-      if (!ok) return notFound(res, 'Adjunto');
-      res.status(204).end();
+      try {
+        const ok = await deleteAttachment(req.params.id as string);
+        if (!ok) return notFound(res, 'Adjunto');
+        res.status(204).end();
+      } catch (err) {
+        if (err instanceof AttachmentDeleteError) {
+          return res.status(500).json({ error: err.message, code: err.code });
+        }
+        throw err;
+      }
     }),
   );
 
@@ -843,14 +1052,18 @@ export function registerRoutes(router: Router) {
     requireRole('admin', 'tecnico', 'encargado', 'finanzas'),
     idempotent(async (req, res) => {
       const data = insertExpenseSchema.parse(req.body);
-      res.status(201).json(await createExpense(data));
+      res.status(201).json(await createExpense(data, requireDatabaseExecutor(getStorage(req))));
     }),
   );
   router.delete(
     '/expenses/:id',
     requireRole('admin', 'tecnico', 'encargado', 'finanzas'),
+    // Tolerant-delete: already-deleted or never-existed → 204.
     idempotent(async (req, res) => {
-      const ok = await deleteExpense(req.params.id as string);
+      const ok = await deleteExpense(
+        req.params.id as string,
+        requireDatabaseExecutor(getStorage(req)),
+      );
       if (!ok) {
         // Tolerant-delete: ya borrado o nunca existió → tratar como éxito
         // para que reintentos offline no marquen la mutación como error.
@@ -879,7 +1092,7 @@ export function registerRoutes(router: Router) {
     requireRole('admin', 'tecnico', 'encargado', 'finanzas'),
     idempotent(async (req, res) => {
       const data = insertLaborCostSchema.parse(req.body);
-      res.status(201).json(await createLaborCost(data));
+      res.status(201).json(await createLaborCost(data, requireDatabaseExecutor(getStorage(req))));
     }),
   );
   router.get(
@@ -907,14 +1120,14 @@ export function registerRoutes(router: Router) {
   router.get(
     '/users',
     requireRole('admin'),
-    asyncHandler(async (_req, res) => res.json(await listUsers())),
+    asyncHandler(async (req, res) => res.json(await listUsers())),
   );
   router.post(
     '/users',
     requireRole('admin'),
     idempotent(async (req, res) => {
       const data = insertUserSchema.parse(req.body);
-      res.status(201).json(await createUser(data));
+      res.status(201).json(await createUser(data, requireDatabaseExecutor(getStorage(req))));
     }),
   );
   router.post(
@@ -962,7 +1175,7 @@ export function registerRoutes(router: Router) {
   );
 
   /* ================================================================
-   * Reports — CSV exports (Fase 4)
+   * Reports â€” CSV exports (Fase 4)
    * ============================================================== */
   function sendCsv(res: Response, name: string, csv: string) {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
@@ -987,7 +1200,7 @@ export function registerRoutes(router: Router) {
   );
   router.get(
     '/reports/carencia.csv',
-    asyncHandler(async (_req, res) => {
+    asyncHandler(async (req, res) => {
       sendCsv(res, 'carencia', await carenciaActivaCSV());
     }),
   );
@@ -1019,67 +1232,49 @@ export function registerRoutes(router: Router) {
   );
   router.get(
     '/reports/apiaries.csv',
-    asyncHandler(async (_req, res) => sendCsv(res, 'apiaries', await apiariesCSV())),
+    asyncHandler(async (req, res) => sendCsv(res, 'apiaries', await apiariesCSV())),
   );
   router.get(
     '/reports/hives.csv',
-    asyncHandler(async (_req, res) => sendCsv(res, 'hives', await hivesCSV())),
+    asyncHandler(async (req, res) => sendCsv(res, 'hives', await hivesCSV())),
   );
   router.get(
     '/reports/inspections.csv',
-    asyncHandler(async (_req, res) => sendCsv(res, 'inspections', await inspectionsCSV())),
+    asyncHandler(async (req, res) => sendCsv(res, 'inspections', await inspectionsCSV())),
   );
   router.get(
     '/reports/honey-harvests.csv',
-    asyncHandler(async (_req, res) => sendCsv(res, 'honey-harvests', await honeyHarvestsCSV())),
+    asyncHandler(async (req, res) => sendCsv(res, 'honey-harvests', await honeyHarvestsCSV())),
   );
   router.get(
     '/reports/honey.csv',
-    asyncHandler(async (_req, res) => sendCsv(res, 'honey-harvests', await honeyHarvestsCSV())),
+    asyncHandler(async (req, res) => sendCsv(res, 'honey-harvests', await honeyHarvestsCSV())),
   );
 
   /* ================================================================
-   * Health
+   * Health â€” replaced by /health/live and /health/ready (health.ts)
    * ============================================================== */
-  router.get(
-    '/health',
-    asyncHandler(async (_req, res) => {
-      let dbOk = false;
-      try {
-        await storage.getSettings();
-        dbOk = true;
-      } catch {
-        dbOk = false;
-      }
-      res.json({
-        ok: dbOk,
-        uptime: process.uptime(),
-        now: new Date().toISOString(),
-        storage: dbOk ? 'up' : 'down',
-      });
-    }),
-  );
 
   /* Settings */
   router.get(
     '/settings',
-    asyncHandler(async (_req, res) => res.json(await storage.getSettings())),
+    asyncHandler(async (req, res) => res.json(await getStorage(req).getSettings())),
   );
   router.put(
     '/settings',
     asyncHandler(async (req, res) => {
       const data = settingsSchema.parse(req.body);
-      res.json(await storage.updateSettings(data));
+      res.json(await getStorage(req).updateSettings(data));
     }),
   );
 
   /* ================================================================
-   * Integrations — Adapter Registry
+   * Integrations â€” Adapter Registry
    * ============================================================== */
 
   router.get(
     '/integrations/adapters',
-    asyncHandler(async (_req, res) => res.json(listAdapters())),
+    asyncHandler(async (req, res) => res.json(listAdapters())),
   );
 
   router.get(
@@ -1117,7 +1312,7 @@ export function registerRoutes(router: Router) {
   );
 
   /* ================================================================
-   * Integrations — CSV Export
+   * Integrations â€” CSV Export
    * ============================================================== */
 
   router.get(
@@ -1129,25 +1324,25 @@ export function registerRoutes(router: Router) {
 
       switch (dataset) {
         case 'blocks':
-          csv = blocksToCSV(await storage.listBlocks());
+          csv = blocksToCSV(await getStorage(req).listBlocks());
           break;
         case 'greenhouses':
-          csv = greenhousesToCSV(await storage.listGreenhouses());
+          csv = greenhousesToCSV(await getStorage(req).listGreenhouses());
           break;
         case 'tasks':
-          csv = tasksToCSV(await storage.listTasks());
+          csv = tasksToCSV(await getStorage(req).listTasks());
           break;
         case 'irrigation-events':
-          csv = irrigationEventsToCSV(await storage.listIrrigationEvents());
+          csv = irrigationEventsToCSV(await getStorage(req).listIrrigationEvents());
           break;
         case 'observations':
-          csv = observationsToCSV(await storage.listObservations());
+          csv = observationsToCSV(await getStorage(req).listObservations());
           break;
         case 'inventory':
-          csv = inventoryToCSV(await storage.listInventory());
+          csv = inventoryToCSV(await getStorage(req).listInventory());
           break;
         case 'harvest-lots':
-          csv = harvestLotsToCSV(await storage.listHarvestLots());
+          csv = harvestLotsToCSV(await getStorage(req).listHarvestLots());
           break;
         default:
           return res.status(400).json({ error: 'Dataset desconocido' });
@@ -1161,7 +1356,7 @@ export function registerRoutes(router: Router) {
   );
 
   /* ================================================================
-   * Integrations — CSV Import
+   * Integrations â€” CSV Import
    * ============================================================== */
 
   router.post(
@@ -1180,6 +1375,12 @@ export function registerRoutes(router: Router) {
   router.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof ZodError) {
       return res.status(400).json({ error: 'Datos inválidos', issues: err.issues });
+    }
+    if (err instanceof DatabaseRequiredError || (err as any)?.code === 'DATABASE_REQUIRED') {
+      return res.status(503).json({
+        error: (err as Error).message || 'Operación no disponible con almacenamiento en memoria',
+        code: 'DATABASE_REQUIRED',
+      });
     }
     const reqLog = (_req as Request).log ?? apiLog;
     reqLog.error('unhandled api error', { err });

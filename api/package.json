@@ -4,9 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --ignore \"../web/**\" --ignore \"dist/**\" src/index.ts",
+    "dev": "tsx watch --ignore \"../web/**\" --ignore \"dist/**\" src/server.ts",
     "build": "tsc -b",
-    "clean": "node ../scripts/clean.mjs api"
+    "clean": "node ../scripts/clean.mjs api",
+    "test:integration": "vitest run --config ../vitest.integration.config.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:check": "drizzle-kit check",
+    "db:seed": "tsx src/scripts/seed-db.ts"
   },
   "dependencies": {
     "@agrosbo/shared": "*",

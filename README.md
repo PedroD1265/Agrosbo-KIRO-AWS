@@ -33,12 +33,14 @@ Cada capacidad se etiqueta con precisión. No se declara implementado algo que s
 - Mapa espacial propio en **SVG/GeoJSON** (sin proveedor de tiles externo).
 
 ### Being stabilized (esta fase)
-- Alineación de documentación (README, Steering, ADRs, Specs) con el producto real.
-- Suite de tests RBAC (`web/src/test/rbac.test.ts`) — alias de test.
-- Baseline del pivote pendiente de versionado (todo el código del giro está sin commitear).
+- Preparación de la plataforma para servicios cloud administrados (provider boundaries, migraciones reproducibles, idempotencia atómica, health checks).
+- Adaptación del cliente API para base URL configurable y auth por token.
 
 ### Hackathon target (planificado, no desplegado)
 - Despliegue **AWS serverless**: S3 + CloudFront + API Gateway HTTP API + Lambda (Express vía adaptador serverless) + Aurora PostgreSQL Serverless v2 + RDS Data API + S3 para adjuntos con URLs prefirmadas + Secrets Manager + CloudWatch + CDK.
+- **Amazon Cognito** (User Pool + JWT authorizer) para staging/producción.
+- **Amplify Hosting** para el frontend PWA (despliegues por rama, API URL configurable).
+- **Bedrock** con tool calling como diferenciador aprobado (copiloto de datos, solo lectura).
 
 ### Planned next (diferenciadores, solo tras estabilizar el core)
 - Consulta conversacional de datos de la granja mediante herramientas controladas (solo lectura).
@@ -48,7 +50,8 @@ Cada capacidad se etiqueta con precisión. No se declara implementado algo que s
 - Marketplace de productos, proveedores/maquinaria, mensajería en tiempo real, notificaciones externas, pagos, reputación, logística, automatización avanzada por IA.
 
 ### Deferred / Not implemented
-- **Cognito**, **Bedrock**, **Textract**, multi-tenancy real, PostGIS, EventBridge/SQS/WebSocket. Ninguno está implementado hoy.
+- Multi-tenancy real, PostGIS, EventBridge/SQS/WebSocket, pagos, marketplace, mensajería. Ninguno está implementado hoy.
+- **Azure AI Document Intelligence**: candidato comparativo para extracción documental (benchmark pendiente contra Textract; ver ADR 013).
 
 ## 4. Golden path de la demo
 
@@ -198,4 +201,4 @@ AGROSBO **no es** un ERP genérico terminado, ni una certificadora, ni un sistem
 
 ## 23. Estado actual
 
-Baseline funcional del pivote: `typecheck` y `build` en verde; tests en su mayoría verdes (la suite RBAC se estabiliza en esta fase). Pendiente de versionado controlado. Hackathon target definido; infraestructura aún no desplegada.
+Baseline funcional integrada en `main` (PR #1 merged). CI verde (GitHub Actions). 60/60 tests. Quality gates reproducibles (`npm ci` + clean/format/lint/typecheck/test/build). Fase actual: preparación de plataforma para servicios cloud (provider boundaries, migraciones, idempotencia, health checks). Hackathon target definido; infraestructura no desplegada.

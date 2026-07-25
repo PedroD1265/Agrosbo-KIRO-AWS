@@ -33,7 +33,17 @@ function backoff(attempts: number) {
   return Math.min(30_000, BASE_DELAY * 2 ** Math.max(0, attempts - 1));
 }
 
-function isClientError(status: number) {
+export interface SyncEngineError extends Error {
+  status?: number;
+  code?: string;
+  isIdempotencyInProgress?: boolean;
+  retryAfterMs?: number;
+}
+
+export function isClientError(status: number, err?: SyncEngineError) {
+  if (status === 409 && err?.isIdempotencyInProgress) {
+    return false;
+  }
   return status >= 400 && status < 500 && status !== 408 && status !== 429;
 }
 
@@ -86,7 +96,9 @@ function isCreateDomain(d: QueuedMutation['domain']) {
 /* --- network send ------------------------------------------------------- */
 
 async function send(mut: QueuedMutation) {
-  const res = await fetch(mut.url, {
+  const { resolveApiUrl, buildFetchInit } = await import('@/lib/api-config');
+  const url = resolveApiUrl(mut.url);
+  const baseInit = await buildFetchInit({
     method: mut.method,
     headers: {
       'Content-Type': 'application/json',
@@ -94,13 +106,33 @@ async function send(mut: QueuedMutation) {
       'X-Idempotency-Key': mut.clientId,
     },
     body: JSON.stringify(mut.body),
-    credentials: 'include',
   });
+  const res = await fetch(url, baseInit);
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     let humanMessage = `${res.status} ${res.statusText}`;
+    let code: string | undefined;
+    let isIdempotencyInProgress = false;
+
+    const retryAfterHeader = res.headers.get('retry-after');
+    let retryAfterMs: number | undefined;
+    if (retryAfterHeader) {
+      const parsedSec = Number(retryAfterHeader);
+      if (Number.isFinite(parsedSec) && parsedSec > 0) {
+        retryAfterMs = parsedSec * 1000;
+      }
+    }
+
     try {
-      const parsed = JSON.parse(text) as { error?: string; issues?: { message: string }[] };
+      const parsed = JSON.parse(text) as {
+        error?: string;
+        code?: string;
+        issues?: { message: string }[];
+      };
+      code = parsed.code;
+      if (parsed.code === 'IDEMPOTENCY_IN_PROGRESS') {
+        isIdempotencyInProgress = true;
+      }
       if (parsed.issues && parsed.issues.length > 0) {
         const issueText = parsed.issues
           .slice(0, 2)
@@ -115,8 +147,11 @@ async function send(mut: QueuedMutation) {
     } catch {
       if (text) humanMessage += ` · ${text}`;
     }
-    const err = new Error(humanMessage);
-    (err as Error & { status?: number }).status = res.status;
+    const err = new Error(humanMessage) as SyncEngineError;
+    err.status = res.status;
+    err.code = code;
+    err.isIdempotencyInProgress = isIdempotencyInProgress;
+    err.retryAfterMs = retryAfterMs;
     throw err;
   }
   if (res.status === 204) return undefined;
@@ -143,6 +178,8 @@ export async function processQueueOnce(): Promise<void> {
     const pending = await listPending();
     const map = await loadIdMap();
     let nextAttemptForBackoff = Number.POSITIVE_INFINITY;
+    let overrideDelayMs: number | undefined;
+
     for (const original of pending) {
       if (original.status === 'failed' && original.attempts >= MAX_ATTEMPTS) continue;
       const mut = rewriteMutation(original, map);
@@ -162,10 +199,11 @@ export async function processQueueOnce(): Promise<void> {
         invalidateAfter(mut);
         notify();
       } catch (err) {
-        const status = (err as Error & { status?: number }).status;
-        const message = (err as Error).message;
+        const syncErr = err as SyncEngineError;
+        const status = syncErr.status;
+        const message = syncErr.message;
         const attempts = original.attempts + 1;
-        const isClientErr = !!(status && isClientError(status));
+        const isClientErr = !!(status && isClientError(status, syncErr));
         const giveUp = isClientErr || attempts >= MAX_ATTEMPTS;
         await setStatus(mut.clientId, giveUp ? 'failed' : 'pending', {
           attempts: isClientErr ? MAX_ATTEMPTS : attempts,
@@ -184,19 +222,35 @@ export async function processQueueOnce(): Promise<void> {
           }
         }
         notify();
-        if (!giveUp) nextAttemptForBackoff = Math.min(nextAttemptForBackoff, attempts);
+        if (!giveUp) {
+          nextAttemptForBackoff = Math.min(nextAttemptForBackoff, attempts);
+          if (syncErr.retryAfterMs) {
+            // Accumulate the *maximum* Retry-After across all failing mutations:
+            // we must wait at least as long as the strictest server requirement.
+            overrideDelayMs = Math.max(overrideDelayMs ?? 0, syncErr.retryAfterMs);
+          }
+        }
       }
     }
     if (nextAttemptForBackoff !== Number.POSITIVE_INFINITY) {
-      scheduleNext(nextAttemptForBackoff);
+      scheduleNext(nextAttemptForBackoff, overrideDelayMs);
     }
   } finally {
     running = false;
   }
 }
 
-function scheduleNext(attempts: number) {
-  const delay = backoff(attempts);
+/**
+ * Compute the retry delay respecting both exponential backoff and Retry-After.
+ * Exported for testability. This is the production scheduling logic.
+ */
+export function computeRetryDelay(attempts: number, retryAfterMs?: number): number {
+  const exponential = Math.min(30_000, BASE_DELAY * 2 ** Math.max(0, attempts - 1));
+  return Math.max(exponential, retryAfterMs ?? 0);
+}
+
+function scheduleNext(attempts: number, overrideDelayMs?: number) {
+  const delay = computeRetryDelay(attempts, overrideDelayMs);
   if (scheduled !== null) window.clearTimeout(scheduled);
   scheduled = window.setTimeout(() => {
     scheduled = null;

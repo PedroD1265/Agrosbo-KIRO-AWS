@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { eq, desc, sql, and, gte } from 'drizzle-orm';
 import { db } from './db.js';
+import type { DatabaseExecutor } from './executor.js';
 import {
   blocks,
   greenhouses,
@@ -229,21 +230,47 @@ function rowToAlert(r: typeof alerts.$inferSelect): Alert {
 }
 
 export class DbStorage implements IStorage {
+  private dbClient: any;
+
+  constructor(executor: any = db) {
+    this.dbClient = executor;
+  }
+
+  private get client(): any {
+    return this.dbClient || db;
+  }
+
+  /** Expose the underlying executor (db or tx) for service functions that need raw access. */
+  get executor(): DatabaseExecutor {
+    return this.client as DatabaseExecutor;
+  }
+
+  async withTransaction<T>(fn: (txStorage: DbStorage, tx: any) => Promise<T>): Promise<T> {
+    const c = this.client;
+    if (!c) {
+      throw new Error('[dbStorage] Database client is not initialized');
+    }
+    return await c.transaction(async (tx: any) => {
+      const txStorage = new DbStorage(tx);
+      return await fn(txStorage, tx);
+    });
+  }
+
   private async resolveScopeName(type: ScopeType, id: string): Promise<string> {
     if (type === 'block') {
-      const [b] = await db.select().from(blocks).where(eq(blocks.id, id));
+      const [b] = await this.client.select().from(blocks).where(eq(blocks.id, id));
       return b?.name ?? 'Bloque desconocido';
     }
-    const [g] = await db.select().from(greenhouses).where(eq(greenhouses.id, id));
+    const [g] = await this.client.select().from(greenhouses).where(eq(greenhouses.id, id));
     return g?.name ?? 'Invernadero desconocido';
   }
 
   /* Blocks */
   async listBlocks() {
-    return (await db.select().from(blocks)).map(rowToBlock);
+    return (await this.client.select().from(blocks)).map(rowToBlock);
   }
   async getBlock(id: string) {
-    const [b] = await db.select().from(blocks).where(eq(blocks.id, id));
+    const [b] = await this.client.select().from(blocks).where(eq(blocks.id, id));
     return b ? rowToBlock(b) : undefined;
   }
   async createBlock(input: InsertBlock): Promise<Block> {
@@ -275,7 +302,11 @@ export class DbStorage implements IStorage {
     if (patch.centroidLat !== undefined) updates.centroidLat = patch.centroidLat;
     if (patch.centroidLng !== undefined) updates.centroidLng = patch.centroidLng;
     if (Object.keys(updates).length === 0) return this.getBlock(id);
-    const [row] = await db.update(blocks).set(updates).where(eq(blocks.id, id)).returning();
+    const [row] = await this.client
+      .update(blocks)
+      .set(updates)
+      .where(eq(blocks.id, id))
+      .returning();
     return row ? rowToBlock(row) : undefined;
   }
   async importBlockBoundaries(
@@ -313,7 +344,7 @@ export class DbStorage implements IStorage {
         updated++;
       } else {
         const id = it.id ?? `b-${randomUUID().slice(0, 8)}`;
-        await db.insert(blocks).values({
+        await this.client.insert(blocks).values({
           id,
           name: it.name ?? id,
           farm: it.farm ?? 'Importado',
@@ -338,20 +369,23 @@ export class DbStorage implements IStorage {
   async updateBlock(id: string, patch: UpdateBlock) {
     const sets: Record<string, unknown> = { ...patch };
     if ('variety' in patch) sets.variety = patch.variety ?? null;
-    const [row] = await db.update(blocks).set(sets).where(eq(blocks.id, id)).returning();
+    const [row] = await this.client.update(blocks).set(sets).where(eq(blocks.id, id)).returning();
     return row ? rowToBlock(row) : undefined;
   }
   async deleteBlock(id: string) {
-    const rows = await db.delete(blocks).where(eq(blocks.id, id)).returning({ id: blocks.id });
+    const rows = await this.client
+      .delete(blocks)
+      .where(eq(blocks.id, id))
+      .returning({ id: blocks.id });
     return rows.length > 0;
   }
 
   /* Greenhouses */
   async listGreenhouses() {
-    return (await db.select().from(greenhouses)).map(rowToGreenhouse);
+    return (await this.client.select().from(greenhouses)).map(rowToGreenhouse);
   }
   async getGreenhouse(id: string) {
-    const [g] = await db.select().from(greenhouses).where(eq(greenhouses.id, id));
+    const [g] = await this.client.select().from(greenhouses).where(eq(greenhouses.id, id));
     return g ? rowToGreenhouse(g) : undefined;
   }
   async createGreenhouse(input: InsertGreenhouse): Promise<Greenhouse> {
@@ -397,7 +431,11 @@ export class DbStorage implements IStorage {
     if ('variety' in patch) sets.variety = patch.variety ?? null;
     if ('tempC' in patch) sets.tempC = patch.tempC ?? null;
     if ('humidity' in patch) sets.humidity = patch.humidity ?? null;
-    const [row] = await db.update(greenhouses).set(sets).where(eq(greenhouses.id, id)).returning();
+    const [row] = await this.client
+      .update(greenhouses)
+      .set(sets)
+      .where(eq(greenhouses.id, id))
+      .returning();
     return row ? rowToGreenhouse(row) : undefined;
   }
   async deleteGreenhouse(id: string) {
@@ -410,7 +448,7 @@ export class DbStorage implements IStorage {
 
   /* Campaigns */
   async listCampaigns() {
-    return (await db.select().from(campaigns)).map(rowToCampaign);
+    return (await this.client.select().from(campaigns)).map(rowToCampaign);
   }
   async createCampaign(input: InsertCampaign): Promise<Campaign> {
     const id = `c-${randomUUID().slice(0, 8)}`;
@@ -425,14 +463,18 @@ export class DbStorage implements IStorage {
   async updateCampaign(id: string, patch: UpdateCampaign) {
     const sets: Record<string, unknown> = { ...patch };
     if (patch.scopeType || patch.scopeId) {
-      const [cur] = await db.select().from(campaigns).where(eq(campaigns.id, id));
+      const [cur] = await this.client.select().from(campaigns).where(eq(campaigns.id, id));
       if (!cur) return undefined;
       sets.scopeName = await this.resolveScopeName(
         patch.scopeType ?? cur.scopeType,
         patch.scopeId ?? cur.scopeId,
       );
     }
-    const [row] = await db.update(campaigns).set(sets).where(eq(campaigns.id, id)).returning();
+    const [row] = await this.client
+      .update(campaigns)
+      .set(sets)
+      .where(eq(campaigns.id, id))
+      .returning();
     return row ? rowToCampaign(row) : undefined;
   }
   async deleteCampaign(id: string) {
@@ -445,7 +487,7 @@ export class DbStorage implements IStorage {
 
   /* Irrigation */
   async listIrrigationEvents() {
-    return (await db.select().from(irrigationEvents)).map(rowToIrrigation);
+    return (await this.client.select().from(irrigationEvents)).map(rowToIrrigation);
   }
   async createIrrigationEvent(input: InsertIrrigationEvent): Promise<IrrigationEvent> {
     const id = `i-${randomUUID().slice(0, 8)}`;
@@ -478,7 +520,10 @@ export class DbStorage implements IStorage {
     if ('responsible' in patch) sets.responsible = patch.responsible ?? null;
     if ('notes' in patch) sets.notes = patch.notes ?? null;
     if (patch.scopeType || patch.scopeId) {
-      const [cur] = await db.select().from(irrigationEvents).where(eq(irrigationEvents.id, id));
+      const [cur] = await this.client
+        .select()
+        .from(irrigationEvents)
+        .where(eq(irrigationEvents.id, id));
       if (!cur) return undefined;
       sets.scopeName = await this.resolveScopeName(
         patch.scopeType ?? cur.scopeType,
@@ -502,17 +547,18 @@ export class DbStorage implements IStorage {
 
   /* Tasks */
   async listTasks() {
-    return (await db.select().from(tasks)).map(rowToTask);
+    return (await this.client.select().from(tasks)).map(rowToTask);
   }
   async createTask(input: InsertTask): Promise<Task> {
-    const id = `t-${randomUUID().slice(0, 8)}`;
+    const generatedId = `t-${randomUUID().slice(0, 8)}`;
+    const id = input.id ?? generatedId;
     const scopeName = await this.resolveScopeName(input.scopeType, input.scopeId);
-    const [row] = await db
+    const [row] = await this.client
       .insert(tasks)
       .values({
+        ...input,
         id,
         scopeName,
-        ...input,
         notes: input.notes ?? null,
         checklist: null,
       })
@@ -520,7 +566,11 @@ export class DbStorage implements IStorage {
     return rowToTask(row);
   }
   async updateTaskStatus(id: string, status: Task['status']) {
-    const [row] = await db.update(tasks).set({ status }).where(eq(tasks.id, id)).returning();
+    const [row] = await this.client
+      .update(tasks)
+      .set({ status })
+      .where(eq(tasks.id, id))
+      .returning();
     return row ? rowToTask(row) : undefined;
   }
 
@@ -528,26 +578,29 @@ export class DbStorage implements IStorage {
     const sets: Record<string, unknown> = { ...patch };
     if ('notes' in patch) sets.notes = patch.notes ?? null;
     if (patch.scopeType || patch.scopeId) {
-      const [cur] = await db.select().from(tasks).where(eq(tasks.id, id));
+      const [cur] = await this.client.select().from(tasks).where(eq(tasks.id, id));
       if (!cur) return undefined;
       sets.scopeName = await this.resolveScopeName(
         patch.scopeType ?? cur.scopeType,
         patch.scopeId ?? cur.scopeId,
       );
     }
-    const [row] = await db.update(tasks).set(sets).where(eq(tasks.id, id)).returning();
+    const [row] = await this.client.update(tasks).set(sets).where(eq(tasks.id, id)).returning();
     return row ? rowToTask(row) : undefined;
   }
   async deleteTask(id: string) {
-    const rows = await db.delete(tasks).where(eq(tasks.id, id)).returning({ id: tasks.id });
+    const rows = await this.client
+      .delete(tasks)
+      .where(eq(tasks.id, id))
+      .returning({ id: tasks.id });
     return rows.length > 0;
   }
 
   /* Observations */
   async listObservations() {
-    return (await db.select().from(observations).orderBy(desc(observations.createdAt))).map(
-      rowToObservation,
-    );
+    return (
+      await this.client.select().from(observations).orderBy(desc(observations.createdAt))
+    ).map(rowToObservation);
   }
   async createObservation(input: InsertObservation): Promise<Observation> {
     const id = `o-${randomUUID().slice(0, 8)}`;
@@ -585,7 +638,7 @@ export class DbStorage implements IStorage {
 
   /* Inventory */
   async listInventory() {
-    return (await db.select().from(inventoryItems)).map(rowToInventory);
+    return (await this.client.select().from(inventoryItems)).map(rowToInventory);
   }
   async createInventoryItem(input: InsertInventoryItem): Promise<InventoryItem> {
     const id = `iv-${randomUUID().slice(0, 8)}`;
@@ -600,7 +653,7 @@ export class DbStorage implements IStorage {
     delta: number,
     lastMovement?: string,
   ): Promise<InventoryItem | undefined> {
-    const [cur] = await db.select().from(inventoryItems).where(eq(inventoryItems.id, id));
+    const [cur] = await this.client.select().from(inventoryItems).where(eq(inventoryItems.id, id));
     if (!cur) return undefined;
     const nextStock = Math.max(0, Number(cur.stock) + delta);
     const movement = lastMovement ?? new Date().toISOString().slice(0, 10);
@@ -639,7 +692,7 @@ export class DbStorage implements IStorage {
     return rows.map(rowToInventoryMovement);
   }
   async createInventoryMovement(input: InsertInventoryMovement) {
-    return await db.transaction(async (tx: any) => {
+    return await this.client.transaction(async (tx: any) => {
       const delta = input.delta;
       const at = input.at ?? new Date().toISOString();
       const lastMovement = at.slice(0, 10);
@@ -697,7 +750,7 @@ export class DbStorage implements IStorage {
 
   /* Harvest */
   async listHarvestLots() {
-    return (await db.select().from(harvestLots)).map(rowToHarvest);
+    return (await this.client.select().from(harvestLots)).map(rowToHarvest);
   }
   async createHarvestLot(input: InsertHarvestLot): Promise<HarvestLot> {
     const id = `h-${randomUUID().slice(0, 8)}`;
@@ -718,18 +771,22 @@ export class DbStorage implements IStorage {
     const sets: Record<string, unknown> = { ...patch };
     if ('destination' in patch) sets.destination = patch.destination ?? null;
     if (patch.originType || patch.originId) {
-      const [cur] = await db.select().from(harvestLots).where(eq(harvestLots.id, id));
+      const [cur] = await this.client.select().from(harvestLots).where(eq(harvestLots.id, id));
       if (!cur) return undefined;
       sets.origin = await this.resolveScopeName(
         patch.originType ?? cur.originType,
         patch.originId ?? cur.originId,
       );
     }
-    const [row] = await db.update(harvestLots).set(sets).where(eq(harvestLots.id, id)).returning();
+    const [row] = await this.client
+      .update(harvestLots)
+      .set(sets)
+      .where(eq(harvestLots.id, id))
+      .returning();
     return row ? rowToHarvest(row) : undefined;
   }
   async deleteHarvestLot(id: string) {
-    const rows = await db
+    const rows = await this.client
       .delete(harvestLots)
       .where(eq(harvestLots.id, id))
       .returning({ id: harvestLots.id });
@@ -738,12 +795,15 @@ export class DbStorage implements IStorage {
 
   /* Alerts */
   async listAlerts() {
-    return (await db.select().from(alerts)).map(rowToAlert);
+    return (await this.client.select().from(alerts)).map(rowToAlert);
   }
 
   /* Settings (single org row) */
   async getSettings(): Promise<Settings> {
-    const [row] = await db.select().from(organizations).where(eq(organizations.id, ORG_ID));
+    const [row] = await this.client
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, ORG_ID));
     if (!row) {
       throw new Error('Organization settings not initialized. Run seed.');
     }
@@ -757,7 +817,7 @@ export class DbStorage implements IStorage {
     };
   }
   async updateSettings(input: Settings): Promise<Settings> {
-    await db
+    await this.client
       .insert(organizations)
       .values({
         id: ORG_ID,
@@ -973,7 +1033,7 @@ export async function seedDatabase(): Promise<void> {
       active: true,
       createdAt: new Date().toISOString(),
     });
-    if (generated) {
+    if (generated && process.env.NODE_ENV !== 'test') {
       // eslint-disable-next-line no-console
       console.warn(
         `\n========================================================================\n` +
