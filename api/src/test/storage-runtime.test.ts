@@ -1,4 +1,4 @@
-﻿/**
+/**
  * storage-runtime.test.ts
  *
  * Verifies that usesTransactionalDatabaseStorage() correctly reflects the

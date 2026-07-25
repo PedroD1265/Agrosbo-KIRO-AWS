@@ -76,9 +76,16 @@ export async function startServer() {
   } else {
     log.info('Running in Lambda mode (listen skipped)');
   }
+
+  return httpServer;
 }
 
-if (!process.env.LAMBDA_TASK_ROOT) {
+// Only auto-start when this file is the direct entrypoint (not when imported).
+import { pathToFileURL } from 'node:url';
+const isDirectExecution =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isDirectExecution) {
   startServer().catch((err) => {
     log.error('fatal startup error', { err });
     process.exit(1);

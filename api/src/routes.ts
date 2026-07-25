@@ -448,7 +448,7 @@ export function registerRoutes(router: Router) {
       const id = String(req.params.id as string);
       const campaigns = await getStorage(req).listCampaigns();
       const campaign = campaigns.find((c) => c.id === id);
-      if (!campaign) return notFound(res, 'CampaÃ±a');
+      if (!campaign) return notFound(res, 'Campaña');
       const [tasks, irrigation, observations, harvest, movements] = await Promise.all([
         storage.listTasks(),
         storage.listIrrigationEvents(),
@@ -466,7 +466,7 @@ export function registerRoutes(router: Router) {
     idempotent(async (req, res) => {
       const data = updateCampaignSchema.parse(req.body);
       const updated = await getStorage(req).updateCampaign(String(req.params.id as string), data);
-      if (!updated) return notFound(res, 'CampaÃ±a');
+      if (!updated) return notFound(res, 'Campaña');
       res.json(updated);
     }),
   );
@@ -474,7 +474,7 @@ export function registerRoutes(router: Router) {
     '/campaigns/:id',
     idempotent(async (req, res) => {
       const ok = await getStorage(req).deleteCampaign(String(req.params.id as string));
-      if (!ok) return notFound(res, 'CampaÃ±a');
+      if (!ok) return notFound(res, 'Campaña');
       res.json({ ok: true });
     }),
   );
@@ -578,7 +578,7 @@ export function registerRoutes(router: Router) {
     '/observations/:id',
     idempotent(async (req, res) => {
       const ok = await getStorage(req).deleteObservation(String(req.params.id as string));
-      if (!ok) return notFound(res, 'ObservaciÃ³n');
+      if (!ok) return notFound(res, 'Observación');
       res.json({ ok: true });
     }),
   );
@@ -589,7 +589,7 @@ export function registerRoutes(router: Router) {
       const obsId = String(req.params.id as string);
       const observations = await getStorage(req).listObservations();
       const obs = observations.find((o) => o.id === obsId);
-      if (!obs) return notFound(res, 'ObservaciÃ³n');
+      if (!obs) return notFound(res, 'Observación');
       const body = z
         .object({
           title: z.string().min(1).optional(),
@@ -754,7 +754,7 @@ export function registerRoutes(router: Router) {
       } catch (err) {
         const reqLog = (req as Request).log ?? apiLog;
         reqLog.warn('weather forecast unavailable', { err: (err as Error).message });
-        res.status(503).json({ error: 'PronÃ³stico no disponible' });
+        res.status(503).json({ error: 'Pronóstico no disponible' });
       }
     }),
   );
@@ -1004,7 +1004,7 @@ export function registerRoutes(router: Router) {
   );
 
   /* ================================================================
-   * Expenses + Labor (Finanzas agrÃ­colas)
+   * Expenses + Labor (Finanzas agrícolas)
    * ============================================================== */
   router.get(
     '/expenses',
@@ -1042,8 +1042,8 @@ export function registerRoutes(router: Router) {
         requireDatabaseExecutor(getStorage(req)),
       );
       if (!ok) {
-        // Tolerant-delete: ya borrado o nunca existiÃ³ â†’ tratar como Ã©xito
-        // para que reintentos offline no marquen la mutaciÃ³n como error.
+        // Tolerant-delete: ya borrado o nunca existió â†’ tratar como éxito
+        // para que reintentos offline no marquen la mutación como error.
         return res.status(204).end();
       }
       res.status(204).end();
@@ -1120,10 +1120,10 @@ export function registerRoutes(router: Router) {
         .parse(req.body);
       const found = await getUserByLogin(login);
       if (!found || !found.passwordHash || !found.user.active) {
-        return res.status(401).json({ error: 'Credenciales invÃ¡lidas' });
+        return res.status(401).json({ error: 'Credenciales inválidas' });
       }
       if (!verifyPassword(password, found.passwordHash)) {
-        return res.status(401).json({ error: 'Credenciales invÃ¡lidas' });
+        return res.status(401).json({ error: 'Credenciales inválidas' });
       }
       setSessionCookie(res, found.user.id);
       res.json({ user: found.user });
@@ -1353,7 +1353,7 @@ export function registerRoutes(router: Router) {
 
   router.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof ZodError) {
-      return res.status(400).json({ error: 'Datos invÃ¡lidos', issues: err.issues });
+      return res.status(400).json({ error: 'Datos inválidos', issues: err.issues });
     }
     if (err instanceof DatabaseRequiredError || (err as any)?.code === 'DATABASE_REQUIRED') {
       return res.status(503).json({

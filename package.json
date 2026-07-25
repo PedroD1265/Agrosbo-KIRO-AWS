@@ -25,6 +25,7 @@
     "test:watch": "vitest",
     "build": "npm run build --workspaces --if-present",
     "clean": "node scripts/clean.mjs",
+    "check:encoding": "node scripts/check-encoding.mjs",
     "db:generate": "npm run db:generate --workspace=@agrosbo/api",
     "db:migrate": "npm run db:migrate --workspace=@agrosbo/api",
     "db:check": "npm run db:check --workspace=@agrosbo/api",
