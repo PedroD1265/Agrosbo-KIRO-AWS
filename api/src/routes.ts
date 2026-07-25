@@ -46,6 +46,7 @@ import {
   runTransactionCompensations,
   type TransactionCompensation,
 } from './transaction-compensations.js';
+import { getProviders } from './providers/index.js';
 
 declare module 'express-serve-static-core' {
   interface Request {
