@@ -1,4 +1,4 @@
-import { createServer } from 'node:http';
+import { createServer, type Server } from 'node:http';
 import { app } from './app.js';
 import { env, parsePort } from './env.js';
 import { log } from './logger.js';
@@ -6,8 +6,6 @@ import { seedDatabase } from './dbStorage.js';
 import { initIdempotency } from './idempotency.js';
 import { initRevokedSessions } from './auth.js';
 import { markReady } from './health.js';
-
-const httpServer = createServer(app);
 
 function resolvePort(): number {
   const argv = process.argv;
@@ -25,8 +23,24 @@ function resolvePort(): number {
 
 const PORT = resolvePort();
 
-export async function startServer() {
-  if (env.hasDatabase) {
+export interface StartServerOptions {
+  port?: number;
+  host?: string;
+  initializeServices?: boolean;
+  setupFrontend?: boolean;
+}
+
+export async function startServer(options: StartServerOptions = {}): Promise<Server> {
+  const {
+    port = PORT,
+    host = '0.0.0.0',
+    initializeServices = true,
+    setupFrontend = true,
+  } = options;
+
+  const httpServer = createServer(app);
+
+  if (initializeServices && env.hasDatabase) {
     try {
       await seedDatabase();
       log.info('database seed verified');
@@ -46,16 +60,20 @@ export async function startServer() {
     } catch (err) {
       log.warn('revoked sessions init failed — blocklist empty after restart', { err });
     }
+  } else if (!initializeServices) {
+    log.info('skipping service initialization (explicitly disabled)');
   } else {
     log.info('skipping DB seed (in-memory mode)');
   }
 
-  if (env.isProd) {
-    const { setupStatic } = await import('./vite.js');
-    setupStatic(app);
-  } else {
-    const { setupViteDev } = await import('./vite.js');
-    await setupViteDev(app, httpServer);
+  if (setupFrontend) {
+    if (env.isProd) {
+      const { setupStatic } = await import('./vite.js');
+      setupStatic(app);
+    } else {
+      const { setupViteDev } = await import('./vite.js');
+      await setupViteDev(app, httpServer);
+    }
   }
 
   if (env.authEnforcement === 'off') {
@@ -65,13 +83,19 @@ export async function startServer() {
   markReady();
 
   if (!process.env.LAMBDA_TASK_ROOT) {
-    httpServer.listen(PORT, '0.0.0.0', () => {
-      log.info(`listening on http://0.0.0.0:${PORT}`, {
-        port: PORT,
-        env: env.nodeEnv,
-        storage: env.hasDatabase ? 'postgres' : 'memory',
-        auth: env.authEnforcement,
+    await new Promise<void>((resolve, reject) => {
+      httpServer.listen(port, host, () => {
+        const addr = httpServer.address();
+        const actualPort = typeof addr === 'object' && addr !== null ? addr.port : port;
+        log.info(`listening on http://${host}:${actualPort}`, {
+          port: actualPort,
+          env: env.nodeEnv,
+          storage: env.hasDatabase ? 'postgres' : 'memory',
+          auth: env.authEnforcement,
+        });
+        resolve();
       });
+      httpServer.once('error', reject);
     });
   } else {
     log.info('Running in Lambda mode (listen skipped)');
