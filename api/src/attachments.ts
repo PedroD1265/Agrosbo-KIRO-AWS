@@ -104,13 +104,13 @@ export async function listAttachments(
 import { getProviders } from './providers/index.js';
 
 export interface CreateAttachmentOptions {
-  storageProvider?: AttachmentStorage;
-  executor?: DatabaseExecutor;
+  storageProvider: AttachmentStorage;
+  executor: DatabaseExecutor;
 }
 
 export async function createAttachment(
   input: InsertAttachment,
-  opts?: CreateAttachmentOptions,
+  opts: CreateAttachmentOptions,
 ): Promise<Attachment> {
   if (!ALLOWED_MIME.has(input.mimeType)) {
     throw new AttachmentValidationError(`MIME no permitido: ${input.mimeType}`);
@@ -132,8 +132,7 @@ export async function createAttachment(
   const safe = safeFileName(input.fileName);
   const objectKey = `${input.entityType}/${input.entityId}/${id}-${safe}`;
 
-  const storageProvider = opts?.storageProvider ?? getProviders().attachments;
-  const dbExec = opts?.executor ?? db;
+  const { executor, storageProvider } = opts;
 
   await storageProvider.writeFile(objectKey, buf);
 
@@ -142,7 +141,7 @@ export async function createAttachment(
     const remoteUrl = downloadAccess.url;
     const now = new Date().toISOString();
 
-    const [row] = await dbExec
+    const [row] = await executor
       .insert(attachments)
       .values({
         id,

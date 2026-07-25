@@ -252,7 +252,7 @@ describe('Attachment Lifecycle, Compensation, and Safe Deletion', () => {
           sizeBytes: 9,
           dataBase64,
         },
-        { storageProvider: mockProvider },
+        { storageProvider: mockProvider, executor: {} as any },
       ),
     ).rejects.toThrow('Download access failed');
 
@@ -330,7 +330,7 @@ describe('Attachment Lifecycle, Compensation, and Safe Deletion', () => {
           sizeBytes: 9,
           dataBase64,
         },
-        { storageProvider: mockProvider },
+        { storageProvider: mockProvider, executor: {} as any },
       ),
     ).rejects.toThrow('Primary Error: Download Access Failed');
   });

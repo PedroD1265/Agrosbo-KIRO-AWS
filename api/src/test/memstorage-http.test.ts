@@ -123,6 +123,27 @@ describe('MemStorage HTTP (USE_MEM_STORAGE=1 with DATABASE_URL present)', () => 
     expect(body.error).toContain('almacenamiento en memoria');
   });
 
+  it('POST /api/attachments returns 503 DATABASE_REQUIRED under MemStorage (PostgreSQL-only route)', async () => {
+    const res = await fetch(url('/attachments'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Idempotency-Key': 'mem-http-att-1',
+      },
+      body: JSON.stringify({
+        entityType: 'task',
+        entityId: 't-1',
+        fileName: 'test.pdf',
+        mimeType: 'application/pdf',
+        sizeBytes: 4,
+        dataBase64: Buffer.from('test').toString('base64'),
+      }),
+    });
+    expect(res.status).toBe(503);
+    const body = (await res.json()) as { error: string; code: string };
+    expect(body.code).toBe('DATABASE_REQUIRED');
+  });
+
   it('DbStorage is NOT instantiated and no connection to port 65534', async () => {
     // If a connection were attempted to 65534, we'd get ECONNREFUSED or hang.
     // The fact that the tests above completed without timeout/error proves no

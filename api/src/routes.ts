@@ -979,8 +979,11 @@ export function registerRoutes(router: Router) {
     // external side effect — file write and DB metadata with explicit compensating delete on failure.
     idempotent(async (req, res) => {
       const data = insertAttachmentSchema.parse(req.body);
+      const reqStorage = getStorage(req);
+      const executor = requireDatabaseExecutor(reqStorage);
+      const storageProvider = getProviders().attachments;
       try {
-        res.status(201).json(await createAttachment(data));
+        res.status(201).json(await createAttachment(data, { executor, storageProvider }));
       } catch (err) {
         if (err instanceof AttachmentValidationError) {
           return res.status(422).json({ error: err.message });
