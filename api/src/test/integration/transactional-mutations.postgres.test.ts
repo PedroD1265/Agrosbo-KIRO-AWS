@@ -17,14 +17,16 @@ import { sql, eq } from 'drizzle-orm';
 import * as schema from '@agrosbo/shared/schema';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import type { Express } from 'express';
+import type { Server } from 'node:http';
 
 const TEST_DB_URL = process.env.DATABASE_URL;
 
 describe('Transactional HTTP Mutations (PostgreSQL)', () => {
   let pool: pg.Pool;
   let db: ReturnType<typeof drizzle>;
-  let appModule: { app: any };
-  let server: any;
+  let appModule: { app: Express };
+  let server: Server;
   let port: number;
 
   beforeAll(async () => {
@@ -119,7 +121,8 @@ describe('Transactional HTTP Mutations (PostgreSQL)', () => {
 
   afterAll(async () => {
     if (server) {
-      if ('closeAllConnections' in server) (server as any).closeAllConnections();
+      if ('closeAllConnections' in server)
+        (server as Server & { closeAllConnections?: () => void }).closeAllConnections?.();
       server.close();
     }
     await pool.end();
@@ -336,7 +339,7 @@ describe('Transactional HTTP Mutations (PostgreSQL)', () => {
     for (const r of settled) expect(r.status).toBe(201);
 
     const bodies = await Promise.all(
-      settled.map(async (r) => (await r.json()) as Record<string, any>),
+      settled.map(async (r) => (await r.json()) as Record<string, unknown>),
     );
     expect(bodies[0].id).toBe(bodies[1].id);
 

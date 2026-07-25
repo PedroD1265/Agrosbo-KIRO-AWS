@@ -17,9 +17,10 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createServer } from 'node:http';
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import type { Express } from 'express';
 
 describe('MemStorage HTTP (USE_MEM_STORAGE=1 with DATABASE_URL present)', () => {
-  let app: any;
+  let app: Express;
   let server: Server;
   let port: number;
 
@@ -34,7 +35,8 @@ describe('MemStorage HTTP (USE_MEM_STORAGE=1 with DATABASE_URL present)', () => 
 
   afterAll(() => {
     if (server) {
-      if ('closeAllConnections' in server) (server as any).closeAllConnections();
+      if ('closeAllConnections' in server)
+        (server as Server & { closeAllConnections?: () => void }).closeAllConnections?.();
       server.close();
     }
   });
