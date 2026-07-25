@@ -85,201 +85,200 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
       return fn(req, res, next);
     }
 
-    if (!usesTransactionalDatabaseStorage()) {
-      const claimResult = await claim(key);
+    const currentStorage = getStorage(req);
 
-      if (claimResult.type === 'completed') {
-        res.setHeader('X-Idempotent-Replay', '1');
-        // Replay: 204 responses have a null body
-        if (claimResult.body === null) {
-          return res.status(claimResult.status).end();
-        }
-        return res.status(claimResult.status).json(claimResult.body);
-      }
-      if (claimResult.type === 'processing') {
-        res.setHeader('Retry-After', '2');
-        return res.status(409).json({
-          error: 'Solicitud duplicada en proceso',
-          code: 'IDEMPOTENCY_IN_PROGRESS',
-        });
-      }
-      if (claimResult.type === 'unavailable') {
-        res.setHeader('Retry-After', '5');
-        return res.status(503).json({
-          error: 'Servicio de idempotencia no disponible. Reintentar.',
-        });
-      }
-
-      const token = claimResult.token;
-      let captured: { status: number; body: unknown } | null = null;
-      const originalJson = res.json.bind(res);
-      const originalSend = res.send.bind(res);
-      const originalEnd = res.end.bind(res);
-
-      res.json = ((body: unknown) => {
-        captured = { status: res.statusCode, body };
-        return res;
-      }) as Response['json'];
-      res.send = ((body?: unknown) => {
-        if (!captured) captured = { status: res.statusCode, body: body ?? null };
-        return res;
-      }) as Response['send'];
-      res.end = ((...args: unknown[]) => {
-        if (!captured) captured = { status: res.statusCode, body: null };
-        return (originalEnd as (...a: unknown[]) => Response)(...args);
-      }) as unknown as Response['end'];
-
-      let handlerError: unknown = null;
-      try {
-        await fn(req, res, next);
-      } catch (err) {
-        handlerError = err;
-      }
-      res.json = originalJson;
-      res.send = originalSend;
-      res.end = originalEnd as Response['end'];
-
-      const cap = captured as { status: number; body: unknown } | null;
-      if (handlerError || !cap) {
-        await release(key, token);
-        if (handlerError) throw handlerError;
-        return;
-      }
-
-      if (cap.status >= 500) {
-        await release(key, token);
-        if (cap.body === null) return res.status(cap.status).end();
-        return res.status(cap.status).json(cap.body);
-      }
+    if (isTransactionalStorage(currentStorage)) {
+      const respHolder: {
+        current: {
+          status: number;
+          body: unknown;
+          headers?: Record<string, string>;
+        } | null;
+      } = { current: null };
 
       try {
-        await complete(key, token, cap.status, cap.body);
-      } catch (err) {
-        apiLog.error('idempotency complete failed', { err });
-        await release(key, token);
-        res.setHeader('Retry-After', '5');
-        return res.status(503).json({
-          error: 'Servicio de idempotencia no disponible. Reintentar.',
-        });
-      }
+        await currentStorage.withTransaction(async (txStorage, tx) => {
+          const claimResult = await claimTx(tx, key);
 
-      if (cap.body === null) return res.status(cap.status).end();
-      return res.status(cap.status).json(cap.body);
-    }
-
-    const currentStorage = req.storage ?? storage;
-    const respHolder: {
-      current: {
-        status: number;
-        body: unknown;
-        headers?: Record<string, string>;
-      } | null;
-    } = { current: null };
-
-    try {
-      await (currentStorage as DbStorage).withTransaction(async (txStorage, tx) => {
-        const claimResult = await claimTx(tx, key);
-
-        if (claimResult.type === 'completed') {
-          respHolder.current = {
-            status: claimResult.status,
-            body: claimResult.body,
-            headers: { 'X-Idempotent-Replay': '1' },
-          };
-          return;
-        }
-
-        if (claimResult.type === 'processing') {
-          respHolder.current = {
-            status: 409,
-            body: {
-              error: 'Solicitud duplicada en proceso',
-              code: 'IDEMPOTENCY_IN_PROGRESS',
-            },
-            headers: { 'Retry-After': '2' },
-          };
-          throw new IdempotencyAbortError('processing');
-        }
-
-        if (claimResult.type === 'unavailable') {
-          respHolder.current = {
-            status: 503,
-            body: { error: 'Servicio de idempotencia no disponible. Reintentar.' },
-            headers: { 'Retry-After': '5' },
-          };
-          throw new IdempotencyAbortError('unavailable');
-        }
-
-        const token = claimResult.token;
-        req.storage = txStorage;
-
-        let captured: { status: number; body: unknown } | null = null;
-        const originalJson = res.json.bind(res);
-        const originalSend = res.send.bind(res);
-        const originalEnd = res.end.bind(res);
-
-        res.json = ((body: unknown) => {
-          captured = { status: res.statusCode, body };
-          return res;
-        }) as Response['json'];
-        res.send = ((body?: unknown) => {
-          if (!captured) captured = { status: res.statusCode, body: body ?? null };
-          return res;
-        }) as Response['send'];
-        res.end = ((...args: unknown[]) => {
-          if (!captured) captured = { status: res.statusCode, body: null };
-          return (originalEnd as (...a: unknown[]) => Response)(...args);
-        }) as unknown as Response['end'];
-
-        let handlerError: unknown = null;
-        try {
-          await fn(req, res, next);
-        } catch (err) {
-          handlerError = err;
-        } finally {
-          res.json = originalJson;
-          res.send = originalSend;
-          res.end = originalEnd as Response['end'];
-        }
-
-        if (handlerError) {
-          throw handlerError;
-        }
-
-        const cap = captured as { status: number; body: unknown } | null;
-        if (!cap || cap.status >= 500) {
-          throw new Error(`Handler error or no response: ${cap?.status}`);
-        }
-
-        await completeTx(tx, key, token, cap.status, cap.body);
-        respHolder.current = { status: cap.status, body: cap.body };
-      });
-
-      if (respHolder.current) {
-        if (respHolder.current.headers) {
-          for (const [h, v] of Object.entries(respHolder.current.headers)) {
-            res.setHeader(h, v);
+          if (claimResult.type === 'completed') {
+            respHolder.current = {
+              status: claimResult.status,
+              body: claimResult.body,
+              headers: { 'X-Idempotent-Replay': '1' },
+            };
+            return;
           }
-        }
-        // 204 responses have null body
-        if (respHolder.current.body === null) {
-          return res.status(respHolder.current.status).end();
-        }
-        return res.status(respHolder.current.status).json(respHolder.current.body);
-      }
-    } catch (err) {
-      if (err instanceof IdempotencyAbortError) {
+
+          if (claimResult.type === 'processing') {
+            respHolder.current = {
+              status: 409,
+              body: {
+                error: 'Solicitud duplicada en proceso',
+                code: 'IDEMPOTENCY_IN_PROGRESS',
+              },
+              headers: { 'Retry-After': '2' },
+            };
+            throw new IdempotencyAbortError('processing');
+          }
+
+          if (claimResult.type === 'unavailable') {
+            respHolder.current = {
+              status: 503,
+              body: { error: 'Servicio de idempotencia no disponible. Reintentar.' },
+              headers: { 'Retry-After': '5' },
+            };
+            throw new IdempotencyAbortError('unavailable');
+          }
+
+          const token = claimResult.token;
+          req.storage = txStorage;
+
+          let captured: { status: number; body: unknown } | null = null;
+          const originalJson = res.json.bind(res);
+          const originalSend = res.send.bind(res);
+          const originalEnd = res.end.bind(res);
+
+          res.json = ((body: unknown) => {
+            captured = { status: res.statusCode, body };
+            return res;
+          }) as Response['json'];
+          res.send = ((body?: unknown) => {
+            if (!captured) captured = { status: res.statusCode, body: body ?? null };
+            return res;
+          }) as Response['send'];
+          res.end = ((...args: unknown[]) => {
+            if (!captured) captured = { status: res.statusCode, body: null };
+            return (originalEnd as (...a: unknown[]) => Response)(...args);
+          }) as unknown as Response['end'];
+
+          let handlerError: unknown = null;
+          try {
+            await fn(req, res, next);
+          } catch (err) {
+            handlerError = err;
+          } finally {
+            res.json = originalJson;
+            res.send = originalSend;
+            res.end = originalEnd as Response['end'];
+          }
+
+          if (handlerError) {
+            throw handlerError;
+          }
+
+          const cap = captured as { status: number; body: unknown } | null;
+          if (!cap || cap.status >= 500) {
+            throw new Error(`Handler error or no response: ${cap?.status}`);
+          }
+
+          await completeTx(tx, key, token, cap.status, cap.body);
+          respHolder.current = { status: cap.status, body: cap.body };
+        });
+
         if (respHolder.current) {
           if (respHolder.current.headers) {
             for (const [h, v] of Object.entries(respHolder.current.headers)) {
               res.setHeader(h, v);
             }
           }
+          if (respHolder.current.body === null) return res.status(respHolder.current.status).end();
           return res.status(respHolder.current.status).json(respHolder.current.body);
         }
+      } catch (err) {
+        if (err instanceof IdempotencyAbortError) {
+          if (respHolder.current) {
+            if (respHolder.current.headers) {
+              for (const [h, v] of Object.entries(respHolder.current.headers)) {
+                res.setHeader(h, v);
+              }
+            }
+            if (respHolder.current.body === null) return res.status(respHolder.current.status).end();
+            return res.status(respHolder.current.status).json(respHolder.current.body);
+          }
+        }
+        throw err;
       }
-      throw err;
+      return;
     }
+
+    const claimResult = await claim(key);
+
+    if (claimResult.type === 'completed') {
+      res.setHeader('X-Idempotent-Replay', '1');
+      if (claimResult.body === null) {
+        return res.status(claimResult.status).end();
+      }
+      return res.status(claimResult.status).json(claimResult.body);
+    }
+    if (claimResult.type === 'processing') {
+      res.setHeader('Retry-After', '2');
+      return res.status(409).json({
+        error: 'Solicitud duplicada en proceso',
+        code: 'IDEMPOTENCY_IN_PROGRESS',
+      });
+    }
+    if (claimResult.type === 'unavailable') {
+      res.setHeader('Retry-After', '5');
+      return res.status(503).json({
+        error: 'Servicio de idempotencia no disponible. Reintentar.',
+      });
+    }
+
+    const token = claimResult.token;
+    let captured: { status: number; body: unknown } | null = null;
+    const originalJson = res.json.bind(res);
+    const originalSend = res.send.bind(res);
+    const originalEnd = res.end.bind(res);
+
+    res.json = ((body: unknown) => {
+      captured = { status: res.statusCode, body };
+      return res;
+    }) as Response['json'];
+    res.send = ((body?: unknown) => {
+      if (!captured) captured = { status: res.statusCode, body: body ?? null };
+      return res;
+    }) as Response['send'];
+    res.end = ((...args: unknown[]) => {
+      if (!captured) captured = { status: res.statusCode, body: null };
+      return (originalEnd as (...a: unknown[]) => Response)(...args);
+    }) as unknown as Response['end'];
+
+    let handlerError: unknown = null;
+    try {
+      await fn(req, res, next);
+    } catch (err) {
+      handlerError = err;
+    }
+    res.json = originalJson;
+    res.send = originalSend;
+    res.end = originalEnd as Response['end'];
+
+    const cap = captured as { status: number; body: unknown } | null;
+    if (handlerError || !cap) {
+      await release(key, token);
+      if (handlerError) throw handlerError;
+      return;
+    }
+
+    if (cap.status >= 500) {
+      await release(key, token);
+      if (cap.body === null) return res.status(cap.status).end();
+      return res.status(cap.status).json(cap.body);
+    }
+
+    try {
+      await complete(key, token, cap.status, cap.body);
+    } catch (err) {
+      apiLog.error('idempotency complete failed', { err });
+      await release(key, token);
+      res.setHeader('Retry-After', '5');
+      return res.status(503).json({
+        error: 'Servicio de idempotencia no disponible. Reintentar.',
+      });
+    }
+
+    if (cap.body === null) return res.status(cap.status).end();
+    return res.status(cap.status).json(cap.body);
   });
 }
 import { createLogger } from './logger.js';
@@ -807,8 +806,6 @@ export function registerRoutes(router: Router) {
   router.post(
     '/applications',
     requireRole('admin', 'tecnico', 'encargado'),
-    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
-    // TODO(uow): pass drizzle tx from claim into createApplication to fully unify.
     idempotent(async (req, res) => {
       const data = insertFieldApplicationSchema.parse(req.body);
       const reqStorage = getStorage(req);
@@ -897,10 +894,10 @@ export function registerRoutes(router: Router) {
   router.post(
     '/apiaries',
     requireRole('admin', 'tecnico', 'encargado'),
-    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertApiarySchema.parse(req.body);
-      res.status(201).json(await createApiary(data));
+      const reqStorage = getStorage(req);
+      res.status(201).json(await createApiary(data, requireDatabaseExecutor(reqStorage)));
     }),
   );
   router.get(
@@ -910,10 +907,10 @@ export function registerRoutes(router: Router) {
   router.post(
     '/hives',
     requireRole('admin', 'tecnico', 'encargado'),
-    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertHiveSchema.parse(req.body);
-      res.status(201).json(await createHive(data));
+      const reqStorage = getStorage(req);
+      res.status(201).json(await createHive(data, requireDatabaseExecutor(reqStorage)));
     }),
   );
   router.get(
@@ -926,7 +923,6 @@ export function registerRoutes(router: Router) {
   router.post(
     '/hive-inspections',
     requireRole('admin', 'tecnico', 'encargado'),
-    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertHiveInspectionSchema.parse(req.body);
       const reqStorage = getStorage(req);
@@ -955,10 +951,10 @@ export function registerRoutes(router: Router) {
   router.post(
     '/honey-harvests',
     requireRole('admin', 'tecnico', 'encargado'),
-    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertHoneyHarvestSchema.parse(req.body);
-      res.status(201).json(await createHoneyHarvest(data));
+      const reqStorage = getStorage(req);
+      res.status(201).json(await createHoneyHarvest(data, requireDatabaseExecutor(reqStorage)));
     }),
   );
 
@@ -1025,7 +1021,6 @@ export function registerRoutes(router: Router) {
   router.post(
     '/expenses',
     requireRole('admin', 'tecnico', 'encargado', 'finanzas'),
-    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertExpenseSchema.parse(req.body);
       res.status(201).json(await createExpense(data, requireDatabaseExecutor(getStorage(req))));
@@ -1034,15 +1029,14 @@ export function registerRoutes(router: Router) {
   router.delete(
     '/expenses/:id',
     requireRole('admin', 'tecnico', 'encargado', 'finanzas'),
-    // idempotency: external-db â€” HTTP claim recorded; business tx (deleteExpense)
-    // is independent. Tolerant-delete: already-deleted or never-existed â†’ 204.
+    // Tolerant-delete: already-deleted or never-existed → 204.
     idempotent(async (req, res) => {
       const ok = await deleteExpense(
         req.params.id as string,
         requireDatabaseExecutor(getStorage(req)),
       );
       if (!ok) {
-        // Tolerant-delete: ya borrado o nunca existió â†’ tratar como éxito
+        // Tolerant-delete: ya borrado o nunca existió → tratar como éxito
         // para que reintentos offline no marquen la mutación como error.
         return res.status(204).end();
       }
@@ -1067,7 +1061,6 @@ export function registerRoutes(router: Router) {
   router.post(
     '/labor-costs',
     requireRole('admin', 'tecnico', 'encargado', 'finanzas'),
-    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertLaborCostSchema.parse(req.body);
       res.status(201).json(await createLaborCost(data, requireDatabaseExecutor(getStorage(req))));
@@ -1103,7 +1096,6 @@ export function registerRoutes(router: Router) {
   router.post(
     '/users',
     requireRole('admin'),
-    // idempotency: external-db â€” HTTP claim recorded; business tx is independent.
     idempotent(async (req, res) => {
       const data = insertUserSchema.parse(req.body);
       res.status(201).json(await createUser(data, requireDatabaseExecutor(getStorage(req))));

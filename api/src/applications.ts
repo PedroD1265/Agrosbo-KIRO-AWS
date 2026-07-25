@@ -39,12 +39,16 @@ function rowToApplication(r: typeof fieldApplications.$inferSelect): FieldApplic
   return out;
 }
 
-async function resolveScopeName(type: ScopeType, id: string): Promise<string> {
+async function resolveScopeName(
+  type: ScopeType,
+  id: string,
+  executor: DatabaseExecutor,
+): Promise<string> {
   if (type === 'block') {
-    const [r] = await db.select({ name: blocks.name }).from(blocks).where(eq(blocks.id, id));
+    const [r] = await executor.select({ name: blocks.name }).from(blocks).where(eq(blocks.id, id));
     return r?.name ?? id;
   }
-  const [r] = await db
+  const [r] = await executor
     .select({ name: greenhouses.name })
     .from(greenhouses)
     .where(eq(greenhouses.id, id));
@@ -68,18 +72,17 @@ import type { DatabaseExecutor } from './executor.js';
 
 export async function createApplication(
   input: InsertFieldApplication,
-  opts?: { storage?: any; executor?: DatabaseExecutor },
+  opts: { storage: IStorage; executor: DatabaseExecutor },
 ): Promise<FieldApplication> {
-  const stg = opts?.storage ?? storage;
-  const dbExec = opts?.executor ?? db;
+  const { storage: stg, executor: dbExec } = opts;
   const id = `fa-${randomUUID().slice(0, 8)}`;
-  const scopeName = await resolveScopeName(input.scopeType, input.scopeId);
+  const scopeName = await resolveScopeName(input.scopeType, input.scopeId, dbExec);
   let movementId: string | null = null;
   const wantsMovement =
     !!input.inventoryItemId && typeof input.quantityUsed === 'number' && input.quantityUsed > 0;
   if (wantsMovement) {
     const items = await stg.listInventory();
-    if (!items.some((it: any) => it.id === input.inventoryItemId)) {
+    if (!items.some((it) => it.id === input.inventoryItemId)) {
       throw new InventoryItemNotFoundError(input.inventoryItemId!);
     }
     const result = await stg.createInventoryMovement({

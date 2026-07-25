@@ -77,9 +77,13 @@ export async function listApiaries(): Promise<Apiary[]> {
   if (!db) return [];
   return (await db.select().from(apiaries).orderBy(desc(apiaries.createdAt))).map(rowToApiary);
 }
-export async function createApiary(input: InsertApiary): Promise<Apiary> {
+
+export async function createApiary(
+  input: InsertApiary,
+  executor: DatabaseExecutor,
+): Promise<Apiary> {
   const id = `ap-${randomUUID().slice(0, 8)}`;
-  const [row] = await db
+  const [row] = await executor
     .insert(apiaries)
     .values({
       id,
@@ -99,9 +103,13 @@ export async function listHives(): Promise<Hive[]> {
   if (!db) return [];
   return (await db.select().from(hives).orderBy(desc(hives.createdAt))).map(rowToHive);
 }
-export async function createHive(input: InsertHive): Promise<Hive> {
+
+export async function createHive(
+  input: InsertHive,
+  executor: DatabaseExecutor,
+): Promise<Hive> {
   const id = `hv-${randomUUID().slice(0, 8)}`;
-  const [row] = await db
+  const [row] = await executor
     .insert(hives)
     .values({
       id,
@@ -139,17 +147,16 @@ export class HiveInventoryItemNotFoundError extends Error {
 
 export async function createInspection(
   input: InsertHiveInspection,
-  opts?: { storage?: any; executor?: DatabaseExecutor },
+  opts: { storage: IStorage; executor: DatabaseExecutor },
 ): Promise<HiveInspection> {
-  const stg = opts?.storage ?? storage;
-  const dbExec = opts?.executor ?? db;
+  const { storage: stg, executor: dbExec } = opts;
   const id = `hi-${randomUUID().slice(0, 8)}`;
   let movementId: string | null = null;
   const wantsMovement =
     !!input.inventoryItemId && typeof input.quantityUsed === 'number' && input.quantityUsed > 0;
   if (wantsMovement) {
     const items = await stg.listInventory();
-    if (!items.some((it: any) => it.id === input.inventoryItemId)) {
+    if (!items.some((it) => it.id === input.inventoryItemId)) {
       throw new HiveInventoryItemNotFoundError(input.inventoryItemId!);
     }
     const r = await stg.createInventoryMovement({
@@ -206,9 +213,13 @@ export async function listHoneyHarvests(): Promise<HoneyHarvest[]> {
     rowToHarvest,
   );
 }
-export async function createHoneyHarvest(input: InsertHoneyHarvest): Promise<HoneyHarvest> {
+
+export async function createHoneyHarvest(
+  input: InsertHoneyHarvest,
+  executor: DatabaseExecutor,
+): Promise<HoneyHarvest> {
   const id = `hh-${randomUUID().slice(0, 8)}`;
-  const [row] = await db
+  const [row] = await executor
     .insert(honeyHarvests)
     .values({
       id,
