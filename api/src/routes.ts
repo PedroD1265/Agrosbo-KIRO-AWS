@@ -192,7 +192,8 @@ function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Pro
                 res.setHeader(h, v);
               }
             }
-            if (respHolder.current.body === null) return res.status(respHolder.current.status).end();
+            if (respHolder.current.body === null)
+              return res.status(respHolder.current.status).end();
             return res.status(respHolder.current.status).json(respHolder.current.body);
           }
         }

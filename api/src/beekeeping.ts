@@ -16,7 +16,7 @@ import {
   type InsertHiveInspection,
   type InsertHoneyHarvest,
 } from '@agrosbo/shared/schema.js';
-import { storage, InventoryStockError } from './storage.js';
+import { storage, InventoryStockError, type IStorage } from './storage.js';
 
 const rowToApiary = (r: typeof apiaries.$inferSelect): Apiary => ({
   id: r.id,
@@ -104,10 +104,7 @@ export async function listHives(): Promise<Hive[]> {
   return (await db.select().from(hives).orderBy(desc(hives.createdAt))).map(rowToHive);
 }
 
-export async function createHive(
-  input: InsertHive,
-  executor: DatabaseExecutor,
-): Promise<Hive> {
+export async function createHive(input: InsertHive, executor: DatabaseExecutor): Promise<Hive> {
   const id = `hv-${randomUUID().slice(0, 8)}`;
   const [row] = await executor
     .insert(hives)

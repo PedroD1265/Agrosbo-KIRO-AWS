@@ -191,16 +191,6 @@ describe('Transactional HTTP Mutations (PostgreSQL)', () => {
     expect(ids.size).toBe(1);
 
     // Exactly 1 field_application row
-    const [{ appCount }] = await db
-      .select({ appCount: sql<number>`count(*)::int` })
-      .from(schema.fieldApplications)
-      .where(
-        eq(
-          schema.fieldApplications.movementId,
-          [...ids][0]!.replace('fa-', 'mv-').slice(0, 20) as any,
-        ),
-      );
-    // Use the application ID to verify
     const appId = [...ids][0]!;
     const [{ realCount }] = await db
       .select({ realCount: sql<number>`count(*)::int` })

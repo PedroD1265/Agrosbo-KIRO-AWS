@@ -9,7 +9,7 @@ import {
   type InsertFieldApplication,
   type ScopeType,
 } from '@agrosbo/shared/schema.js';
-import { storage, InventoryStockError } from './storage.js';
+import { storage, InventoryStockError, type IStorage } from './storage.js';
 
 function rowToApplication(r: typeof fieldApplications.$inferSelect): FieldApplication {
   const out: FieldApplication = {
