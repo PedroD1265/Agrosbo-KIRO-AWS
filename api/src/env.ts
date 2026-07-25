@@ -26,8 +26,9 @@ function parseNodeEnv(raw: string | undefined): 'development' | 'production' | '
 function parseDatabaseUrl(raw: string | undefined): string | null {
   if (!raw || raw.trim() === '') return null;
   const v = raw.trim();
+  let u: URL;
   try {
-    const u = new URL(v);
+    u = new URL(v);
     if (!u.protocol.startsWith('postgres')) {
       throw new Error(`unsupported protocol '${u.protocol}'`);
     }
@@ -37,7 +38,9 @@ function parseDatabaseUrl(raw: string | undefined): string | null {
       `[env] DATABASE_URL is set but invalid: ${err instanceof Error ? err.message : String(err)}`,
     );
   }
-  return v;
+  // Return the canonical URL string via URL.toString() to preserve encoded
+  // username/password (e.g. special chars like @, %, #) without manual interpolation.
+  return u.toString();
 }
 
 function parseAuthEnforcement(
