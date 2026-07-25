@@ -123,7 +123,10 @@ describe('MemStorage HTTP (USE_MEM_STORAGE=1 with DATABASE_URL present)', () => 
     expect(body.error).toContain('almacenamiento en memoria');
   });
 
-  it('POST /api/attachments returns 503 DATABASE_REQUIRED under MemStorage (PostgreSQL-only route)', async () => {
+  it('POST /api/attachments returns 503 DATABASE_REQUIRED under MemStorage and writeFile is NOT called', async () => {
+    const { getProviders } = await import('../providers/index.js');
+    const writeFileSpy = vi.spyOn(getProviders().attachments, 'writeFile');
+
     const res = await fetch(url('/attachments'), {
       method: 'POST',
       headers: {
@@ -142,6 +145,9 @@ describe('MemStorage HTTP (USE_MEM_STORAGE=1 with DATABASE_URL present)', () => 
     expect(res.status).toBe(503);
     const body = (await res.json()) as { error: string; code: string };
     expect(body.code).toBe('DATABASE_REQUIRED');
+    expect(writeFileSpy).not.toHaveBeenCalled();
+
+    writeFileSpy.mockRestore();
   });
 
   it('DbStorage is NOT instantiated and no connection to port 65534', async () => {

@@ -67,7 +67,7 @@ const apiLog = createLogger('routes');
 
 function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>) {
   return (req: Request, res: Response, next: NextFunction) => {
-    fn(req, res, next).catch(next);
+    return fn(req, res, next).catch(next);
   };
 }
 
@@ -81,7 +81,9 @@ function idemKey(req: Request): string | null {
   return `${req.method}:${req.baseUrl}${req.path}:${k}`;
 }
 
-function idempotent(fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>) {
+export function idempotent(
+  fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>,
+) {
   return asyncHandler(async (req, res, next) => {
     const key = idemKey(req);
     if (!key) {
