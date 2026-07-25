@@ -358,7 +358,8 @@ describe('Attachment Lifecycle, Compensation, and Safe Deletion', () => {
       entityType: 'task',
       entityId: 't-10',
       fileName: 'image.png',
-      remoteUrl: 'https://s3.amazonaws.com/bucket/task/t-10/att-safe-1-image.png?X-Amz-Signature=expired123',
+      remoteUrl:
+        'https://s3.amazonaws.com/bucket/task/t-10/att-safe-1-image.png?X-Amz-Signature=expired123',
     };
 
     const mockExecutor: DatabaseExecutor = {

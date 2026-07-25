@@ -72,15 +72,14 @@ describe('PostgreSQL Clean DB Migration & Readiness Integration Suite', () => {
       )
     `);
 
-    const migration1Path = path.resolve(
-      process.cwd(),
-      'api/migrations/0001_object_key.sql',
-    );
+    const migration1Path = path.resolve(process.cwd(), 'api/migrations/0001_object_key.sql');
     const migration1Sql = await fs.readFile(migration1Path, 'utf8');
     await targetPool.query(migration1Sql);
 
     // 1. Verify backfill of object_key
-    const legacyRes = await targetPool.query(`SELECT * FROM "attachments" WHERE id = 'att-legacy-1'`);
+    const legacyRes = await targetPool.query(
+      `SELECT * FROM "attachments" WHERE id = 'att-legacy-1'`,
+    );
     expect(legacyRes.rows[0].object_key).toBe('observation/obs-leg-1/att-legacy-1-photo.jpg');
 
     // 2. Verify migration idempotency: re-execute 0001_object_key.sql a second time
@@ -109,7 +108,8 @@ describe('PostgreSQL Clean DB Migration & Readiness Integration Suite', () => {
       }
 
       // 3. PostgreSQL attachment persistence with object_key requirement
-      const { createAttachment, deleteAttachment, AttachmentDeleteError } = await import('../../attachments.js');
+      const { createAttachment, deleteAttachment, AttachmentDeleteError } =
+        await import('../../attachments.js');
       const { drizzle } = await import('drizzle-orm/node-postgres');
       const schema = await import('@agrosbo/shared/schema.js');
       const testDb = drizzle(targetPool, { schema });
@@ -140,10 +140,9 @@ describe('PostgreSQL Clean DB Migration & Readiness Integration Suite', () => {
       expect(createdAtt.objectKey).toMatch(/^task\/t-pg-1\/att-[a-f0-9-]+-report\.pdf$/);
 
       // Verify row in PostgreSQL table has non-null object_key
-      const pgAttRow = await targetPool.query(
-        `SELECT * FROM "attachments" WHERE id = $1`,
-        [createdAtt.id],
-      );
+      const pgAttRow = await targetPool.query(`SELECT * FROM "attachments" WHERE id = $1`, [
+        createdAtt.id,
+      ]);
       expect(pgAttRow.rows[0].object_key).toBe(createdAtt.objectKey);
 
       // 4. Test deleteAttachment failure preserves DB metadata in PostgreSQL

@@ -35,7 +35,10 @@ export class AttachmentValidationError extends Error {
 
 export class AttachmentDeleteError extends Error {
   readonly code = 'ATTACHMENT_DELETE_FAILED';
-  constructor(message: string, public cause?: unknown) {
+  constructor(
+    message: string,
+    public cause?: unknown,
+  ) {
     super(message);
     this.name = 'AttachmentDeleteError';
   }
