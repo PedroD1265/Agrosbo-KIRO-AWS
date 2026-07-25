@@ -212,8 +212,8 @@ describe('Transaction Compensations Unit Suite', () => {
 
   it('6. No active context: registerTransactionCompensation outside active transactional operation throws clear error', () => {
     const req: Partial<Request> = { transactionCompensations: undefined };
-    expect(() =>
-      registerTransactionCompensation(req as Request, async () => {}),
-    ).toThrow('registerTransactionCompensation debe llamarse dentro de una operación transaccional activa');
+    expect(() => registerTransactionCompensation(req as Request, async () => {})).toThrow(
+      'registerTransactionCompensation debe llamarse dentro de una operación transaccional activa',
+    );
   });
 });
