@@ -352,7 +352,7 @@ describe('Transactional HTTP Mutations (PostgreSQL)', () => {
     const [{ uCount }] = await db
       .select({ uCount: sql<number>`count(*)::int` })
       .from(schema.users)
-      .where(eq(schema.users.id, bodies[0].id));
+      .where(eq(schema.users.id, bodies[0].id as string));
     expect(uCount).toBe(1);
   });
 

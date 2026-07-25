@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import {
   registerTransactionCompensation,
   runTransactionCompensations,
@@ -20,7 +20,7 @@ vi.mock('../idempotency.js', () => ({
 describe('Transaction Compensations Unit Suite', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
-  let mockNext: vi.Mock<[unknown?], void>;
+  let mockNext: NextFunction;
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -48,11 +48,11 @@ describe('Transaction Compensations Unit Suite', () => {
       setHeader: vi.fn(),
     };
 
-    mockNext = vi.fn();
+    mockNext = vi.fn() as unknown as NextFunction;
   });
 
   it('1. Success: handler succeeds, completeTx succeeds -> compensation NOT executed, req & res restored', async () => {
-    const compSpy = vi.fn<[], Promise<void>>(async () => {});
+    const compSpy: TransactionCompensation = vi.fn(async () => {});
     const txStorage = { name: 'txStorage' } as unknown as TransactionalStorage;
 
     const mockTransactionalStorage: TransactionalStorage = {
@@ -88,7 +88,7 @@ describe('Transaction Compensations Unit Suite', () => {
   });
 
   it('2. completeTx failure: handler succeeds, completeTx throws -> compensation executed once, PrimaryCompleteError propagated to next, req & res restored', async () => {
-    const compSpy = vi.fn<[], Promise<void>>(async () => {});
+    const compSpy: TransactionCompensation = vi.fn(async () => {});
     const txStorage = { name: 'txStorage' } as unknown as TransactionalStorage;
 
     const mockTransactionalStorage: TransactionalStorage = {
@@ -123,7 +123,7 @@ describe('Transaction Compensations Unit Suite', () => {
   });
 
   it('3. Commit failure: withTransaction throws PrimaryCommitError after handler -> compensation executed once, PrimaryCommitError preserved, req & res restored', async () => {
-    const compSpy = vi.fn<[], Promise<void>>(async () => {});
+    const compSpy: TransactionCompensation = vi.fn(async () => {});
     const txStorage = { name: 'txStorage' } as unknown as TransactionalStorage;
 
     const mockFailingTransactionalStorage: TransactionalStorage = {
@@ -159,7 +159,7 @@ describe('Transaction Compensations Unit Suite', () => {
   });
 
   it('4. Compensation failure: primary error occurs, compensation throws CleanupError -> primary error preserved, CleanupError logged', async () => {
-    const failingCompSpy = vi.fn<[], Promise<void>>(async () => {
+    const failingCompSpy: TransactionCompensation = vi.fn(async () => {
       throw new Error('CleanupError: S3 delete failed');
     });
 
