@@ -7,9 +7,7 @@
  * - req.storage is restored to previous value after handler exception
  */
 import { describe, it, expect } from 'vitest';
-import type { Request, Response, NextFunction } from 'express';
 import type { TransactionalStorage, DatabaseExecutor } from '../executor.js';
-import { claimTx, completeTx } from '../idempotency.js';
 
 describe('Transactional request storage restoration', () => {
   it('restores req.storage to previous value after success and error in withTransaction', async () => {
