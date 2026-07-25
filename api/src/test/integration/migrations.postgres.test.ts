@@ -63,6 +63,29 @@ describe('PostgreSQL Clean DB Migration & Readiness Integration Suite', () => {
     const migrationSql = await fs.readFile(migrationSqlPath, 'utf8');
     await targetPool.query(migrationSql);
 
+    // Insert legacy attachment row before 0001_object_key migration to test backfill
+    await targetPool.query(`
+      INSERT INTO "attachments" (
+        id, entity_type, entity_id, file_name, mime_type, size_bytes, local_status, created_at
+      ) VALUES (
+        'att-legacy-1', 'observation', 'obs-leg-1', 'photo.jpg', 'image/jpeg', 2048, 'uploaded', '2026-07-25T00:00:00Z'
+      )
+    `);
+
+    const migration1Path = path.resolve(
+      process.cwd(),
+      'api/migrations/0001_object_key.sql',
+    );
+    const migration1Sql = await fs.readFile(migration1Path, 'utf8');
+    await targetPool.query(migration1Sql);
+
+    // 1. Verify backfill of object_key
+    const legacyRes = await targetPool.query(`SELECT * FROM "attachments" WHERE id = 'att-legacy-1'`);
+    expect(legacyRes.rows[0].object_key).toBe('observation/obs-leg-1/att-legacy-1-photo.jpg');
+
+    // 2. Verify migration idempotency: re-execute 0001_object_key.sql a second time
+    await targetPool.query(migration1Sql);
+
     const oldDbUrl = process.env.DATABASE_URL;
     process.env.DATABASE_URL = targetUrl;
 
@@ -84,6 +107,80 @@ describe('PostgreSQL Clean DB Migration & Readiness Integration Suite', () => {
         const res = await targetPool.query(`SELECT count(*)::int FROM "${table}"`);
         expect(res.rows[0].count).toBeGreaterThanOrEqual(0);
       }
+
+      // 3. PostgreSQL attachment persistence with object_key requirement
+      const { createAttachment, deleteAttachment, AttachmentDeleteError } = await import('../../attachments.js');
+      const { drizzle } = await import('drizzle-orm/node-postgres');
+      const schema = await import('@agrosbo/shared/schema.js');
+      const testDb = drizzle(targetPool, { schema });
+
+      const dataBase64 = Buffer.from('PG attachment content').toString('base64');
+      const mockProvider = {
+        name: 'pg-test-provider',
+        prepareUpload: async () => ({ key: 'k', method: 'POST' as const }),
+        confirmUpload: async () => ({ exists: true }),
+        getDownloadAccess: async (k: string) => ({ url: `/uploads/${k}`, expires: false }),
+        deleteObject: async () => true,
+        writeFile: async () => {},
+        verifyObject: async () => ({ exists: true }),
+      };
+
+      const createdAtt = await createAttachment(
+        {
+          entityType: 'task',
+          entityId: 't-pg-1',
+          fileName: 'report.pdf',
+          mimeType: 'application/pdf',
+          sizeBytes: 21,
+          dataBase64,
+        },
+        { storageProvider: mockProvider, executor: testDb as any },
+      );
+
+      expect(createdAtt.objectKey).toMatch(/^task\/t-pg-1\/att-[a-f0-9-]+-report\.pdf$/);
+
+      // Verify row in PostgreSQL table has non-null object_key
+      const pgAttRow = await targetPool.query(
+        `SELECT * FROM "attachments" WHERE id = $1`,
+        [createdAtt.id],
+      );
+      expect(pgAttRow.rows[0].object_key).toBe(createdAtt.objectKey);
+
+      // 4. Test deleteAttachment failure preserves DB metadata in PostgreSQL
+      const failingProvider = {
+        ...mockProvider,
+        deleteObject: async () => {
+          throw new Error('S3 DELETE network failure');
+        },
+      };
+
+      const err = await deleteAttachment(createdAtt.id, {
+        storageProvider: failingProvider,
+        executor: testDb as any,
+      }).catch((e) => e);
+
+      expect(err).toBeInstanceOf(AttachmentDeleteError);
+      expect(err.code).toBe('ATTACHMENT_DELETE_FAILED');
+
+      // Metadata still exists in PostgreSQL!
+      const rowStillExists = await targetPool.query(
+        `SELECT count(*)::int FROM "attachments" WHERE id = $1`,
+        [createdAtt.id],
+      );
+      expect(rowStillExists.rows[0].count).toBe(1);
+
+      // 5. Successful delete removes DB metadata in PostgreSQL
+      const deleteSuccess = await deleteAttachment(createdAtt.id, {
+        storageProvider: mockProvider,
+        executor: testDb as any,
+      });
+      expect(deleteSuccess).toBe(true);
+
+      const rowDeleted = await targetPool.query(
+        `SELECT count(*)::int FROM "attachments" WHERE id = $1`,
+        [createdAtt.id],
+      );
+      expect(rowDeleted.rows[0].count).toBe(0);
 
       const app = express();
       const router = express.Router();

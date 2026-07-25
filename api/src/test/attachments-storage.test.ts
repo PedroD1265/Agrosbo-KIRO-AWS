@@ -167,3 +167,327 @@ describe('LocalAttachmentStorage', () => {
     await storage.deleteObject(key);
   });
 });
+
+import {
+  createAttachment,
+  deleteAttachment,
+  AttachmentValidationError,
+  AttachmentDeleteError,
+} from '../attachments.js';
+import type { AttachmentStorage } from '../providers/attachments/types.js';
+import type { DatabaseExecutor } from '../executor.js';
+
+describe('Attachment Lifecycle, Compensation, and Safe Deletion', () => {
+  it('1. Successful creation persists objectKey and returns Attachment', async () => {
+    const writtenKeys: string[] = [];
+    const mockProvider: AttachmentStorage = {
+      name: 'mock',
+      prepareUpload: async () => ({ key: 'mock-key', method: 'POST' }),
+      confirmUpload: async () => ({ exists: true }),
+      getDownloadAccess: async (k) => ({ url: `/uploads/${k}`, expires: false }),
+      deleteObject: async () => true,
+      writeFile: async (k) => {
+        writtenKeys.push(k);
+      },
+      verifyObject: async () => ({ exists: true }),
+    };
+
+    const insertedRows: any[] = [];
+    const mockExecutor: DatabaseExecutor = {
+      insert: () => ({
+        values: (vals: any) => ({
+          returning: async () => {
+            insertedRows.push(vals);
+            return [vals];
+          },
+        }),
+      }),
+    } as any;
+
+    const dataBase64 = Buffer.from('hello world content').toString('base64');
+    const att = await createAttachment(
+      {
+        entityType: 'observation',
+        entityId: 'obs-100',
+        fileName: 'my report.pdf',
+        mimeType: 'application/pdf',
+        sizeBytes: 19,
+        dataBase64,
+      },
+      { storageProvider: mockProvider, executor: mockExecutor },
+    );
+
+    expect(att.id).toMatch(/^att-[a-f0-9-]+$/);
+    expect(att.objectKey).toBe(insertedRows[0].objectKey);
+    expect(att.objectKey).toMatch(/^observation\/obs-100\/att-[a-f0-9-]+-my_report\.pdf$/);
+    expect(att.fileName).toBe('my_report.pdf');
+    expect(writtenKeys).toEqual([att.objectKey]);
+  });
+
+  it('2. getDownloadAccess failure after writeFile triggers deleteObject compensation with same objectKey', async () => {
+    const deletedKeys: string[] = [];
+    const mockProvider: AttachmentStorage = {
+      name: 'mock',
+      prepareUpload: async () => ({ key: 'mock-key', method: 'POST' }),
+      confirmUpload: async () => ({ exists: true }),
+      getDownloadAccess: async () => {
+        throw new Error('Download access failed');
+      },
+      deleteObject: async (k) => {
+        deletedKeys.push(k);
+        return true;
+      },
+      writeFile: async () => {},
+      verifyObject: async () => ({ exists: true }),
+    };
+
+    const dataBase64 = Buffer.from('test data').toString('base64');
+    await expect(
+      createAttachment(
+        {
+          entityType: 'task',
+          entityId: 't-200',
+          fileName: 'doc.pdf',
+          mimeType: 'application/pdf',
+          sizeBytes: 9,
+          dataBase64,
+        },
+        { storageProvider: mockProvider },
+      ),
+    ).rejects.toThrow('Download access failed');
+
+    expect(deletedKeys.length).toBe(1);
+    expect(deletedKeys[0]).toMatch(/^task\/t-200\/att-[a-f0-9-]+-doc\.pdf$/);
+  });
+
+  it('3. insert metadata failure after writeFile triggers deleteObject compensation with same objectKey', async () => {
+    const deletedKeys: string[] = [];
+    const mockProvider: AttachmentStorage = {
+      name: 'mock',
+      prepareUpload: async () => ({ key: 'mock-key', method: 'POST' }),
+      confirmUpload: async () => ({ exists: true }),
+      getDownloadAccess: async (k) => ({ url: `/uploads/${k}`, expires: false }),
+      deleteObject: async (k) => {
+        deletedKeys.push(k);
+        return true;
+      },
+      writeFile: async () => {},
+      verifyObject: async () => ({ exists: true }),
+    };
+
+    const mockFailingExecutor: DatabaseExecutor = {
+      insert: () => ({
+        values: () => ({
+          returning: async () => {
+            throw new Error('DB Connection Timeout on insert');
+          },
+        }),
+      }),
+    } as any;
+
+    const dataBase64 = Buffer.from('test data').toString('base64');
+    await expect(
+      createAttachment(
+        {
+          entityType: 'task',
+          entityId: 't-200',
+          fileName: 'doc.pdf',
+          mimeType: 'application/pdf',
+          sizeBytes: 9,
+          dataBase64,
+        },
+        { storageProvider: mockProvider, executor: mockFailingExecutor },
+      ),
+    ).rejects.toThrow('DB Connection Timeout on insert');
+
+    expect(deletedKeys.length).toBe(1);
+    expect(deletedKeys[0]).toMatch(/^task\/t-200\/att-[a-f0-9-]+-doc\.pdf$/);
+  });
+
+  it('4. When cleanup deleteObject ALSO fails, main error is preserved', async () => {
+    const mockProvider: AttachmentStorage = {
+      name: 'mock',
+      prepareUpload: async () => ({ key: 'mock-key', method: 'POST' }),
+      confirmUpload: async () => ({ exists: true }),
+      getDownloadAccess: async () => {
+        throw new Error('Primary Error: Download Access Failed');
+      },
+      deleteObject: async () => {
+        throw new Error('Secondary Error: S3 Bucket Unavailable on Cleanup');
+      },
+      writeFile: async () => {},
+      verifyObject: async () => ({ exists: true }),
+    };
+
+    const dataBase64 = Buffer.from('test data').toString('base64');
+    await expect(
+      createAttachment(
+        {
+          entityType: 'task',
+          entityId: 't-200',
+          fileName: 'doc.pdf',
+          mimeType: 'application/pdf',
+          sizeBytes: 9,
+          dataBase64,
+        },
+        { storageProvider: mockProvider },
+      ),
+    ).rejects.toThrow('Primary Error: Download Access Failed');
+  });
+
+  it('5. Safe deletion removes object via row.objectKey and deletes DB metadata', async () => {
+    const deletedKeys: string[] = [];
+    let dbDeleted = false;
+
+    const mockProvider: AttachmentStorage = {
+      name: 'mock',
+      prepareUpload: async () => ({ key: 'mock-key', method: 'POST' }),
+      confirmUpload: async () => ({ exists: true }),
+      getDownloadAccess: async (k) => ({ url: `/uploads/${k}`, expires: false }),
+      deleteObject: async (k) => {
+        deletedKeys.push(k);
+        return true;
+      },
+      writeFile: async () => {},
+      verifyObject: async () => ({ exists: true }),
+    };
+
+    const mockRow = {
+      id: 'att-safe-1',
+      objectKey: 'task/t-10/att-safe-1-image.png',
+      entityType: 'task',
+      entityId: 't-10',
+      fileName: 'image.png',
+      remoteUrl: 'https://s3.amazonaws.com/bucket/task/t-10/att-safe-1-image.png?X-Amz-Signature=expired123',
+    };
+
+    const mockExecutor: DatabaseExecutor = {
+      select: () => ({
+        from: () => ({
+          where: () => [mockRow],
+        }),
+      }),
+      delete: () => ({
+        where: () => {
+          dbDeleted = true;
+          return [mockRow];
+        },
+      }),
+    } as any;
+
+    const result = await deleteAttachment('att-safe-1', {
+      storageProvider: mockProvider,
+      executor: mockExecutor,
+    });
+
+    expect(result).toBe(true);
+    expect(deletedKeys).toEqual(['task/t-10/att-safe-1-image.png']);
+    expect(dbDeleted).toBe(true);
+  });
+
+  it('6. Expired or altered remoteUrl does not affect deletion because objectKey is used', async () => {
+    const deletedKeys: string[] = [];
+    const mockProvider: AttachmentStorage = {
+      name: 'mock',
+      prepareUpload: async () => ({ key: 'mock-key', method: 'POST' }),
+      confirmUpload: async () => ({ exists: true }),
+      getDownloadAccess: async (k) => ({ url: `/uploads/${k}`, expires: false }),
+      deleteObject: async (k) => {
+        deletedKeys.push(k);
+        return true;
+      },
+      writeFile: async () => {},
+      verifyObject: async () => ({ exists: true }),
+    };
+
+    const mockRow = {
+      id: 'att-expired-url',
+      objectKey: 'observation/obs-55/att-expired-url-photo.jpg',
+      entityType: 'observation',
+      entityId: 'obs-55',
+      fileName: 'photo.jpg',
+      remoteUrl: 'https://completely-bogus-presigned-url.com/expired-token-12345',
+    };
+
+    const mockExecutor: DatabaseExecutor = {
+      select: () => ({
+        from: () => ({
+          where: () => [mockRow],
+        }),
+      }),
+      delete: () => ({
+        where: () => [mockRow],
+      }),
+    } as any;
+
+    const result = await deleteAttachment('att-expired-url', {
+      storageProvider: mockProvider,
+      executor: mockExecutor,
+    });
+
+    expect(result).toBe(true);
+    expect(deletedKeys).toEqual(['observation/obs-55/att-expired-url-photo.jpg']);
+  });
+
+  it('7. deleteObject failure preserves DB metadata and throws AttachmentDeleteError', async () => {
+    let dbDeleted = false;
+    const mockThrowingProvider: AttachmentStorage = {
+      name: 'mock-throwing',
+      prepareUpload: async () => ({ key: 'mock-key', method: 'POST' }),
+      confirmUpload: async () => ({ exists: true }),
+      getDownloadAccess: async (k) => ({ url: `/uploads/${k}`, expires: false }),
+      deleteObject: async () => {
+        throw new Error('S3 500 Internal Error during DELETE');
+      },
+      writeFile: async () => {},
+      verifyObject: async () => ({ exists: true }),
+    };
+
+    const mockRow = {
+      id: 'att-fail-del',
+      objectKey: 'task/t-99/att-fail-del-file.pdf',
+      entityType: 'task',
+      entityId: 't-99',
+      fileName: 'file.pdf',
+    };
+
+    const mockExecutor: DatabaseExecutor = {
+      select: () => ({
+        from: () => ({
+          where: () => [mockRow],
+        }),
+      }),
+      delete: () => ({
+        where: () => {
+          dbDeleted = true;
+          return [mockRow];
+        },
+      }),
+    } as any;
+
+    const err = await deleteAttachment('att-fail-del', {
+      storageProvider: mockThrowingProvider,
+      executor: mockExecutor,
+    }).catch((e) => e);
+
+    expect(err).toBeInstanceOf(AttachmentDeleteError);
+    expect(err.code).toBe('ATTACHMENT_DELETE_FAILED');
+    expect(err.message).toContain('att-fail-del-file.pdf');
+    expect(dbDeleted).toBe(false);
+  });
+
+  it('8. deleteAttachment returns false for non-existent metadata', async () => {
+    const mockExecutor: DatabaseExecutor = {
+      select: () => ({
+        from: () => ({
+          where: () => [],
+        }),
+      }),
+    } as any;
+
+    const result = await deleteAttachment('att-non-existent', {
+      executor: mockExecutor,
+    });
+    expect(result).toBe(false);
+  });
+});
