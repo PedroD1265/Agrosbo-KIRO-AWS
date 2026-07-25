@@ -21,6 +21,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:memstorage": "vitest run --config vitest.memstorage.config.ts",
     "test:watch": "vitest",
     "build": "npm run build --workspaces --if-present",
     "clean": "node scripts/clean.mjs",

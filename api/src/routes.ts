@@ -1355,10 +1355,10 @@ export function registerRoutes(router: Router) {
     if (err instanceof ZodError) {
       return res.status(400).json({ error: 'Datos invÃ¡lidos', issues: err.issues });
     }
-    if (err instanceof DatabaseRequiredError) {
+    if (err instanceof DatabaseRequiredError || (err as any)?.code === 'DATABASE_REQUIRED') {
       return res.status(503).json({
-        error: err.message,
-        code: err.code,
+        error: (err as Error).message || 'Operación no disponible con almacenamiento en memoria',
+        code: 'DATABASE_REQUIRED',
       });
     }
     const reqLog = (_req as Request).log ?? apiLog;

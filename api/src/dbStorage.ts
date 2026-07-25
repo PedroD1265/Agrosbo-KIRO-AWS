@@ -242,7 +242,7 @@ export class DbStorage implements IStorage {
 
   /** Expose the underlying executor (db or tx) for service functions that need raw access. */
   get executor(): DatabaseExecutor {
-    return this.client;
+    return this.client as DatabaseExecutor;
   }
 
   async withTransaction<T>(fn: (txStorage: DbStorage, tx: any) => Promise<T>): Promise<T> {

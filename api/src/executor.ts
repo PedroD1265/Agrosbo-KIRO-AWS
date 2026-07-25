@@ -1,20 +1,27 @@
 /**
  * Typed database executor boundary.
  *
- * Provides a compile-time contract for passing the Drizzle db/tx executor
- * to service functions, eliminating `as any` casts. The actual executor is
- * an opaque object that supports Drizzle query methods (select, insert,
- * update, delete, execute, transaction).
+ * The DatabaseExecutor type represents a Drizzle PostgreSQL executor that
+ * can be either the main database instance (NodePgDatabase) or a transaction
+ * (NodePgTransaction). Both extend PgDatabase, which is what service
+ * functions actually need.
  *
- * This module also provides a type-guard to check at runtime whether a
- * given IStorage instance is a TransactionalStorage that can provide an
- * executor for atomic operations.
+ * This eliminates `any` casts while remaining compatible with both the
+ * top-level db and any nested transaction.
+ *
+ * Note: AWS Data API adapter (drizzle-orm/aws-data-api/pg) will have its
+ * own typed adapter in the infrastructure Spec. It is NOT included here.
  */
 
 import type { IStorage } from './storage.js';
+import type { PgDatabase } from 'drizzle-orm/pg-core';
+import type { NodePgQueryResultHKT } from 'drizzle-orm/node-postgres';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type DatabaseExecutor = any;
+/**
+ * Real Drizzle executor type — covers both NodePgDatabase and NodePgTransaction.
+ * Service functions accept this instead of `any`.
+ */
+export type DatabaseExecutor = PgDatabase<NodePgQueryResultHKT, Record<string, unknown>>;
 
 /**
  * A storage implementation that supports PostgreSQL transactions.
@@ -49,8 +56,6 @@ export function isTransactionalStorage(s: IStorage): s is TransactionalStorage {
 /**
  * Extract the executor from a storage, or throw a controlled error if the
  * storage does not support transactions (e.g., MemStorage).
- *
- * Use this instead of `(getStorage(req) as any).executor ?? db`.
  */
 export function requireDatabaseExecutor(s: IStorage): DatabaseExecutor {
   if (isTransactionalStorage(s)) {

@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { and, eq, sql } from 'drizzle-orm';
 import { db, hasDatabaseUrl } from './db.js';
+import { usesTransactionalDatabaseStorage } from './storage.js';
 import { idempotencyKeys } from '@agrosbo/shared/schema.js';
 import { createLogger } from './logger.js';
 
@@ -41,7 +42,7 @@ function pruneMem() {
 }
 
 async function cleanupExpiredDb() {
-  if (!hasDatabaseUrl) return;
+  if (!usesTransactionalDatabaseStorage()) return;
   try {
     await db.execute(
       sql`delete from idempotency_keys where expires_at < ${new Date().toISOString()}`,
@@ -52,7 +53,7 @@ async function cleanupExpiredDb() {
 }
 
 async function clearOrphanProcessingDb() {
-  if (!hasDatabaseUrl) return;
+  if (!usesTransactionalDatabaseStorage()) return;
   try {
     // Only clear processing entries that are STALE (older than PROCESSING_STALE_MS).
     // Do NOT delete all processing rows — other instances may have valid in-flight claims.
@@ -221,7 +222,11 @@ async function claimDb(key: string): Promise<ClaimResult> {
 }
 
 export async function claim(key: string): Promise<ClaimResult> {
-  if (hasDatabaseUrl) {
+  // Use DB-backed idempotency only when the active storage is actually
+  // a transactional DbStorage. When USE_MEM_STORAGE=1 is set (even with
+  // DATABASE_URL present), we must use memory-based idempotency to avoid
+  // attempting a PostgreSQL connection that may not be intended.
+  if (usesTransactionalDatabaseStorage()) {
     const result = await claimDb(key);
     if (Math.random() < CLEANUP_PROBABILITY) void cleanupExpiredDb();
     return result;
@@ -235,7 +240,7 @@ export async function complete(
   status: number,
   body: unknown,
 ): Promise<void> {
-  if (hasDatabaseUrl) {
+  if (usesTransactionalDatabaseStorage()) {
     const result = await db
       .update(idempotencyKeys)
       .set({ state: 'completed', status, body: body as object })
@@ -262,7 +267,7 @@ export async function complete(
 }
 
 export async function release(key: string, token: string): Promise<void> {
-  if (hasDatabaseUrl) {
+  if (usesTransactionalDatabaseStorage()) {
     try {
       await db
         .delete(idempotencyKeys)
@@ -280,7 +285,7 @@ export async function release(key: string, token: string): Promise<void> {
 }
 
 export async function verifyIdempotencyTable(): Promise<void> {
-  if (!hasDatabaseUrl) return;
+  if (!usesTransactionalDatabaseStorage()) return;
   try {
     await db.execute(
       sql`select key, state, attempt_id, status, body, expires_at, created_at from idempotency_keys limit 0`,
