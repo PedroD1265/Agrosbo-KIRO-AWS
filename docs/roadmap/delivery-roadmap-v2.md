@@ -3,7 +3,7 @@
 > Fuente canónica:
 > [`../product/product-scope-v2.md`](../product/product-scope-v2.md).
 >
-> Última actualización: julio 2026 (Fase 0, Checkpoint 0.4).
+> Última actualización: julio 2026 (Fase 0, revisión final del PR #3).
 >
 > Este documento ordena las fases y Specs sin crear carpetas de Specs futuras.
 > La numeración de Specs (15–31) es un identificador estable; no equivale

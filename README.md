@@ -70,7 +70,7 @@ Cada capacidad se etiqueta con precisión. No se declara implementado algo que s
 
 ### B. PLANNED P0 (aprobado, no implementado)
 
-13. Consulta al Asistente AGROSBO (texto/voz). 14. Agente lee datos vía herramientas. 15. Navega visiblemente. 16. Prepara borrador. 17. Usuario confirma → cola offline → idempotencia. 18. SES acepta solicitud y devuelve message ID → sent (no implica entrega). 19. Colaborador accede mediante token válido → opened_link (puede ser escáner; no prueba lectura). 20. Colaborador acepta, rechaza o aclara → responded. 21. Foto agrícola → evaluación visual preliminar (Bedrock). 22. IrrigationDelayScenario → LLM explica.
+13. Consulta al Asistente AGROSBO (texto/voz). 14. Agente lee datos vía herramientas. 15. Navega visiblemente. 16. Prepara borrador. 17. Usuario confirma → cola offline → idempotencia. 18. SES acepta solicitud y devuelve message ID → sent (no implica entrega). 19. Colaborador accede mediante token válido → opened_link (puede ser escáner; no prueba lectura). 20. Colaborador acepta, rechaza o solicita aclaración → responded. 21. Foto agrícola → evaluación visual preliminar (Bedrock). 22. IrrigationDelayScenario → LLM explica.
 
 Detalle en [`docs/product/golden-paths-p0-p1.md`](docs/product/golden-paths-p0-p1.md).
 

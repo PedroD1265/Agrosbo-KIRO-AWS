@@ -2,7 +2,7 @@
 
 > Fuente canónica: [`./product-scope-v2.md`](./product-scope-v2.md) §16.
 >
-> Última actualización: julio 2026 (Fase 0, Checkpoint 0.4).
+> Última actualización: julio 2026 (Fase 0, revisión final del PR #3).
 >
 > Estado: PLANNED. Ningún paso está implementado como flujo integrado a esta
 > fecha; los componentes base (CRUD, cola offline, idempotencia) existen.

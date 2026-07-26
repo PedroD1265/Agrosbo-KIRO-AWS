@@ -101,7 +101,10 @@ El prompt humano más reciente puede:
 
 Una autorización de bloque no se extiende al bloque siguiente.
 
-## 3. Estado inicial esperado
+## 3. Estado inicial histórico
+
+> Esta sección conserva el estado existente al iniciar la Fase 0. No representa
+> el estado actual del repositorio ni autoriza reejecución.
 
 ### 3.1 Repositorio y Git
 
@@ -110,7 +113,9 @@ Una autorización de bloque no se extiende al bloque siguiente.
 - Rama: `docs/product-agent-scope-v2`.
 - Base inicial de la rama: `8b9d7ba`.
 - `cloud-services-readiness` fue fusionado mediante PR #2.
-- No existe commit, push, PR ni despliegue de Fase 0.
+- Al inicio de la Fase 0 no existían commits, push, PR ni despliegue de esta
+  fase. Posteriormente se crearon los commits autorizados y el Draft PR #3. No
+  hubo deploy.
 
 Al comenzar cada bloque:
 
@@ -147,12 +152,13 @@ Cualquier otro cambio previo no reconocido activa **STOP REQUIRED**.
 
 Este baseline se vuelve a comprobar al final.
 
-### 3.3 Estado de checkpoints
+### 3.3 Estado de checkpoints al iniciar la Fase 0
 
 - Auditoría de solo lectura: **APROBADA**.
 - Checkpoint 0.2B: **APROBADO**.
-- Checkpoints 0.3–0.15: pendientes.
-- El siguiente trabajo autorizado debe comenzar por 0.3.
+- Checkpoints 0.3–0.15: pendientes al inicio de la Fase 0.
+
+Estado final: Checkpoints 0.2–0.15 completados y puertas humanas aprobadas.
 
 ## 4. Alcance de la Fase 0
 

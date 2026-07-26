@@ -148,7 +148,8 @@ El Asistente AGROSBO (operational farm agent) opera bajo estas reglas:
 - Navega visiblemente dentro de la UI (el usuario ve dónde está el agente).
 - Prepara formularios o borradores visibles antes de mutar.
 - Solicita datos faltantes al usuario.
-- Requiere confirmación explícita antes de ejecutar cualquier mutación.
+- Requiere confirmación explícita antes de ejecutar cualquier mutación interna
+  propuesta por el agente para un usuario interno.
 - Requiere confirmación reforzada para acciones sensibles.
 - Ejecuta mutaciones de forma determinista e idempotente (vía cola offline).
 - Registra toda acción para auditoría.
@@ -181,9 +182,12 @@ El Asistente AGROSBO (operational farm agent) opera bajo estas reglas:
 - No aprueba gastos por sí solo.
 - No acepta compradores ni celebra acuerdos.
 - No ejecuta SQL generado.
-- No se salta la confirmación del usuario.
+- No se salta la confirmación PWA exigida para mutaciones internas propuestas por
+  el agente.
 - No se presenta como agrónomo ni emite diagnósticos definitivos.
-- No muta directamente desde el servidor sin confirmación en la PWA.
+- No ejecuta mutaciones internas únicamente por decisión del LLM. Las respuestas
+  externas y eventos técnicos siguen sus mecanismos propios de autorización,
+  validación, idempotencia, deduplicación cuando corresponda y auditoría.
 
 ## 6. P0 — Alcance obligatorio
 
@@ -248,12 +252,15 @@ Lambda adapter). El estado exacto de cada capacidad se mantendrá en
   mutación idempotente vía cola offline.
 - **Límite**: no se crea ni modifica sin confirmación explícita.
 
-### 6.8 Borradores y confirmación
+### 6.8 Borradores y confirmación de mutaciones internas
 
-- **Objetivo**: toda acción mutadora pasa por un estado de borrador visible antes
-  de ejecutarse.
-- **Resultado observable**: UI muestra el borrador; usuario confirma o descarta.
-- **Límite**: el servidor no puede ejecutar sin la confirmación de la PWA.
+- **Objetivo**: toda mutación interna propuesta por el agente para un usuario
+  interno pasa por un borrador visible antes de ejecutarse.
+- **Resultado observable**: UI muestra el borrador; usuario revisa, edita,
+  confirma o descarta.
+- **Límite**: el servidor no puede ejecutar una mutación interna únicamente por
+  decisión del LLM sin confirmación de la PWA. Las excepciones controladas
+  (respuestas externas, eventos SES, TTL, revocación) se definen en §4 y ADR 015.
 
 ### 6.9 Colaboradores internos
 

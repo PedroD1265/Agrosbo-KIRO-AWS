@@ -6,7 +6,7 @@
 > Auditoría de referencia:
 > [`../reviews/current-capability-audit-v2.md`](../reviews/current-capability-audit-v2.md).
 >
-> Última actualización: julio 2026 (Fase 0, Checkpoint 0.4).
+> Última actualización: julio 2026 (Fase 0, revisión final del PR #3).
 
 ## Definiciones de estado
 
