@@ -9,5 +9,8 @@
     "cdk": "cdk",
     "deploy:lab": "cdk deploy AgrosboDevSpikeStack",
     "destroy:lab": "cdk destroy AgrosboDevSpikeStack"
+  },
+  "devDependencies": {
+    "aws-cdk": "2.1133.0"
   }
 }
