@@ -48,6 +48,7 @@
 - **Tamaño aproximado del dump**: ~1.5 MB.
 - **Checksum**: Hash SHA-256 verificado y almacenado privadamente.
 - **Integridad de datos**: 26 pruebas de integración PostgreSQL aprobadas (idempotencia y migraciones verificadas).
+- **Validación de clon limpio**: Verificada reproducibilidad completa desde clon local independiente (`D:\Pedro\AGROBO-phase1-verify`) con `npm ci`, quality gates, CDK local (`2.1133.0`) y contenedor temporal `agrosbo-phase1-verify-db` (`postgres:15-alpine`) en el puerto `54322` (contenedor auto-eliminado `--rm` al finalizar).
 - **Seguridad**: Ninguna contraseña local registrada en este documento.
 
 ## 7. AWS CLI y autenticación
@@ -154,7 +155,7 @@ aws sts get-caller-identity --profile agrosbo-readonly --query Arn --output text
 - [x] Auditoría de secretos y variables de entorno realizada (0 secretos tracked)
 - [x] `.env.example` actualizado
 - [x] Documento de workstation readiness creado
-- [ ] Clon limpio en ubicación temporal (Pendiente)
+- [x] Clon limpio reproducible (verificado en `D:\Pedro\AGROBO-phase1-verify` con DB temporal en puerto `54322`)
 - [ ] Push a remoto (Pendiente)
 - [ ] Validación de CI remoto en GitHub Actions (Pendiente)
 - [ ] Pull Request (PR) hacia `main` (Pendiente)
