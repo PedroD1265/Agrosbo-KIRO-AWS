@@ -114,8 +114,10 @@ El agente nunca obtiene permisos propios superiores a los del usuario.
 
 ## Modelo de acceso del colaborador externo
 
-1. Sistema genera token opaco aleatorio.
-2. Solo el hash (SHA-256) se persiste en PostgreSQL con estado y TTL.
+1. Sistema genera token opaco aleatorio con entropía criptográfica.
+2. Solo un hash resistente del token se persiste en PostgreSQL con estado y TTL.
+   El algoritmo, longitud y codificación definitivos se definen en Spec 24.
+   SHA-256 con token de alta entropía es una recomendación no normativa.
 3. SES envía correo con enlace que contiene el token.
 4. Colaborador accede al endpoint público con el token.
 5. Servidor valida hash, expiración, estado y rate limit.

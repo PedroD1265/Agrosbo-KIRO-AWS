@@ -1,13 +1,23 @@
+> **Estado: COMPLETADO / ARCHIVADO.**
+>
+> Checkpoints 0.2–0.15 completados. Cinco puertas humanas aprobadas. Spec 15
+> materializada (85 IDs). Auditoría final y gates completados. Plan de commits
+> y preparación de PR completados. Cuatro commits ejecutados con autorización
+> separada. Draft PR #3 creado con autorización separada.
+>
+> Este runbook no debe reejecutarse. El siguiente trabajo se define en
+> `docs/roadmap/delivery-roadmap-v2.md` y requiere nueva autorización.
+
 # AGROSBO Phase 0 Execution Runbook
 
 > Modo operativo: **paradas selectivas por riesgo**.
 >
 > Rama esperada: `docs/product-agent-scope-v2`.
 >
-> Último checkpoint aprobado: **0.2B — Product Scope v2**.
+> Último checkpoint completado: **0.15 — PR y cierre**.
 >
-> Siguiente bloque elegible con autorización humana:
-> **Bloque 1 — Checkpoints 0.3 y 0.4**.
+> Todos los bloques fueron ejecutados y aprobados.
+> Draft PR #3 creado. Pendiente de revisión final y merge.
 
 ## Convenciones normativas
 

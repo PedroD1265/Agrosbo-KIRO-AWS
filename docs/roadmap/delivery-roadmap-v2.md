@@ -14,7 +14,7 @@
 
 | Fase | Objetivo | Horizonte | Estado |
 | --- | --- | --- | --- |
-| 0 | Gobierno documental y técnico (incluye Spec 15) | P0 | EN CURSO |
+| 0 | Gobierno documental y técnico (incluye Spec 15) | P0 | COMPLETADA (PR #3 pendiente de merge) |
 | 1 | Spikes críticos y baseline AWS | P0 | PLANNED |
 | 2 | Despliegue AWS del core existente | P0 | PLANNED |
 | 3 | Agente operacional | P0 | PLANNED |
@@ -46,7 +46,7 @@ P0 debe completarse (incluyendo Spec 31) antes de iniciar P1. P2 no bloquea.
 
 | # | Spec | Horizonte | Dependencia | Objetivo | Criterio de entrada | Criterio de salida | Estado |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 15 | product-agent-scope-v2 | P0 | Contrato canónico aprobado; auditoría y documentos derivados aprobados; ADRs y arquitectura aprobados; documentación y Steering alineados (Checkpoints 0.2–0.8) | Formalizar requirements, design y tasks de la nueva dirección de producto | Checkpoints 0.2–0.8 aprobados | requirements.md + design.md + tasks.md coherentes, trazables y aprobados | EN CURSO |
+| 15 | product-agent-scope-v2 | P0 | Contrato canónico aprobado; auditoría y documentos derivados aprobados; ADRs y arquitectura aprobados; documentación y Steering alineados (Checkpoints 0.2–0.8) | Formalizar requirements, design y tasks de la nueva dirección de producto | Checkpoints 0.2–0.8 aprobados | requirements.md + design.md + tasks.md coherentes, trazables y aprobados | COMPLETADA (PR #3 pendiente de merge) |
 | 16 | multi-agent-workflow | P0 | Spec 15 aprobada | Definir colaboración segura entre agentes de desarrollo (Kiro, Codex, Antigravity, Lovable, otros): ownership de archivos, handoffs, checkpoints, reglas Git, un solo escritor por working tree, worktrees/ramas separadas para paralelismo, prohibición de merge/push/deploy autónomos | Spec 15 aprobada | Reglas de colaboración multi-agente documentadas y operativas | PLANNED |
 | 17 | critical-cloud-spikes | P0 | Spec 15 aprobada | Validar viabilidad técnica: Bedrock tool calling, Transcribe streaming, SES delivery events, token hash flow | Spec 15 aprobada | Spike report con resultados verificados por servicio | PLANNED |
 | 18 | aws-infrastructure-baseline | P0 | Spec 17 | CDK stack mínimo: VPC, Aurora, S3, Secrets Manager, CloudWatch | Spikes validados | Stack desplegable; db:migrate exitoso contra Aurora | PLANNED |

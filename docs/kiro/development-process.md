@@ -25,10 +25,11 @@ Specs materializadas (carpeta y archivos existen):
 - `project-foundation-and-risk-spikes` (histórica).
 - `platform-stabilization-and-governance` (completada).
 - `cloud-services-readiness` (completada, PR #2).
+- `product-agent-scope-v2` (completada, PR #3 pendiente de merge; 85 IDs
+  únicos; Requirements, Design y Tasks existen).
 
-Próxima Spec de Fase 0 (todavía no materializada):
-- `product-agent-scope-v2` — Requirements se crearán en Checkpoint 0.9, Design
-  en 0.10, Tasks en 0.11. Siempre secuencial.
+Fase 0 completó Checkpoints 0.2–0.15. PR #3 permanece Draft hasta revisión
+humana. Spec 16 y Spec 17 son trabajo posterior no iniciado.
 
 Mapa completo: [`docs/spec-map.md`](../spec-map.md). Secuencia aprobada: Specs
 15–31 en [`docs/roadmap/delivery-roadmap-v2.md`](../roadmap/delivery-roadmap-v2.md).

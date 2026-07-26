@@ -53,7 +53,7 @@ AGROSBO es una **plataforma web agrícola operacional** que:
 
 Resumen honesto de lo que existe en código a la fecha de este documento. La
 matriz detallada con evidencia por capacidad se mantendrá en
-`docs/product/capability-status-matrix.md` (documento planificado).
+`docs/product/capability-status-matrix.md`.
 
 ### Implementado y funcional
 
@@ -118,8 +118,11 @@ matriz detallada con evidencia por capacidad se mantendrá en
 4. **Acciones visibles y auditables**: toda mutación queda registrada con autor,
    timestamp y contexto.
 5. **Mínimo privilegio**: cada actor accede solo a lo que necesita.
-6. **Confirmación explícita**: ninguna mutación se ejecuta sin aprobación del
-   usuario.
+6. **Confirmación explícita**: toda mutación interna propuesta por el agente
+   requiere confirmación del usuario en la PWA. Excepciones controladas
+   (respuestas externas vía token, eventos SES verificables, expiración TTL,
+   revocación autorizada) usan su propia autorización/validación, idempotencia
+   y auditoría. Ninguna excepción habilita mutación autónoma del LLM.
 7. **No SQL libre**: el agente no genera ni ejecuta SQL; solo invoca
    herramientas parametrizadas.
 8. **No acceso irrestricto a base de datos**: toda consulta pasa por
@@ -189,7 +192,7 @@ del hackathon. El conjunto integrado P0 está PLANNED; sin embargo, varios
 componentes base ya están IMPLEMENTED o PARTIAL (CRUD de tareas, usuarios/RBAC,
 cola offline, idempotencia, observaciones, adjuntos locales, providers boundary,
 Lambda adapter). El estado exacto de cada capacidad se mantendrá en
-`docs/product/capability-status-matrix.md` (documento planificado).
+`docs/product/capability-status-matrix.md`.
 
 ### 6.1 Despliegue del core en AWS
 
@@ -422,7 +425,7 @@ documentos de arquitectura correspondientes.
 ## 9. Personas resumidas
 
 Resumen de roles. La matriz completa con permisos detallados se mantendrá en
-`docs/product/personas-and-permissions.md` (documento planificado).
+`docs/product/personas-and-permissions.md`.
 
 | Persona | Descripción | Alcance |
 | --- | --- | --- |
@@ -645,7 +648,7 @@ se limita a la cola de mutaciones y al idMap de reconciliación.
 ## 16. Golden paths resumidos
 
 Resumen de los flujos principales. El documento detallado con pasos exactos se
-mantendrá en `docs/product/golden-paths-p0-p1.md` (documento planificado).
+mantendrá en `docs/product/golden-paths-p0-p1.md`.
 
 ### P0 — Flujo principal
 
@@ -687,7 +690,7 @@ Métricas verificables y prudentes para evaluar la entrega.
 | P0 completo | Todas las capacidades de la sección 6 demostrables |
 | P1 completo | Todas las capacidades de la sección 7 demostrables |
 | Golden path reproducible | Demo ejecutable de extremo a extremo sin ambigüedad |
-| Mutaciones sin confirmación | Cero (ninguna mutación ejecutada sin confirmación del usuario) |
+| Mutaciones internas sin confirmación PWA | Cero (ninguna mutación interna propuesta por el agente ejecutada sin confirmación explícita en la PWA) |
 | SQL generado por LLM ejecutado | Cero |
 | Acciones duplicadas por reintento | Cero en pruebas de idempotencia |
 | Estados de colaboración auditables | Historial completo por colaboración |
@@ -731,7 +734,7 @@ AGROSBO no debe afirmar ni dar a entender:
 - "Es multi-tenant completo."
 - "Toma decisiones financieras o contractuales autónomas."
 - "Reemplaza la asesoría de un agrónomo profesional."
-- "Ejecuta acciones sin consentimiento del usuario."
+- "Ejecuta mutaciones internas sin confirmación explícita del usuario en la PWA."
 - "Sus evaluaciones visuales son diagnósticos definitivos."
 
 Cualquier material de comunicación, documentación o UI que contradiga estas

@@ -183,7 +183,7 @@
 
 | # | Spec | Horizonte | Estado |
 |---|------|-----------|--------|
-| 15 | product-agent-scope-v2 | P0 | EN CURSO (Fase 0) |
+| 15 | product-agent-scope-v2 | P0 | COMPLETADA (PR #3 pendiente de merge) |
 | 16 | multi-agent-workflow | P0 | PLANNED (habilitador posterior a Fase 0) |
 | 17 | critical-cloud-spikes | P0 | PLANNED |
 | 18 | aws-infrastructure-baseline | P0 | PLANNED |
@@ -201,9 +201,9 @@
 | 30 | security-cost-reliability-hardening | P0 | PLANNED |
 | 31 | demo-hardening-and-submission-v2 | P0 | PLANNED |
 
-> **Spec 15**: Fase 0 en curso. Su carpeta `.kiro/specs/product-agent-scope-v2/`
-> y archivos Requirements/Design/Tasks todavía no existen; se crearán
-> secuencialmente en Checkpoints 0.9–0.11.
+> **Spec 15**: Fase 0 completada documentalmente. Los archivos existen en
+> `.kiro/specs/product-agent-scope-v2/` (requirements.md, design.md, tasks.md).
+> 85 requirement IDs únicos. PR #3 pendiente de revisión final y merge.
 
 ### Notas de reconciliación con Specs 1–14
 

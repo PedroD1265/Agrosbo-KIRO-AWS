@@ -62,7 +62,7 @@
 | Provider: local attachments | IMPLEMENTED | CURRENT | No | Solo dev/test |
 | Provider: S3 attachments | PLACEHOLDER | PLANNED P0 | No | Throws "not implemented" |
 | Provider: document extraction (noop) | PLACEHOLDER | CURRENT | No | Stub noop; capacidad real ausente |
-| Provider: Textract | PLACEHOLDER | PLANNED P0 | No | Throws "not implemented" |
+| Provider: Textract | PLACEHOLDER | FUTURE SPEC | No | Heredado; no obligatorio P0; alcance diferido (ADR 013) |
 | Health checks (live + ready) | IMPLEMENTED | CURRENT | No | Funcional |
 | Idempotencia HTTP atómica | IMPLEMENTED | CURRENT | No | DB + mem; tests de concurrencia |
 | Lambda adapter | IMPLEMENTED | CURRENT | No | Código funcional; no verificado en AWS |
@@ -82,7 +82,7 @@
 | Capacidad | Estado actual | Horizonte | Componentes base existentes |
 | --- | --- | --- | --- |
 | Despliegue AWS (CDK completo) | PLACEHOLDER | PLANNED P0 | CDK scaffold vacío; Lambda adapter, db dual-path, providers boundary, health checks |
-| Agente operacional | DOCUMENTED_ONLY | PLANNED P0 | farm-assistant-plan.md existe (obsoleto, será superseded); ningún código funcional |
+| Agente operacional | DOCUMENTED_ONLY | PLANNED P0 | Arquitectura activa en docs/architecture/operational-agent-plan.md; farm-assistant-plan.md SUPERSEDED; ningún código funcional |
 | Consultas por texto | MISSING | PLANNED P0 | — |
 | Entrada por voz (Transcribe) | MISSING | PLANNED P0 | — |
 | Respuestas habladas (Polly) | MISSING | PLANNED P0 | — |

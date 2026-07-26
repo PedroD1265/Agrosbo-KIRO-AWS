@@ -38,7 +38,7 @@
 | 16 | Agente | Produce evaluación visual preliminar | Síntomas, causas, urgencia, confianza, aviso de seguridad |
 | 17 | Usuario | Crea observación desde evaluación (confirma borrador) | Observación registrada vía cola offline |
 | 18 | Usuario | Consulta "¿qué pasa si retraso el riego 3 días?" | IrrigationDelayScenario calcula |
-| 19 | Agente | Explica escenarios | Baseline, expected, worst, confianza, supuestos |
+| 19 | Agente | Explica escenarios | baseline, bestCase, expectedCase, worstCase, range, assumptions, dataUsed, missingData, confidence |
 
 ### Variante con voz
 
@@ -98,7 +98,7 @@
 
 | Métrica | Valor esperado |
 | --- | --- |
-| Mutaciones sin confirmación | 0 |
+| Mutaciones internas propuestas por el agente ejecutadas sin confirmación PWA | 0 |
 | Duplicados tras reintento offline | 0 |
 | SQL generado por LLM ejecutado | 0 |
 | Evaluación visual sin aviso de seguridad | 0 |

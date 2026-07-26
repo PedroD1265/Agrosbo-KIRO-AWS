@@ -21,7 +21,7 @@ No se crean recursos AWS. No se realizan commits sin autorización.
 - **Checkpoint**: 0.3.
 - **Dependencias**: T-01.
 - **Requirement IDs**: REQ-A05, REQ-L06.
-- **Design**: §5.1 Canónicos; §8 Trazabilidad.
+- **Design**: §5.1b Evidencia auditada de CURRENT; §8 Trazabilidad.
 - **Archivos**: `docs/reviews/current-capability-audit-v2.md`.
 - **Evidencia**: Archivo existe; 165 tests documentados; CURRENT vs PLANNED separados.
 
@@ -105,11 +105,14 @@ No se crean recursos AWS. No se realizan commits sin autorización.
 - **Archivos**: `.kiro/specs/product-agent-scope-v2/tasks.md`.
 - **Evidencia**: tasks.md existe; 14 tareas; dependencias acíclicas; mappings a Requirements y Design revisados; prettier PASS.
 
-## Tareas pendientes de Fase 0
+## Tareas de cierre completadas
 
 ### T-11: Auditoría de consistencia
 
-- **Estado**: Pendiente.
+- **Estado**: Completado.
+- **Evidencia**: Auditoría A–P completada; 31 archivos auditados; 82 enlaces
+  relativos comprobados; 0 rotos; trazabilidad de 85 IDs validada; correcciones
+  mecánicas completadas; aprobación humana del Bloque 5.
 - **Checkpoint**: 0.12.
 - **Dependencias**: T-10.
 - **Requirement IDs**: REQ-A01–A06, REQ-B01–B06, REQ-C01–C08, REQ-D01–D06, REQ-E01–E12, REQ-F01–F07, REQ-G01–G07, REQ-H01–H04, REQ-I01–I09, REQ-J01–J06, REQ-K01–K03, REQ-L01–L07, REQ-NEG01–NEG04.
@@ -122,7 +125,10 @@ No se crean recursos AWS. No se realizan commits sin autorización.
 
 ### T-12: Gates finales
 
-- **Estado**: Pendiente.
+- **Estado**: Completado.
+- **Evidencia**: format PASS; encoding PASS; lint 0 errores / 154 warnings;
+  typecheck PASS; unit 132; MemStorage 7; integration PostgreSQL 26; total 165;
+  build PASS; db:check PASS; PostgreSQL healthy.
 - **Checkpoint**: 0.13.
 - **Dependencias**: T-11 limpia.
 - **Requirement IDs**: REQ-L06.
@@ -135,7 +141,10 @@ No se crean recursos AWS. No se realizan commits sin autorización.
 
 ### T-13: Plan de commits
 
-- **Estado**: Pendiente.
+- **Estado**: Completado.
+- **Evidencia**: Plan textual de cuatro commits producido. El checkpoint no
+  ejecutó Git. Los commits se ejecutaron después bajo autorización humana
+  separada.
 - **Checkpoint**: 0.14.
 - **Dependencias**: T-12.
 - **Requirement IDs**: REQ-L05.
@@ -148,7 +157,10 @@ No se crean recursos AWS. No se realizan commits sin autorización.
 
 ### T-14: PR y cierre
 
-- **Estado**: Pendiente.
+- **Estado**: Completado.
+- **Evidencia**: Título, cuerpo, riesgos, evidencia y checklist preparados. El
+  checkpoint no creó el PR. Draft PR #3 fue creado posteriormente bajo
+  autorización humana separada. Ready y merge siguen pendientes.
 - **Checkpoint**: 0.15.
 - **Dependencias**: T-13.
 - **Requirement IDs**: REQ-L05.

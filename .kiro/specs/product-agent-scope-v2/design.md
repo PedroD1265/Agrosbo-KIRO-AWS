@@ -31,7 +31,7 @@ implementación funcional.
 | 1     | product-scope-v2.md                                                              | Contrato canónico del producto |
 | 2     | ADRs 014–018                                                                     | Decisiones técnicas Accepted   |
 | 3     | operational-agent-plan.md, collaboration-model.md                                | Arquitectura técnica           |
-| 4     | capability-status-matrix.md, personas-and-permissions.md, golden-paths-p0-p1.md  | Producto derivado              |
+| 4     | current-capability-audit-v2.md (evidencia auditada), capability-status-matrix.md, personas-and-permissions.md, golden-paths-p0-p1.md | Evidencia auditada + producto derivado |
 | 5     | delivery-roadmap-v2.md, spec-map.md                                              | Secuencia                      |
 | 6     | Esta Spec (requirements/design/tasks)                                            | Formalización                  |
 | 7     | Steering                                                                         | Reglas operativas              |
@@ -84,6 +84,7 @@ product-scope-v2 (canónico)
 ├── ADRs 014–018 (decisiones)
 │   ├── operational-agent-plan (técnico, basado en ADR 015, 018)
 │   └── collaboration-model (técnico, basado en ADR 017)
+├── current-capability-audit-v2 (evidencia auditada)
 ├── capability-status-matrix (derivado)
 ├── personas-and-permissions (derivado)
 ├── golden-paths-p0-p1 (derivado)
