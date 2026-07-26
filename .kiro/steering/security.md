@@ -1,75 +1,89 @@
-# AGROSBO - Seguridad
+# AGROSBO — Seguridad
 
-Responsabilidad: autenticación, autorización, secretos, archivos y datos
-sensibles. Refleja la implementación real y los requisitos de producción.
-Reemplaza el modelo previo basado en Cognito (ver ADR 008); Cognito queda
-diferido.
+Responsabilidad: autenticación, autorización, secretos, seguridad del agente y
+colaboradores. Fuente canónica:
+[`docs/product/product-scope-v2.md`](../../docs/product/product-scope-v2.md) §5, §10.
 
-## Autenticación actual (Implemented now)
+## Autenticación CURRENT
 
-- **Cookie de sesión firmada (HMAC-SHA256)**: `userId.expiresAt.firma`,
-  `HttpOnly`, `SameSite=Lax`, `Max-Age` 7 días, `Secure` en producción
-  (`api/src/auth.ts`).
-- Contraseñas con **scrypt** + salt y comparación en tiempo constante
-  (`api/src/users.ts`).
-- `SESSION_SECRET` fuera del código; en dev con `AUTH_ENFORCEMENT=off` se usa un
-  secreto efímero (sesiones mueren al reiniciar).
-- Revocación de sesión: blocklist en memoria + tabla `revoked_sessions`.
-- `AUTH_ENFORCEMENT=off` (default de dev) inyecta un usuario admin sintético y
-  **abre el acceso**: apto solo para desarrollo.
+- Cookie de sesión firmada HMAC-SHA256 con `SESSION_SECRET`; HttpOnly; SameSite.
+- Contraseñas con scrypt + salt.
+- `AUTH_ENFORCEMENT` on/off; off inyecta demo admin (solo dev).
+- Revocación en memoria + tabla `revoked_sessions`.
+
+## Autenticación PLANNED P0
+
+- Amazon Cognito User Pool + JWT authorizer.
+- Proveedor local solo para dev/tests.
+- `APP_AUTH_PROVIDER=local-session|cognito-jwt`.
+- En producción, `cognito-jwt` obligatorio.
 
 ## RBAC
 
-- Roles: `admin`, `tecnico`, `encargado`, `operario`, `finanzas`.
-- Guards `requireRole` en escrituras sensibles (inventario, cosecha,
-  aplicaciones, gastos/mano de obra, usuarios). Matriz en
-  `web/src/lib/permissions.ts`.
+- Roles CURRENT: admin, técnico, encargado, operario, finanzas.
+- Permisos implementados: inventory:write, expenses:write, applications:write,
+  harvestLots:write, users:manage.
+- Permisos PLANNED P0: collaborators:invite (no implementado).
+- El agente actúa con permisos efectivos del usuario; nunca superiores.
 
-## Arquitectura de identidad objetivo (staging/producción)
+## Modelo de acción del agente (ADR 015)
 
-- **Amazon Cognito User Pool** para staging y producción (ADR 010).
-- **JWT authorizer** de API Gateway HTTP API.
-- Usuario interno vinculado por `sub` (subject) de Cognito; roles y membresías
-  en PostgreSQL.
-- Proveedor local de sesión (`LocalSessionIdentityProvider`) únicamente para
-  desarrollo y tests.
-- `APP_AUTH_PROVIDER=local-session|cognito-jwt` determina el proveedor activo.
-- En producción, `cognito-jwt` es obligatorio; `local-session` está prohibido.
+- Herramientas estructuradas; no SQL libre.
+- Navegación y lectura: sin confirmación.
+- Mutaciones internas: borrador → confirmación explícita PWA → cola offline →
+  idempotencia → auditoría.
+- Confirmación reforzada para: gastos, inventario, eliminaciones, publicaciones,
+  comunicaciones externas, decisiones con efecto contractual/financiero.
+- El servidor no puede mutar por decisión del LLM sin confirmación PWA.
+
+### Excepciones controladas (no requieren confirmación PWA)
+
+- Respuesta del colaborador externo: autorizada por token válido + acción
+  explícita; idempotente y auditada.
+- Eventos SES (delivery notifications): validados y deduplicados.
+- Expiración por TTL: automática.
+- Revocación: iniciada manualmente por usuario autorizado; su actualización debe
+  validarse y auditarse; no requiere una segunda confirmación adicional salvo que
+  la futura Spec la clasifique como acción sensible.
+
+Ninguna excepción permite mutación autónoma del LLM.
+
+### Semántica de eventos SES
+
+- Rechazo SES no crea sent.
+- sent solo con aceptación SES + message ID.
+- delivered solo con evento verificable.
+- opened_link no prueba lectura humana.
+- Eventos pueden repetirse y llegar fuera de orden.
+- Deduplicación obligatoria.
+
+## Colaboradores externos (ADR 017)
+
+- Token opaco con entropía criptográfica.
+- Solo hash resistente persistido.
+- TTL, revocación, rate limiting, scope de una tarea.
+- HTTPS obligatorio en producción.
+- opened_link no prueba lectura humana.
+- Eventos no lineales; deben deduplicarse.
+
+## Auditoría
+
+- Metadata mínima: usuario, herramienta, timestamp, duración, resultado técnico.
+- Identificadores de entidades.
+- Resultados resumidos o referencias.
+- No almacenar: tokens raw, secretos, contraseñas, audio, imágenes completas,
+  payloads sensibles.
+- Parámetros sensibles redactados.
+- Retención pendiente de Spec 30.
 
 ## Secretos
 
-- MUST gestionar credenciales y configuración sensible fuera del código.
-- MUST NOT commitear secretos: `.env`, `.env.*` (salvo `*.example`), `*.pem`,
-  `*.key` están en `.gitignore`; hook `secret-scan` bloquea commits con secretos
-  staged.
-- MUST NOT registrar secretos ni PII en logs (el logger omite query strings y
-  hashea la idempotency key).
+- MUST gestionar credenciales fuera del código.
+- MUST NOT commitear secretos.
+- MUST NOT registrar secretos ni PII en logs.
 
-## Archivos
+## Evaluación visual (ADR 018)
 
-- Estado actual: adjuntos en disco local bajo `uploads/`, servidos con
-  `X-Content-Type-Options: nosniff`, con guard anti path-traversal y validación
-  MIME/tamaño.
-- Estado objetivo: **S3 + URLs prefirmadas**; no exponer buckets públicos;
-  aislar archivos por organización cuando exista tenancy.
-
-## PII y datos financieros
-
-- MUST tratar nombres, correos y datos financieros como sensibles y minimizar su
-  exposición en respuestas y logs.
-
-## Aislamiento futuro por organización (tenancy)
-
-- Toda consulta MUST limitarse por membresía de organización/granja; los IDs en
-  la URL NO conceden acceso. Ver `docs/architecture/multi-tenancy-plan.md`.
-
-## Seguridad del asistente (futuro)
-
-- Solo lectura en la primera versión; sin SQL libre; sin acceso entre
-  organizaciones; sin acciones sin confirmación humana; registrar tool calls;
-  RBAC obligatorio. Ver `docs/architecture/farm-assistant-plan.md`.
-
-## Seguridad del marketplace (futuro)
-
-- Separar propietario y contraparte; autorizar por membresía; no exponer datos
-  internos de una organización a otra.
+- Evaluación preliminar; nunca diagnóstico definitivo.
+- Aviso de seguridad en cada evaluación.
+- No recomendar automáticamente agroquímicos.

@@ -1,59 +1,66 @@
-# AGROSBO - Evolución de la plataforma
+# AGROSBO — Evolución de la plataforma
 
-Explica la postura de modularidad y los dominios futuros. Ver ADR 009. Ninguno de
-los dominios "futuros" está implementado.
+> Fuente canónica: [`../product/product-scope-v2.md`](../product/product-scope-v2.md).
+> Roadmap: [`../roadmap/delivery-roadmap-v2.md`](../roadmap/delivery-roadmap-v2.md).
+> Última actualización: julio 2026 (Fase 0).
 
 ## Monolito modular (postura actual)
 
 - Un backend Express desplegable como una unidad, organizado por módulos de
   dominio (`api/src/*.ts`), con contratos compartidos en `shared/`.
 - Objetivo de despliegue: Lambda (ADR 007). No microservicios.
+- Se dividirá solo cuando una necesidad real lo justifique, con un ADR.
 
-## Por qué NO microservicios (todavía)
+## Evolución por horizonte
 
-- Volumen y equipo actuales no justifican la complejidad operativa (despliegue,
-  observabilidad, consistencia distribuida) de múltiples servicios.
-- El monolito modular permite aislar dominios por módulo y evolucionar
-  incrementalmente.
-- Se dividirá solo cuando una necesidad real (escala, aislamiento, equipos
-  independientes) lo justifique, con un ADR que lo respalde.
+### CURRENT — Core agrícola offline-first
 
-## Tenancy (transversal, futura)
+Gestión integral de finca: bloques, invernaderos, campañas, tareas,
+observaciones, aplicaciones, inventario, riego, cosecha, gastos, apicultura,
+adjuntos, clima, alertas, reportes. PWA offline-first con cola durable e
+idempotencia. Autenticación local, RBAC, providers boundary. Sin despliegue AWS.
 
-Capa de aislamiento por organización/granja (ver `multi-tenancy-plan.md`), no un
-dominio en sí. Debe aplicarse antes de exponer comercio o mensajería multiusuario.
+### P0 — Agente operacional y despliegue cloud
 
-## Dominio: Marketplace de productos (future, NO implementado)
+- Despliegue AWS: S3+CF+OAC, Lambda, Aurora, Data API, Cognito, S3 adjuntos.
+- Asistente AGROSBO: Bedrock tool calling, herramientas estructuradas,
+  confirmación, cola offline, auditoría.
+- Voz: Transcribe STT, Polly TTS.
+- Colaboradores externos: token opaco, SES, estados honestos.
+- Evaluación visual preliminar: Bedrock multimodal.
+- Motor determinista: IrrigationDelayScenario.
+- Golden path reproducible, seguridad y hardening.
+- Single-organization.
 
-Entidades propuestas (separadas del inventario interno):
-- `listing` (publicación que referencia inventario), `availability`, `offer`,
-  `order`, `order_item`, historial de estado.
+### P1 — Tienda pública de una finca
 
-Reglas:
-- Una publicación **referencia** inventario; no lo reemplaza ni lo duplica.
-- Comprador y vendedor son organizaciones distintas; autorización por membresía.
+- Página pública con productos, URL, QR.
+- Solicitudes de compra sin registro.
+- Comparación de interesados.
+- WhatsApp wa.me prellenado (envío humano).
+- Notas de voz offline.
+- Resumen hablado del día.
+- Single-organization.
 
-## Dominio: Servicios agrícolas (future/differentiator, NO implementado)
+### P2 — Visión futura (fuera del alcance obligatorio)
 
-Entidades propuestas:
-- `provider_profile`, `equipment`, `service_request`, `quote`, `appointment`,
-  `work_order`, historial, mensajes asociados.
+- Marketplace multi-organización.
+- Pagos, reputación, logística.
+- Mensajería en tiempo real (WebSocket).
+- WhatsApp Cloud API.
+- Multi-tenancy completo.
+- Automatización financiera/contractual avanzada.
+- Diagnóstico agronómico especializado.
 
-Reglas:
-- `service_request`, `quote` y `work_order` son entidades **distintas** con
-  estados explícitos.
-- Una conversación **no** sustituye a una solicitud u orden estructurada.
+P2 puede documentarse arquitectónicamente pero no retrasará P0 ni P1.
 
-## Dominio: Mensajería y notificaciones (future, NO implementado)
+## Tenancy
 
-- Mensajes asociados a solicitudes/órdenes; notificaciones.
-- Candidatos AWS diferidos: API Gateway WebSocket, SES, SQS. Requiere Spec.
+Single-organization en P0/P1. Multi-tenancy completo es P2. El modelo de
+colaborador externo (token scoped) funciona sin tenancy.
 
-## Dominio: Copiloto de datos (differentiator, NO implementado)
+## Referencias
 
-- Capa de solo lectura sobre herramientas autorizadas. Ver `farm-assistant-plan.md`.
-
-## Orden de evolución recomendado
-
-Operaciones (actual) → infraestructura serverless → diferenciadores (asistente,
-primer flujo de servicio) → comercio/servicios completos → mensajería.
+- [`../adr/014-product-scope-p0-p1-p2.md`](../adr/014-product-scope-p0-p1-p2.md).
+- [`./operational-agent-plan.md`](./operational-agent-plan.md).
+- [`./collaboration-model.md`](./collaboration-model.md).

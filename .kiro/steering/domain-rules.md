@@ -1,61 +1,64 @@
-# AGROSBO - Reglas de dominio
+# AGROSBO — Reglas de dominio
 
-Responsabilidad: reglas transversales de la plataforma. No cubre garantías
-técnicas de persistencia (ver data-integrity.md). Reemplaza las reglas previas
-específicas de trazabilidad de café (transformaciones, embarques, sello), que
-quedan como visión de trazabilidad futura, no como reglas activas del MVP.
+Responsabilidad: reglas transversales de la plataforma.
 
 ## Cantidades y costos
 
-- MUST tratar cantidades y costos de forma **determinista** (sin factores
-  ocultos ni estimaciones automáticas).
-- El **inventario nunca queda negativo** salvo por un evento explícito y
-  registrado; toda salida valida stock (`InventoryStockError` / constraint
-  `stock >= 0`).
-- MUST registrar cada movimiento de inventario con su delta, motivo y, cuando
-  aplique, costo unitario y total.
+- MUST tratar cantidades y costos de forma determinista.
+- Inventario nunca negativo salvo evento explícito y registrado.
+- MUST registrar cada movimiento con delta, motivo y costo cuando aplique.
 - MUST asociar costos a una moneda explícita (por defecto BOB).
 
 ## Idempotencia y sincronización
 
-- MUST tratar las mutaciones como **idempotentes** por clave de cliente
-  (`X-Idempotency-Key`), de modo que un reintento no duplique registros.
-- MUST reconciliar IDs temporales del cliente con IDs reales del servidor.
-- Ver offline-first.md para el protocolo completo.
+- MUST tratar mutaciones como idempotentes por clave de cliente.
+- MUST reconciliar IDs temporales con IDs reales.
 
 ## Estados explícitos
 
-- MUST usar estados explícitos y enumerados (operationalStatus, taskStatus,
-  irrigationStatus, etc.); no estados implícitos derivados de la ausencia de
-  datos.
-- MUST NOT borrar silenciosamente historial; una corrección se registra como
-  un evento nuevo, no como sobrescritura invisible.
+- MUST usar estados explícitos y enumerados.
+- MUST NOT borrar silenciosamente historial.
 
 ## Alertas
 
-- Las alertas son **derivadas y deterministas** del estado actual (inventario
-  bajo, riego vencido, observación sin atender, tarea vencida, carencia activa,
-  colmena sin inspección). No se persisten como fuente de verdad.
-- MUST ser **accionables** (entidad + motivo).
+- Derivadas y deterministas del estado actual.
+- MUST ser accionables (entidad + motivo).
 
-## Separación comercio / operación (futuro, aún no implementado)
+## Agente y datos
 
-Cuando se implemente el comercio agrícola:
-- MUST separar **inventario interno** de **publicaciones** (listings). Una
-  publicación referencia inventario, no lo reemplaza.
-- MUST modelar **solicitud**, **cotización** y **orden** como entidades
-  distintas con historial de estados; una conversación NO sustituye a una
-  solicitud u orden estructurada.
-- MUST NOT ejecutar ninguna acción financiera o contractual automática por IA;
-  toda acción requiere confirmación humana.
+- Toda afirmación sobre el estado real de la finca MUST estar basada en
+  herramientas y datos consultados.
+- Explicaciones generales, ayuda de interfaz y aclaraciones pueden generarse sin
+  herramientas cuando no afirmen hechos operativos.
+- El agente MUST indicar cuando no consultó información real.
+- MUST NOT inventar registros, mediciones, costos, fechas ni estados.
 
-## Tenancy (futuro)
+## Evaluación visual
 
-- Cuando se implemente multi-tenancy, todo dato de producción MUST asociarse a
-  una organización/granja y NO depender permanentemente de `org-default`.
+- Evaluación preliminar; nunca diagnóstico definitivo.
+- MUST NOT recomendar automáticamente pesticidas ni agroquímicos específicos.
+- MUST incluir aviso de seguridad y nivel de confianza.
+- AGROSBO no es sustituto de asesoría profesional.
 
-## Trazabilidad de cambios
+## Motor de escenarios
 
-- MUST mantener trazabilidad de acciones sensibles (creación/edición de
-  inventario, aplicaciones, cosechas, costos, usuarios).
-- MUST NOT usar IA para autorizar operaciones ni para calcular balances.
+- IrrigationDelayScenario es un módulo determinista separado.
+- El LLM explica pero MUST NOT realizar el cálculo principal.
+- MUST incluir supuestos, rango y confianza en toda salida.
+- MUST NOT garantizar resultados.
+
+## Acciones financieras y contractuales
+
+- MUST NOT ejecutar acciones financieras o contractuales automáticas por IA.
+- Toda acción requiere confirmación humana.
+
+## Trazabilidad
+
+- MUST mantener trazabilidad de acciones sensibles.
+- MUST NOT usar IA para autorizar permisos, gastos, contratos ni aceptación.
+
+## Colaboración P1 (tienda pública)
+
+- MUST separar inventario interno de publicaciones (listings).
+- MUST NOT aceptar compradores automáticamente.
+- Decisión final siempre humana.
