@@ -1,4 +1,6 @@
-# AGROSBO - Proceso de desarrollo con Kiro
+# AGROSBO — Proceso de desarrollo con Kiro
+
+> Última actualización: julio 2026 (Fase 0).
 
 Documenta cómo Kiro guía la ingeniería de AGROSBO. Solo se describen usos reales
 o aprobados. No se inventan estadísticas de productividad.
@@ -7,26 +9,39 @@ o aprobados. No se inventan estadísticas de productividad.
 
 Ocho documentos que fijan intención y reglas: `product`, `tech`, `structure`,
 `domain-rules`, `offline-first`, `data-integrity`, `security`, `hackathon-scope`.
-Son la fuente de verdad de "qué construimos y bajo qué reglas", y se realinearon
-al producto real durante la estabilización.
+Enlazan al contrato canónico (`docs/product/product-scope-v2.md`) como fuente de
+verdad del alcance.
 
 ## Specs (`.kiro/specs/`)
 
 Cada unidad de trabajo se formaliza como Spec con:
 - **Requirements** en notación **EARS** (SHALL / WHEN / IF-THEN).
-- **Design** (proceso, límites, criterios de validación).
-- **Tasks** (checkpoints, dependencias, paralelización).
+- **Design** (componentes, interfaces, flujos, límites, validación).
+- **Tasks** (checkpoints, dependencias, criterios de terminado).
 
-Specs existentes:
-- `project-foundation-and-risk-spikes` (fundación + Spike A, histórica).
-- `platform-stabilization-and-governance` (esta fase).
-Mapa completo en `docs/spec-map.md`.
+Requirements → Design → Tasks siempre secuencial; nunca en paralelo.
+
+Specs materializadas (carpeta y archivos existen):
+- `project-foundation-and-risk-spikes` (histórica).
+- `platform-stabilization-and-governance` (completada).
+- `cloud-services-readiness` (completada, PR #2).
+- `product-agent-scope-v2` (completada, PR #3 pendiente de merge; 85 IDs
+  únicos; Requirements, Design y Tasks existen).
+
+Fase 0 completó Checkpoints 0.2–0.15. PR #3 permanece Draft hasta revisión
+humana. Spec 16 y Spec 17 son trabajo posterior no iniciado.
+
+Mapa completo: [`docs/spec-map.md`](../spec-map.md). Secuencia aprobada: Specs
+15–31 en [`docs/roadmap/delivery-roadmap-v2.md`](../roadmap/delivery-roadmap-v2.md).
 
 ## ADRs (`docs/adr/`)
 
-Decisiones arquitectónicas registradas y versionadas: 001-005 (histórico, con
-estado de supersesión) y 006-009 (giro, serverless, auth, modularidad). Cada
-decisión relevante queda trazable.
+Decisiones arquitectónicas registradas y versionadas:
+- 001–005: históricos.
+- 006–009: giro, serverless, auth, modularidad.
+- 010–013: Cognito, Amplify (superseded por 016), cloud boundaries, doc extraction.
+- 014–018: alcance P0/P1/P2, modelo de acción del agente, hosting S3+CF+OAC,
+  colaboradores externos, límites de inteligencia agrícola.
 
 ## Hooks (`.kiro/hooks/`)
 
@@ -35,32 +50,27 @@ Quality gates deterministas, sin IA ni despliegue:
 - `compile-check`, `unit-tests` (Stop).
 - `secret-scan` (PreToolUse; bloquea commit/push con secretos staged).
 
-## Checkpoints
+## Fase 0 — Proceso documental actual
 
-El trabajo avanza por checkpoints con autorización explícita; no se salta de una
-Spec a la siguiente automáticamente. La estabilización se detiene antes del
-commit para revisión humana.
+Dirigida por el [runbook](../roadmap/phase-0-execution-runbook.md):
+- Bloques 1–5 con puertas humanas.
+- Una sola sesión escritora por working tree.
+- Paralelismo de escritura solo con worktree, rama y ownership separados.
+- Ningún agente hace commit, push, PR, merge o deploy sin autorización.
+- Spec 16 (multi-agent-workflow) definirá el workflow detallado de colaboración
+  entre agentes de desarrollo (Kiro, Codex, Antigravity, Lovable) después de
+  Fase 0; no es entregable del runbook actual.
 
-## Auditoría arquitectónica
+## Baseline técnico
 
-Se realizó una auditoría completa del working tree (arquitectura real, gaps,
-estado/memoria, offline, espacial, servicios AWS) que fundamenta el giro (ADR
-006) y esta estabilización.
-
-## Revisión incremental
-
-Cambios acotados y revisables; documentación separada del código; plan de
-commits por tema (baseline, gobernanza, tests, metadata).
-
-## Trazabilidad
-
-Requerimiento (EARS) → Design → Task → cambio en código/documentación, con ADRs
-como decisiones y Steering como marco. El Spec map conecta cada dominio con sus
-servicios AWS y las funcionalidades de Kiro que se usarán.
+- 165 pruebas aprobadas (132 unitarias + 7 MemStorage + 26 integración PG).
+- Quality gates: format, encoding, lint (0 errores), typecheck, build, db:check.
+- CI: GitHub Actions con quality-gates + integration-postgres.
 
 ## Evidencia conservada para la presentación
 
 - Steering, Specs (EARS/Design/Tasks), ADRs y Spec map versionados.
-- Informe de auditoría y de estabilización.
-- Resultados de quality gates (format/lint/typecheck/test/build).
-- Hooks deterministas y respaldo previo del working tree.
+- Auditoría de capacidades (`docs/reviews/current-capability-audit-v2.md`).
+- Runbook y checkpoints.
+- Resultados de quality gates.
+- Hooks deterministas.

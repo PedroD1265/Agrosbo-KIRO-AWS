@@ -1,6 +1,6 @@
 # AGROSBO
 
-> **English summary (short).** AGROSBO is an **offline-first web platform to manage farm operations**: farms, blocks, greenhouses, campaigns, tasks, observations, agrochemical applications, inventory, irrigation, weather, alerts, harvest, basic costs and operational reports — usable in the field with poor connectivity. It is a **Progressive Web App** (React + Vite) backed by an **Express modular monolith** (TypeScript) over **PostgreSQL** (Drizzle), with an **IndexedDB offline queue** and **optimistic sync**. The hackathon target is an **AWS serverless** deployment (S3 + CloudFront + API Gateway + Lambda + Aurora Serverless v2 + Data API + S3 attachments). Auth uses a signed session cookie for the demo; **Cognito is deferred**. This document is written primarily in Spanish; details live under [`/docs`](docs/).
+> **English summary (short).** AGROSBO is an **offline-first web platform to manage farm operations**: farms, blocks, greenhouses, campaigns, tasks, observations, agrochemical applications, inventory, irrigation, weather, alerts, harvest, basic costs and operational reports — usable in the field with poor connectivity. It is a **Progressive Web App** (React + Vite) backed by an **Express modular monolith** (TypeScript) over **PostgreSQL** (Drizzle), with an **IndexedDB offline queue** and **optimistic sync**. The hackathon target is an **AWS serverless** deployment (S3 + CloudFront + OAC + API Gateway + Lambda + Aurora Serverless v2 + Data API + S3 attachments + Bedrock + Transcribe + Polly + SES). Auth currently uses a signed session cookie (local dev/test only); **Cognito is PLANNED P0** for staging/production. The **Asistente AGROSBO** (operational farm agent with structured tools, voice, visual assessment and deterministic scenarios) is **PLANNED P0**, not yet implemented. No AWS resources are currently deployed. This document is written primarily in Spanish; details live under [`/docs`](docs/).
 
 ---
 
@@ -17,7 +17,7 @@ Muchas granjas operan con datos dispersos (cuadernos, mensajes, hojas de cálcul
 - Registro operativo conectado: bloques/invernaderos, campañas, tareas, observaciones, aplicaciones, inventario, riego, cosecha y costos básicos.
 - **Offline-first real**: se captura sin conexión y se sincroniza sin duplicar al recuperar red.
 - Datos que generan **acciones** (alertas accionables), no solo tableros pasivos.
-- Base preparada para crecer hacia comercio agrícola y un copiloto de datos (visión futura, no implementada).
+- Base preparada para un **agente operacional multimodal** (Asistente AGROSBO) con herramientas, voz, visión y escenarios — dirección P0 aprobada, no implementada. Detalle en [`docs/product/product-scope-v2.md`](docs/product/product-scope-v2.md).
 
 ## 3. Estado de capacidades
 
@@ -32,32 +32,47 @@ Cada capacidad se etiqueta con precisión. No se declara implementado algo que s
 - Adjuntos con validación (imágenes/PDF ≤ 10 MB) almacenados en **disco local** con metadata en PostgreSQL.
 - Mapa espacial propio en **SVG/GeoJSON** (sin proveedor de tiles externo).
 
-### Being stabilized (esta fase)
-- Preparación de la plataforma para servicios cloud administrados (provider boundaries, migraciones reproducibles, idempotencia atómica, health checks).
-- Adaptación del cliente API para base URL configurable y auth por token.
+### Completado recientemente (PR #2 — cloud-services-readiness)
+- Preparación de la plataforma para servicios cloud administrados: provider boundaries, migraciones reproducibles, idempotencia atómica, health checks, CI con PostgreSQL.
+- Adaptación del cliente API: base URL configurable, AuthTokenProvider abstraction.
+- 165 pruebas aprobadas (132 unitarias + 7 MemStorage + 26 integración PostgreSQL).
 
-### Hackathon target (planificado, no desplegado)
-- Despliegue **AWS serverless**: S3 + CloudFront + API Gateway HTTP API + Lambda (Express vía adaptador serverless) + Aurora PostgreSQL Serverless v2 + RDS Data API + S3 para adjuntos con URLs prefirmadas + Secrets Manager + CloudWatch + CDK.
+### Hackathon target (PLANNED P0, no desplegado)
+- Despliegue **AWS serverless**: S3 privado + CloudFront + OAC, API Gateway HTTP API, Lambda (Express serverless), Aurora PostgreSQL Serverless v2 + RDS Data API, S3 para adjuntos con URLs prefirmadas, Secrets Manager, CloudWatch, CDK.
 - **Amazon Cognito** (User Pool + JWT authorizer) para staging/producción.
-- **Amplify Hosting** para el frontend PWA (despliegues por rama, API URL configurable).
-- **Bedrock** con tool calling como diferenciador aprobado (copiloto de datos, solo lectura).
+- **Asistente AGROSBO** (agente operacional multimodal): Bedrock con tool calling, Transcribe STT, Polly TTS, herramientas estructuradas, confirmación antes de mutaciones.
+- **Colaboradores externos** sin cuenta, con enlace seguro (token opaco, hash, TTL).
+- **Amazon SES** para notificaciones y enlaces.
+- **Evaluación visual preliminar** de fotografías agrícolas (Bedrock multimodal).
+- **IrrigationDelayScenario** (motor determinista de escenarios).
+- Detalle completo en [`docs/product/product-scope-v2.md`](docs/product/product-scope-v2.md).
 
-### Planned next (diferenciadores, solo tras estabilizar el core)
-- Consulta conversacional de datos de la granja mediante herramientas controladas (solo lectura).
-- Primer flujo estructurado de solicitud de servicio agrícola + orden de trabajo, con impacto visible en Today.
+### Planned next (P1, posterior a P0 estable)
+- Tienda pública de una sola finca (URL, QR, solicitudes sin registro).
+- Comparación explicada de interesados.
+- WhatsApp vía wa.me prellenado (envío humano).
+- Notas de voz capturadas offline.
+- Resumen hablado del día.
 
-### Long-term vision (no implementado)
-- Marketplace de productos, proveedores/maquinaria, mensajería en tiempo real, notificaciones externas, pagos, reputación, logística, automatización avanzada por IA.
+### Long-term vision (P2, no implementado)
+- Marketplace multi-organización, múltiples proveedores, mensajería en tiempo real, notificaciones push, pagos, reputación, logística, automatización avanzada por IA, multi-tenancy completo, WhatsApp Cloud API.
 
 ### Deferred / Not implemented
-- Multi-tenancy real, PostGIS, EventBridge/SQS/WebSocket, pagos, marketplace, mensajería. Ninguno está implementado hoy.
+- Multi-tenancy real, PostGIS, EventBridge/SQS/WebSocket, pagos, marketplace. Ninguno está implementado hoy.
+- **Amplify Hosting**: evaluado y descartado como target activo (ADR 016).
 - **Azure AI Document Intelligence**: candidato comparativo para extracción documental (benchmark pendiente contra Textract; ver ADR 013).
 
 ## 4. Golden path de la demo
 
-1. El propietario inicia sesión. 2. Abre **Today**. 3. Revisa granja, bloques, tareas, inventario, clima y alertas. 4. Abre una campaña o parcela. 5. **Pierde conexión.** 6. Registra una observación / tarea / aplicación / cosecha offline. 7. La mutación se guarda en **IndexedDB**. 8. La UI muestra el estado pendiente. 9. **Recupera conexión.** 10. La app sincroniza **sin duplicar**. 11. Se actualizan datos relacionados. 12. Revisa el impacto en Today, campaña, inventario y reportes. 13. Exporta un **reporte CSV**.
+### A. CURRENT (verificable hoy)
 
-Flujo diferenciador **futuro (roadmap, aún no implementado)**: 14. Pregunta al asistente qué requiere atención → 15. consulta herramientas autorizadas → 16. devuelve datos reales → 17. genera una solicitud de trabajo → 18. un proveedor cotiza → 19. se acepta y se crea una orden.
+1. Login. 2. Today: tareas, alertas, clima. 3. Revisar bloques/inventario/campañas. 4. **Pierde conexión.** 5. Registra observación/tarea/cosecha offline. 6. Mutación en IndexedDB. 7. UI muestra estado pendiente. 8. **Recupera conexión.** 9. Sincroniza sin duplicar (X-Idempotency-Key). 10. IDs reconciliados. 11. Impacto visible en Today/inventario/reportes. 12. Exporta reporte CSV.
+
+### B. PLANNED P0 (aprobado, no implementado)
+
+13. Consulta al Asistente AGROSBO (texto/voz). 14. Agente lee datos vía herramientas. 15. Navega visiblemente. 16. Prepara borrador. 17. Usuario confirma → cola offline → idempotencia. 18. SES acepta solicitud y devuelve message ID → sent (no implica entrega). 19. Colaborador accede mediante token válido → opened_link (puede ser escáner; no prueba lectura). 20. Colaborador acepta, rechaza o solicita aclaración → responded. 21. Foto agrícola → evaluación visual preliminar (Bedrock). 22. IrrigationDelayScenario → LLM explica.
+
+Detalle en [`docs/product/golden-paths-p0-p1.md`](docs/product/golden-paths-p0-p1.md).
 
 ## 5. Capturas / demo
 
@@ -79,26 +94,37 @@ flowchart LR
   EX --> AUTH[cookie HMAC + RBAC]
   AUTH --> RT[routes.ts]
   RT --> ST[IStorage: Mem o DbStorage]
-  ST --> PG[(PostgreSQL / Aurora Data API)]
+  ST --> PG[(PostgreSQL local)]
   RT --> WX[weather.ts] --> OM[Open-Meteo]
   RT --> FS[(uploads/ disco local)]
 ```
+
+> Nota: el camino RDS Data API existe en código pero no fue validado contra
+> Aurora real ni desplegado.
 
 ## 7. Arquitectura AWS objetivo (hackathon)
 
 ```mermaid
 flowchart LR
-  U[Navegador PWA] --> CF[CloudFront - origen único]
-  CF -->|/ , assets| S3W[(S3 estático)]
-  CF -->|/uploads/*| S3U[(S3 adjuntos)]
-  CF -->|/api/*| AGW[API Gateway HTTP API]
+  U[Navegador PWA] --> CF[CloudFront + OAC]
+  CF -->|/ , assets| S3W[(S3 privado frontend)]
+  U -->|API calls| AGW[API Gateway HTTP API]
+  U -->|login| COG[Cognito]
+  COG -->|JWT authorizer| AGW
   AGW --> L[Lambda: Express serverless-express]
   L -->|Data API| AUR[(Aurora PostgreSQL Serverless v2)]
-  L -->|presigned| S3U
+  L -->|presigned| S3U[(S3 privado adjuntos)]
+  L --> BK[Bedrock / Transcribe / Polly]
+  L --> SES[Amazon SES]
   L --> OM[Open-Meteo]
   L --> CW[CloudWatch]
   SM[Secrets Manager] --> L
 ```
+
+> Nota: la topología exacta (CloudFront como proxy de /api/* vs URL separada) se
+> decidirá en la Spec de infraestructura. Amplify Hosting fue evaluado y
+> descartado (ADR 016). Detalle del agente en
+> [`docs/architecture/operational-agent-plan.md`](docs/architecture/operational-agent-plan.md).
 
 Detalle en [`docs/architecture/current-and-target.md`](docs/architecture/current-and-target.md) y [`docs/architecture/aws-service-plan.md`](docs/architecture/aws-service-plan.md).
 
@@ -182,11 +208,11 @@ Core terminable primero; diferenciadores solo tras estabilizar el core. Ver [`.k
 
 ## 19. Roadmap
 
-Core operativo → infraestructura AWS serverless → diferenciadores (asistente de datos, primer flujo de servicio) → visión futura (marketplace, mensajería, pagos). Ver [`docs/spec-map.md`](docs/spec-map.md).
+Core operativo → infraestructura AWS serverless → agente operacional → colaboradores y notificaciones → inteligencia agrícola → calidad, seguridad y demo P0 → tienda pública P1 → visión futura P2 (marketplace, mensajería, pagos). Ver [`docs/roadmap/delivery-roadmap-v2.md`](docs/roadmap/delivery-roadmap-v2.md) y [`docs/spec-map.md`](docs/spec-map.md).
 
 ## 20. Seguridad
 
-Auth por cookie firmada para la demo (mismo origen), `SESSION_SECRET` fuera del código, RBAC por rol, adjuntos validados. Requisitos de producción y plan (CSRF, Secrets Manager, aislamiento por organización) en [`.kiro/steering/security.md`](.kiro/steering/security.md).
+Auth CURRENT: cookie firmada HMAC (solo local dev/test), `SESSION_SECRET` fuera del código, RBAC por rol, adjuntos validados. Auth PLANNED P0: Cognito JWT para staging/producción; proveedor local solo dev/tests; no se exige mismo origen. Requisitos de producción y plan en [`.kiro/steering/security.md`](.kiro/steering/security.md).
 
 ## 21. Limitaciones conocidas
 
@@ -201,4 +227,4 @@ AGROSBO **no es** un ERP genérico terminado, ni una certificadora, ni un sistem
 
 ## 23. Estado actual
 
-Baseline funcional integrada en `main` (PR #1 merged). CI verde (GitHub Actions). 60/60 tests. Quality gates reproducibles (`npm ci` + clean/format/lint/typecheck/test/build). Fase actual: preparación de plataforma para servicios cloud (provider boundaries, migraciones, idempotencia, health checks). Hackathon target definido; infraestructura no desplegada.
+Baseline funcional integrada en `main` (PR #1 y #2 merged). CI verde (GitHub Actions). 165 pruebas aprobadas (132 unitarias + 7 MemStorage + 26 integración PostgreSQL). Quality gates reproducibles (`npm ci` + clean/format/lint/typecheck/test/build). Preparación cloud completada (provider boundaries, migraciones, idempotencia atómica, health checks — PR #2). Infraestructura AWS no desplegada. Dirección P0 aprobada: agente operacional multimodal con herramientas controladas, voz, colaboradores externos, evaluación visual preliminar y motor de escenarios determinista; ver [`docs/product/product-scope-v2.md`](docs/product/product-scope-v2.md). Estado detallado en [`docs/product/capability-status-matrix.md`](docs/product/capability-status-matrix.md). Roadmap en [`docs/roadmap/delivery-roadmap-v2.md`](docs/roadmap/delivery-roadmap-v2.md).

@@ -1,41 +1,40 @@
 # AGROSBO - Mapa de Specs
 
-Reemplaza el mapa previo (trazabilidad de café). Ver ADR 006. Cada Spec indica
-objetivo, estado, módulos existentes, trabajo restante, dependencias, criterio
-de terminado, importancia (core/differentiator/future), servicios AWS y
-funcionalidades de Kiro.
+## Registro histórico: Specs 1–14
 
-Clasificación:
-- **Core**: 1-9 y 14.
-- **Differentiators** (solo si el core queda estable): 11 y 13.
-- **Future**: 10 y 12 (alcance completo).
+> Las siguientes Specs documentan el mapa previo del proyecto. Algunas están
+> completadas, otras fueron resecuenciadas en la nueva secuencia (Specs 15–31).
+> Esta sección se conserva como registro histórico, no como clasificación activa.
+> La secuencia activa está al final de este documento y en
+> [`./roadmap/delivery-roadmap-v2.md`](./roadmap/delivery-roadmap-v2.md).
 
-## Secuencia
+### Tabla histórica
 
-| # | Spec | Importancia |
-|---|------|-------------|
-| 1 | platform-stabilization-and-governance | core |
-| 1b | cloud-services-readiness | core |
-| 2 | authentication-tenancy-and-security | core |
-| 3 | offline-farm-operations | core |
-| 4 | spatial-farms-blocks-and-map | core |
-| 5 | campaigns-tasks-and-observations | core |
-| 6 | applications-inventory-and-safety | core |
-| 7 | harvest-finance-and-operational-traceability | core |
-| 8 | attachments-and-object-storage | core |
-| 9 | aws-serverless-infrastructure | core |
-| 10 | marketplace-listings-and-orders | future |
-| 11 | service-requests-quotes-and-work-orders | differentiator |
-| 12 | messaging-and-notifications | future |
-| 13 | farm-data-assistant | differentiator |
-| 14 | demo-hardening-and-submission | core |
+| # | Spec | Estado actual |
+|---|------|---------------|
+| 1 | platform-stabilization-and-governance | Completada |
+| 1b | cloud-services-readiness | Completada (PR #2) |
+| 2 | authentication-tenancy-and-security | Parcial; cloud auth resecuenciada a Specs 19-20 |
+| 3 | offline-farm-operations | Implementado |
+| 4 | spatial-farms-blocks-and-map | Parcial; deuda técnica futura; fuera de Fase 0; no bloquea P0 |
+| 5 | campaigns-tasks-and-observations | Implementado |
+| 6 | applications-inventory-and-safety | Implementado (requiere PG) |
+| 7 | harvest-finance-and-operational-traceability | Implementado (requiere PG) |
+| 8 | attachments-and-object-storage | Local implementado; S3 resecuenciado a Spec 20 |
+| 9 | aws-serverless-infrastructure | Lambda adapter en código (no verificado AWS); resecuenciado a Specs 17-20 |
+| 10 | marketplace-listings-and-orders | Histórico; marketplace completo = P2 |
+| 11 | service-requests-quotes-and-work-orders | Histórico; alcance completo no forma parte de P0/P1; requiere decisión futura/P2 |
+| 12 | messaging-and-notifications | Histórico; realtime = P2; SES y colaboración externa = P0 (Spec 24) |
+| 13 | farm-data-assistant | Superseded/reframed por Specs 15, 21, 22-26 |
+| 14 | demo-hardening-and-submission | Histórico; evolución activa en Spec 31 |
 
 ---
 
 ## 1. platform-stabilization-and-governance — core
 - **Objetivo**: baseline coherente y versionable; documentación alineada; tests
   verdes; sin pérdida de funcionalidad; sin despliegue.
-- **Estado**: **completado** (PR #1 merged; CI verde; 60/60 tests).
+- **Estado**: **completado** (PR #1 merged; CI verde; 60/60 tests en su momento;
+  baseline actual 165 tras PR #2).
 - **Módulos existentes**: todo el working tree del pivote integrado en main.
 - **Restante**: ninguno (fase cerrada).
 - **Dependencias**: ninguna.
@@ -47,11 +46,11 @@ Clasificación:
 - **Objetivo**: preparar la plataforma para servicios cloud administrados
   (provider boundaries, migraciones, idempotencia atómica, health checks,
   CI con PostgreSQL) sin crear recursos cloud.
-- **Estado**: en curso.
+- **Estado**: **completado** (PR #2 merged; CI verde; 165 pruebas: 132 unitarias
+  + 7 MemStorage + 26 integración PostgreSQL).
 - **Módulos**: provider interfaces, config, migrations, idempotency, health,
   API client, CI.
-- **Restante**: implementar boundaries, migraciones, idempotencia, health,
-  client prep, CI PostgreSQL.
+- **Restante**: ninguno (fase cerrada).
 - **Dependencias**: 1 (completado).
 - **Terminado**: providers intercambiables; DB lifecycle reproducible;
   idempotencia atómica con tests; health live/ready; CI con PostgreSQL.
@@ -125,10 +124,11 @@ Clasificación:
 
 ## 9. aws-serverless-infrastructure — core
 - **Objetivo**: infraestructura AWS reproducible (CDK) y despliegue.
-- **Estado**: `infra/` placeholder; adaptador Lambda y Data API listos.
+- **Estado**: `infra/` placeholder; Lambda adapter implementado en código (no
+  verificado en AWS); Data API PARTIAL (no probado contra Aurora). Resecuenciado
+  a Specs 17–20.
 - **Módulos**: `infra/`, `api/src/handlers`, `api/src/db.ts`.
-- **Restante**: CDK (S3, CloudFront, API GW, Lambda, Aurora SV2, Secrets Manager,
-  CloudWatch); import dinámico de Vite; origen único.
+- **Restante**: CDK stack completo; validación contra AWS real.
 - **Dependencias**: 1, 2, 8. **Terminado**: entorno desplegable reproducible.
 - **AWS**: S3, CloudFront, API Gateway, Lambda, Aurora SV2, Data API, Secrets
   Manager, CloudWatch, CDK. **Kiro**: ADR 007, Tasks.
@@ -155,23 +155,80 @@ Clasificación:
 - **Dependencias**: 11. **AWS**: candidatos WebSocket/SES/SQS (diferidos).
 - **Kiro**: Design.
 
-## 13. farm-data-assistant — differentiator
-- **Objetivo**: copiloto conversacional de solo lectura sobre herramientas.
-- **Estado**: NO implementado.
-- **Restante**: endpoint + herramientas de lectura; confirmación humana.
-- **Dependencias**: 2, 5-7. **Terminado**: consulta de datos reales con RBAC.
-- **AWS**: **Bedrock** (diferido, requiere Spec). **Kiro**: Design, ADR futuro.
-- Ver `docs/architecture/farm-assistant-plan.md`.
+## 13. farm-data-assistant — superseded/reframed
+- **Objetivo original**: copiloto conversacional de solo lectura sobre herramientas.
+- **Estado**: **superseded** por la nueva dirección de producto. El alcance del
+  agente operacional multimodal (con mutaciones confirmadas, voz, visión y
+  escenarios) se ejecutará mediante Spec 15 (product-agent-scope-v2), Spec 21
+  (farm-operational-agent) y Specs 22–26.
+- **Documento activo**: [`./architecture/operational-agent-plan.md`](./architecture/operational-agent-plan.md).
+- **Histórico**: [`./architecture/farm-assistant-plan.md`](./architecture/farm-assistant-plan.md) (SUPERSEDED).
+- Esta Spec no debe mantenerse como una segunda implementación activa del agente.
 
-## 14. demo-hardening-and-submission — core
+## 14. demo-hardening-and-submission — core (histórico)
 - **Objetivo**: dataset sintético, golden path pulido, evidencia, presentación.
-- **Estado**: pendiente. **Restante**: datos demo, guion, métricas verificables.
-- **Dependencias**: 1-9. **Terminado**: demo estable reproducible.
+- **Estado**: registro histórico. Su evolución v2 se ejecutará mediante Spec 31
+  (demo-hardening-and-submission-v2).
+- **Restante**: se resecuencia en Spec 31.
+- **Dependencias**: P0 completo (Specs 15–30).
 - **AWS**: los del core. **Kiro**: Hooks, checkpoints, evidencia.
+
+---
+
+## Secuencia aprobada: Specs 15–31
+
+> Definida en [`./roadmap/delivery-roadmap-v2.md`](./roadmap/delivery-roadmap-v2.md).
+> La numeración es estable; no equivale automáticamente al orden de ejecución.
+> ADRs 014–018 registran las decisiones fundamentales.
+
+| # | Spec | Horizonte | Estado |
+|---|------|-----------|--------|
+| 15 | product-agent-scope-v2 | P0 | COMPLETADA (PR #3 pendiente de merge) |
+| 16 | multi-agent-workflow | P0 | PLANNED (habilitador posterior a Fase 0) |
+| 17 | critical-cloud-spikes | P0 | PLANNED |
+| 18 | aws-infrastructure-baseline | P0 | PLANNED |
+| 19 | aws-core-deployment | P0 | PLANNED |
+| 20 | cloud-auth-and-attachments | P0 | PLANNED |
+| 21 | farm-operational-agent | P0 | PLANNED |
+| 22 | agent-actions-and-confirmations | P0 | PLANNED |
+| 23 | voice-assistant | P0 | PLANNED |
+| 24 | collaborators-and-notifications | P0 | PLANNED |
+| 25 | crop-image-assessment | P0 | PLANNED |
+| 26 | farm-scenario-engines | P0 | PLANNED |
+| 27 | public-farm-storefront | P1 | PLANNED |
+| 28 | p1-communication-and-offline-voice | P1 | PLANNED |
+| 29 | ui-accessibility-polish | P0 | PLANNED |
+| 30 | security-cost-reliability-hardening | P0 | PLANNED |
+| 31 | demo-hardening-and-submission-v2 | P0 | PLANNED |
+
+> **Spec 15**: Fase 0 completada documentalmente. Los archivos existen en
+> `.kiro/specs/product-agent-scope-v2/` (requirements.md, design.md, tasks.md).
+> 85 requirement IDs únicos. PR #3 pendiente de revisión final y merge.
+
+### Notas de reconciliación con Specs 1–14
+
+- Specs 1 y 1b: completadas.
+- Spec 2 (auth-tenancy): trabajo cloud pendiente se resecuencia en Specs 19–20.
+- Spec 3 (offline): implementado; consolidación futura si necesario.
+- Spec 4 (espacial): deuda técnica futura; fuera de Fase 0; no bloquea P0 ni
+  el golden path; sin número futuro inventado.
+- Specs 5–7: implementados; estabilización incremental.
+- Spec 8 (attachments): migración a S3 se resecuencia en Spec 20.
+- Spec 9 (aws-serverless): se resecuencia en Specs 18–19.
+- Spec 10 (marketplace): P2; no asignada a ninguna fase obligatoria.
+- Spec 11 (service-requests): registro histórico; su alcance completo
+  (service requests, quotes, work orders) no forma parte de P0/P1 aprobados y
+  requiere decisión futura/P2. El flujo de colaboración externa P0 (Spec 24) es
+  distinto de service requests/quotes/work orders.
+- Spec 12 (messaging): la mensajería realtime completa es P2; SES y
+  colaboración externa P0 se ejecutan en Spec 24.
+- Spec 13: superseded/reframed (ver arriba).
+- Spec 14: evolución v2 en Spec 31.
+- Specs 27–28: P1; solo comienzan después de cerrar P0 con Spec 31.
 
 ## Reglas
 
 - Cada Spec se ejecuta por checkpoints con autorización explícita.
 - No se avanza automáticamente de una Spec a la siguiente.
-- Diferenciadores (11, 13) solo tras estabilizar el core.
-- El marketplace (10) y la mensajería (12) no bloquean la entrega.
+- P0 debe cerrarse (Spec 31) antes de iniciar P1 (Specs 27–28).
+- P2 no bloquea ninguna fase.

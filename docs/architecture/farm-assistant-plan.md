@@ -1,4 +1,21 @@
-# AGROSBO - Plan del copiloto de datos (futuro)
+# AGROSBO — Plan del copiloto de datos (SUPERSEDED)
+
+> **Estado: SUPERSEDED.**
+>
+> Este documento fue reemplazado por
+> [`./operational-agent-plan.md`](./operational-agent-plan.md) (julio 2026,
+> ADR 015).
+>
+> El contenido histórico se conserva a continuación como referencia del diseño
+> previo. No debe usarse como fuente de verdad del agente.
+>
+> La nueva arquitectura define un agente operacional multimodal con herramientas
+> de lectura Y escritura, voz, evaluación visual, escenarios deterministas y
+> confirmación obligatoria. Ver el documento activo para detalles completos.
+
+---
+
+_Contenido histórico (solo lectura, no vigente):_
 
 Arquitectura futura. **No se implementa** ahora. **Bedrock no se activa** sin una
 Spec aprobada.

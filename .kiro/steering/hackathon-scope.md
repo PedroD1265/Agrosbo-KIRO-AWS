@@ -1,70 +1,94 @@
-# AGROSBO - Alcance del hackathon
+# AGROSBO — Alcance del hackathon
 
 Responsabilidad: frontera de alcance, foco de demo, uso de AWS y de Kiro.
-Reemplaza el foco previo (revisión de embarque cafetero); ver ADR 006.
+Fuente canónica: [`docs/product/product-scope-v2.md`](../../docs/product/product-scope-v2.md).
 
 ## Prioridades
 
-1. **Demo terminable** sobre inflar arquitectura.
-2. **AWS con justificación** (cada servicio resuelve una necesidad real).
+1. **P0 terminable** sobre inflar arquitectura.
+2. **AWS con justificación** (cada servicio resuelve necesidad real).
 3. **Kiro como proceso central** de ingeniería.
 4. **PWA / offline** como diferenciador técnico verificable.
-5. **Estabilidad** y calidad (quality gates verdes).
-6. **Narrativa** y **evidencia** concreta.
-7. Diferenciadores **solo después** de estabilizar el core.
+5. **Agente operacional** como diferenciador de producto.
+6. **Estabilidad** y calidad (gates verdes, 165 pruebas).
+7. **Narrativa** y **evidencia** concreta.
 
-## Core obligatorio de la demo
+## Core P0 obligatorio
 
-Autenticación y RBAC; granja, bloques y mapa; campañas; tareas; observaciones;
-aplicaciones; inventario; cosecha; costos básicos; alertas; reportes;
-sincronización offline; despliegue AWS reproducible; datos sintéticos
-consistentes.
+- Despliegue AWS (S3+CF+OAC, Lambda, Aurora, Cognito, CDK).
+- Asistente AGROSBO (Bedrock, herramientas, confirmación, REST).
+- Voz (Transcribe STT, Polly TTS, push-to-talk).
+- Colaboradores externos (token opaco, SES, estados honestos).
+- Evaluación visual preliminar (Bedrock multimodal).
+- IrrigationDelayScenario (motor determinista).
+- Golden path reproducible con datos sintéticos.
+- Seguridad, auditoría, observabilidad, límites de costo.
+- Documentación y trazabilidad Kiro.
 
-## Diferenciadores candidatos (solo tras el core estable)
+## P1 (posterior a Spec 31)
 
-- Consulta conversacional de datos mediante herramientas controladas (lectura).
-- Primer flujo estructurado de solicitud de servicio agrícola.
-- Creación de una orden de trabajo con actualización visible en Today.
+- Tienda pública de una finca (URL, QR, solicitudes sin registro).
+- Comparación de interesados (decisión humana).
+- WhatsApp wa.me prellenado (envío humano).
+- Notas de voz offline.
+- Resumen hablado del día.
 
-No son obligatorios en esta fase.
+## P2 (no bloqueante)
 
-## Visión futura (fuera del alcance del hackathon)
+Marketplace, pagos, reputación, logística, mensajería realtime, WhatsApp Cloud
+API, multi-tenancy completo, automatización avanzada.
 
-Marketplace completo, múltiples proveedores, mensajería en tiempo real,
-notificaciones externas, pagos, reputación, logística, asesoría avanzada,
-automatización completa por IA.
+## AWS target P0
 
-## Uso de AWS (objetivo del hackathon)
+- S3 privado + CloudFront + OAC.
+- API Gateway HTTP API.
+- Lambda.
+- Aurora Serverless v2 + Data API.
+- Cognito.
+- S3 adjuntos.
+- Bedrock.
+- Transcribe.
+- Polly.
+- SES.
+- Secrets Manager.
+- CloudWatch.
+- CDK.
 
-Amplify Hosting (frontend PWA) + API Gateway HTTP API + Lambda (Express
-serverless) + Aurora PostgreSQL Serverless v2 + RDS Data API + Amazon Cognito
-(User Pool + JWT authorizer) + S3 (adjuntos) + URLs prefirmadas + Secrets
-Manager + CloudWatch + CDK.
+Notas:
 
-Diferenciadores aprobados (requieren Spec propia):
-- Amazon Bedrock (copiloto de datos con tool calling).
-- Textract o Azure Document Intelligence (extracción documental, benchmark
-  pendiente — ADR 013).
+- Amplify Hosting: evaluado y descartado (ADR 016).
+- Topología CloudFront /api/*: no decidida; se evalúa en Spec.
+- WAF: solo si riesgo y presupuesto lo justifican.
+- Ningún servicio está desplegado actualmente.
 
-- MUST justificar cada servicio por el código.
-- MUST NOT activar Bedrock, Textract o Azure DI sin una Spec que lo respalde.
-- MUST NOT sumar servicios solo por cantidad.
+## Baseline verificado
 
-## Uso de Kiro (demostrable)
+- 165 pruebas (132 unitarias + 7 MemStorage + 26 integración PG).
+- Quality gates: format, encoding, lint (0 errores), typecheck, build.
+- cloud-services-readiness completada (PR #2).
 
-Steering, Specs (Requirements EARS + Design + Tasks), Hooks deterministas,
-checkpoints, auditoría arquitectónica, revisión incremental, decisiones
-registradas (ADRs) y trazabilidad requerimiento→diseño→tarea→código.
+## Uso de Kiro
+
+Steering, Specs (EARS + Design + Tasks), Hooks deterministas, ADRs 014–018,
+checkpoints, runbook, auditoría y trazabilidad.
 
 - MUST documentar solo usos reales o aprobados.
 - MUST NOT inventar estadísticas de productividad.
 
-## Métricas verificables de la demo
+## Métricas verificables
 
-- Reintentos offline sin duplicados (idempotencia).
-- Actualización de datos relacionados tras sincronizar.
-- Alertas accionables derivadas del estado real.
-- Reporte CSV exportable.
-- Tiempo medido sobre un dataset sintético consistente.
+- Mutaciones internas propuestas por el agente ejecutadas sin confirmación
+  explícita: 0.
+- SQL generado ejecutado: 0.
+- Duplicados por reintento: 0 en pruebas.
+- Golden path reproducible.
+- Presupuesto controlado con alarmas.
+- Gates verdes.
+- Documentación coherente con product-scope-v2.
 
-- MUST NOT usar cifras inventadas sobre operaciones reales.
+## MUST NOT
+
+- MUST NOT usar cifras inventadas.
+- MUST NOT presentar capacidades futuras como implementadas.
+- MUST NOT declarar despliegue AWS sin evidencia.
+- MUST NOT tratar P1 o P2 como parte de la demo P0.

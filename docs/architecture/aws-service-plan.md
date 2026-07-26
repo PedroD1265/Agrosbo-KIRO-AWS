@@ -1,44 +1,76 @@
-# AGROSBO - Plan de servicios AWS
+# AGROSBO — Plan de servicios AWS
 
-Cada servicio se justifica por una necesidad real del código. No se añaden
-servicios por cantidad. Fases: **now** (dev, sin AWS), **hackathon** (target),
-**future** (diferido).
+Cada servicio se justifica por una necesidad real. No se añaden servicios por
+cantidad. Clasificación por estado actual y horizonte.
 
-| Servicio | Necesidad | Evidencia (código) | Fase | Obligatorio | Recomendado | Diferido | Costo rel. | Riesgo | Fallback | Criterio para activarlo |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Aurora PostgreSQL Serverless v2 | Fuente de verdad | `dbStorage.ts`, `db.ts` | hackathon | Sí | — | — | Medio | Medio | Postgres local | Despliegue del core |
-| RDS Data API | Acceso DB sin pool en Lambda | `db.ts` (`aws-data-api/pg`) | hackathon | Sí (si Lambda) | — | — | Bajo | Bajo | pool pg / Fargate | Elegir Lambda |
-| Lambda | Ejecutar Express | `handlers/index.ts` | hackathon | Sí | — | — | Bajo | Medio | Fargate | Cerrar prerequisitos ADR 007 |
-| API Gateway HTTP API | Front del Lambda | (target) | hackathon | Sí | — | — | Bajo | Bajo | ALB | Con Lambda |
-| Amplify Hosting | Hosting frontend PWA por rama | web build estático | hackathon | Sí | — | — | Bajo | Bajo | express.static | Despliegue frontend |
-| S3 (estático) | Backend de Amplify Hosting (automático) | — | hackathon | (via Amplify) | — | — | Bajo | Bajo | — | Con Amplify |
-| CloudFront | Solo si se necesita para API/adjuntos (Amplify incluye CDN) | — | hackathon (opc) | — | — | Sí | Bajo | Bajo | — | Necesidad demostrada |
-| S3 (adjuntos) | Reemplazo de disco local | `attachments.ts` | hackathon | Sí (si Lambda) | — | — | Bajo | Alto | disco (Fargate) | Migración adjuntos |
-| Secrets Manager | `SESSION_SECRET`, credenciales | `env.ts`, `auth.ts` | hackathon | — | Sí | — | Bajo | Medio | env local | Despliegue |
-| CloudWatch | Logs/métricas | `logger.ts` | hackathon | — | Sí | — | Bajo | Bajo | consola | Despliegue |
-| CDK | IaC reproducible | `infra/` (placeholder) | hackathon | — | Sí | — | — | Medio | manual | Despliegue |
-| ACM | HTTPS/cert | (target) | hackathon | — | Sí | — | Negligible | Bajo | — | Dominio/CloudFront |
-| ECS Fargate + ALB | Fallback de cómputo | Express escucha en PORT | hackathon (fallback) | — | — | — | Medio | Bajo | — | Si Lambda no viable a tiempo |
-| Cognito | Identidad gestionada (staging/prod) | ADR 010 (target) | hackathon | Sí | — | — | Bajo | Medio | local-session | Spec auth-tenancy |
-| Bedrock | Copiloto de datos (diferenciador aprobado) | farm-assistant-plan.md | hackathon (diff) | — | Sí | — | Medio | Medio | reglas | Spec del asistente |
-| Textract | Extracción documental (candidato primario) | ADR 013 | hackathon (diff) | — | — | Sí | Bajo | Bajo | — | Benchmark (ADR 013) |
-| EventBridge Scheduler | Tareas periódicas | limpiezas inline hoy | future | — | — | Sí | Bajo | Bajo | inline | Job real necesario |
-| Azure AI Doc Intelligence | Extracción documental (candidato comparativo) | ADR 013 | hackathon (diff) | — | — | Sí | Bajo | Bajo | — | Benchmark (ADR 013) |
-| SQS | Colas backend | — | future | — | — | Sí | Bajo | Bajo | — | Trabajo asíncrono real |
-| API Gateway WebSocket | Mensajería tiempo real | — | future | — | — | Sí | Bajo | Medio | polling | Spec de mensajería |
-| SES | Notificaciones por correo | — | future | — | — | Sí | Bajo | Bajo | — | Notificaciones |
-| WAF | Perímetro | — | future | — | — | Sí | Bajo | Bajo | — | Endurecimiento |
-| Route 53 | Dominio propio | — | future | — | — | Sí | Bajo | Bajo | — | Dominio propio |
-| RDS Proxy | Pooling | evitado por Data API | discard (MVP) | — | — | — | — | — | Data API | Límite Data API |
-| DynamoDB | — | relacional en uso | discard | — | — | — | — | — | — | No aplica |
-| Step Functions | Orquestación | sin flujos | discard | — | — | — | — | — | — | No aplica |
+> Fuente canónica: [`../product/product-scope-v2.md`](../product/product-scope-v2.md).
+> ADR de hosting: [`../adr/016-hosting-s3-cloudfront-oac.md`](../adr/016-hosting-s3-cloudfront-oac.md).
+> Última actualización: julio 2026 (Fase 0).
 
-## Resumen
+## Servicios PLANNED P0
 
-- **Obligatorios (hackathon)**: Aurora SV2, Data API, Lambda, API Gateway,
-  Amplify Hosting, S3 (adjuntos), Cognito.
-- **Recomendados**: Secrets Manager, CloudWatch, CDK, ACM.
-- **Diferenciadores aprobados**: Bedrock (copiloto), Textract o Azure DI
-  (extracción, benchmark pendiente).
-- **Diferidos**: EventBridge, SQS, WebSocket, SES, WAF, Route 53.
-- **Descartados (MVP)**: RDS Proxy, DynamoDB, Step Functions, App Runner.
+| Servicio | Necesidad | Estado actual | Criterio para activarlo |
+|---|---|---|---|
+| S3 privado (frontend) | Hosting del build estático | No desplegado | CDK infra baseline |
+| CloudFront + OAC | CDN para frontend; control de cache/headers | No desplegado | CDK infra baseline |
+| API Gateway HTTP API | Entrada pública a la API | No desplegado | CDK core deployment |
+| Lambda | Cómputo Express serverless | IMPLEMENTED IN CODE; no verificado ni desplegado en AWS | CDK core deployment |
+| Aurora PostgreSQL Serverless v2 | Base de datos | Solo PG local verificado | CDK infra baseline |
+| RDS Data API | Acceso DB sin pools en Lambda | PARTIAL; camino presente en código; no probado contra Aurora | Con Aurora |
+| Amazon Cognito | Identidad gestionada (staging/prod) | Interface PLACEHOLDER | Spec 20 |
+| S3 privado (adjuntos) | Reemplazo de disco local | Interface PLACEHOLDER | Spec 20 |
+| Amazon Bedrock | Agente multimodal (tool calling + visión) | No existe código | Spec 17 spike + Spec 21 |
+| Amazon Transcribe | STT para el agente | No existe código | Spec 17 spike + Spec 23 |
+| Amazon Polly | TTS para el agente | No existe código | Spec 23 |
+| Amazon SES | Correos de notificación y enlaces | No existe código | Spec 24 |
+| Secrets Manager | Secretos de aplicación | No desplegado | CDK infra baseline |
+| CloudWatch | Logs y métricas básicas | Logger JSON local | CDK infra baseline |
+| CDK | IaC reproducible | Placeholder vacío | Spec 18 |
+
+## Servicios solo desarrollo/tests
+
+| Servicio | Uso |
+|---|---|
+| PostgreSQL local | Dev y CI |
+| Cookie HMAC local | Dev y tests (AUTH_ENFORCEMENT=off) |
+| Disco local (uploads/) | Dev (adjuntos) |
+
+## Alternativa evaluada y descartada
+
+| Servicio | Motivo de descarte | ADR |
+|---|---|---|
+| Amplify Hosting | Menor control sobre cache/headers/orígenes; acoplamiento innecesario | 016 |
+
+## Servicios evitados salvo justificación
+
+NAT Gateway, ECS/Fargate, RDS Proxy, OpenSearch, DynamoDB, Step Functions,
+Kinesis, API Gateway WebSocket, SageMaker, modelos provisionados de Bedrock.
+
+WAF de pago: solo si existe riesgo demostrado y presupuesto que lo justifique.
+
+## Servicios P1
+
+| Servicio | Necesidad |
+|---|---|
+| (Ningún servicio nuevo obligatorio) | P1 reutiliza infraestructura P0 |
+
+## Servicios P2 / Future
+
+EventBridge Scheduler, SQS, API Gateway WebSocket, Route 53, WAF.
+
+> Nota: conseguir acceso SES de producción para enviar a colaboradores externos
+> reales es un requisito P0. Solo el escalamiento a mayor volumen o capacidades
+> avanzadas de email quedan como trabajo futuro.
+
+## Notas
+
+- SES puede iniciar en sandbox; destinatarios restringidos hasta acceso de
+  producción. Conseguir acceso de producción para enviar a externos reales es
+  requisito P0.
+- La topología CloudFront (enrutar /api/* vs URL separada) se decide en Spec de
+  infraestructura.
+- El presupuesto no puede depender de Free Tier como plan de sostenibilidad.
+- Ningún servicio está desplegado actualmente.
+- Lambda adapter: implementado en código; no verificado ni desplegado en AWS.
+- RDS Data API: implementación parcial; camino presente en código; no probado
+  contra Aurora real; no desplegado.
