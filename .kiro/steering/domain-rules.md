@@ -1,3 +1,9 @@
+---
+inclusion: auto
+name: domain-rules
+description: Reglas transversales de dominio (cantidades, costos, idempotencia, estados, alertas, agente, evaluacion visual, escenarios, trazabilidad). Cargar cuando se trabaje en logica de negocio, validaciones de dominio o reglas del agente operacional.
+---
+
 # AGROSBO — Reglas de dominio
 
 Responsabilidad: reglas transversales de la plataforma.

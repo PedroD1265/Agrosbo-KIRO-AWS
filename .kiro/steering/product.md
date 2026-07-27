@@ -1,3 +1,7 @@
+---
+inclusion: always
+---
+
 # AGROSBO — Producto
 
 Responsabilidad: definir qué es y qué NO es AGROSBO. Fuente única de la intención

@@ -1,3 +1,11 @@
+---
+inclusion: fileMatch
+fileMatchPattern:
+  - "web/src/lib/sync/**"
+  - "web/src/lib/db/**"
+  - "api/src/idempotency.ts"
+---
+
 # AGROSBO - Offline-first
 
 Responsabilidad: qué funciona sin conexión y cómo sincroniza. No repite reglas

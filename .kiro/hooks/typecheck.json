@@ -8,7 +8,7 @@
       "matcher": "\\.(ts|tsx)$",
       "action": {
         "type": "command",
-        "command": "npx tsc --noEmit -p D:/Pedro/AGROBO/api/tsconfig.json && npx tsc --noEmit -p D:/Pedro/AGROBO/web/tsconfig.json",
+        "command": "npx tsc --noEmit -p api/tsconfig.json && npx tsc --noEmit -p web/tsconfig.json",
         "timeout": 30
       }
     }

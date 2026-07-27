@@ -1,3 +1,7 @@
+---
+inclusion: always
+---
+
 # AGROSBO - Estructura
 
 Responsabilidad: organización del repositorio y convenciones. Documenta la

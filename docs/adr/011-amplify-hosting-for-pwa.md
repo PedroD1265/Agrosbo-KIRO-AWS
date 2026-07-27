@@ -1,6 +1,6 @@
 # ADR 011 - Amplify Hosting para la PWA frontend
 
-Estado: Accepted
+Estado: Superseded by [ADR 016 — Hosting: S3 privado + CloudFront + OAC](./016-hosting-s3-cloudfront-oac.md)
 
 Fecha: 2026-07-24
 

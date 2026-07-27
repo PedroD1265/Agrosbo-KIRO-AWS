@@ -1,3 +1,7 @@
+---
+inclusion: manual
+---
+
 # AGROSBO — Alcance del hackathon
 
 Responsabilidad: frontera de alcance, foco de demo, uso de AWS y de Kiro.

@@ -1,3 +1,7 @@
+---
+inclusion: always
+---
+
 # AGROSBO — Seguridad
 
 Responsabilidad: autenticación, autorización, secretos, seguridad del agente y
