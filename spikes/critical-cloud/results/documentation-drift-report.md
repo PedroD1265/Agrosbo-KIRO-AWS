@@ -31,7 +31,7 @@ Fuente: análisis de lectura de `.kiro/specs/critical-cloud-spikes/` y
 |---|---|
 | **Archivo** | `.kiro/specs/critical-cloud-spikes/tasks.md` |
 | **Sección** | §7 Estado actual |
-| **Contradicción** | tasks.md §7 muestra: *"T01–T03: COMPLETED — AWAITING HUMAN APPROVAL; T04–T19: PLANNED"*. El estado autoritativo del proyecto es: T04 PASS, T05 PASS, T06/T13 PASS, T07 COMPLETED, T08 COMPLETED, y T09 IN PROGRESS. |
+| **Contradicción** | tasks.md §7 muestra: *"T01–T03: COMPLETED — AWAITING HUMAN APPROVAL; T04–T19: PLANNED"*. El estado real del proyecto es: T04 PASS, T05 PASS, T06 PASS (21/21), T07 COMPLETED (merged PR #16), T08 COMPLETED (merged PR #17), T09 COMPLETED (merged PR #19). T10–T12: PENDING. |
 | **Impacto** | MEDIO — operadores que lean tasks.md para orientarse verán un estado incorrecto. Puede causar confusión sobre qué tareas ya están completas y cuáles son realmente PLANNED. |
 | **Corrección propuesta** | Actualizar tasks.md §7 para reflejar el estado real de T01–T09 y T13. |
 | **Prioridad** | MEDIA |
@@ -47,7 +47,7 @@ Fuente: análisis de lectura de `.kiro/specs/critical-cloud-spikes/` y
 | **Sección 1** | §8, REQ-IAM-04 |
 | **Archivo 2** | `.kiro/specs/critical-cloud-spikes/design.md` |
 | **Sección 2** | §3.2 |
-| **Contradicción** | REQ-IAM-04: *"THE SYSTEM SHALL NOT use the AgrosboDeveloperRole (ReadOnlyAccess) for spike execution."* Design.md §3.2: *"Se requiere un rol temporal de spike (o una política inline temporal adjunta al rol existente)."* La frase *"adjunta al rol existente"* puede interpretarse como adjuntar una política al `AgrosboDeveloperRole`, lo que podría violar REQ-IAM-04 dependiendo de la interpretación (si se adjunta la spike policy al `AgrosboDeveloperRole`, ese rol ya no es "solo ReadOnlyAccess", pero técnicamente se está usando el mismo rol). |
+| **Contradicción** | REQ-IAM-04: *"THE SYSTEM SHALL NOT use the AgrosboDeveloperRole (ReadOnlyAccess) for spike execution."* Design.md §3.2: *"Se requiere un rol temporal de spike (o una política inline temporal adjunta al rol existente)."* The actual implementation (T05 PASS) attaches AgrosboSpikeTemporaryPolicy to AgrosboDeveloperRole, making the role no longer "just ReadOnlyAccess" but instead ReadOnlyAccess + spike permissions. This satisfies the intent (not executing with only ReadOnly) but the terminology in REQ-IAM-04 may confuse readers. |
 | **Impacto** | BAJO (la intención es clara — el estado T05 PASS indica que se resolvió con una policy temporal; la ambigüedad es solo documental). Sin embargo, puede causar confusión en futuras Specs que referencien este diseño. |
 | **Corrección propuesta** | Clarificar design.md §3.2: *"Se requiere un rol temporal de spike separado (no AgrosboDeveloperRole); o si se adjunta una política temporal al AgrosboDeveloperRole, documentar que el rol resultante no es el mismo que el ReadOnlyAccess original."* Alternativamente, alinear con la solución real implementada en T05. |
 | **Prioridad** | BAJA |

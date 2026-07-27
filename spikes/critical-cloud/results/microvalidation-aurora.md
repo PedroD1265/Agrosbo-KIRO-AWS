@@ -22,9 +22,6 @@
 **VERIFIED_BY_DOCUMENTATION**:
 https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2.html
 
-Aurora Serverless v2 es la versión actual de Aurora Serverless. Aurora Serverless v1
-está en EOL. Este documento cubre Aurora Serverless v2 exclusivamente.
-
 ---
 
 ## 2. Disponibilidad en us-east-1

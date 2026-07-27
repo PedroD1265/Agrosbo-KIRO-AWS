@@ -20,16 +20,8 @@
 
 ## 1. Disponibilidad del servicio
 
-**HECHO**: Amazon Polly está disponible en `us-east-1` (US East N. Virginia).
-`us-east-1` es la región de mayor disponibilidad de servicios AWS y Polly es un
-servicio maduro (GA desde 2016). Sin verificación en tiempo real desde este entorno.
-
-Referencia oficial: https://aws.amazon.com/polly/
-
-Disponibilidad regional: https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/
-
-**NEEDS OFFICIAL VERIFICATION**: confirmar disponibilidad actual via
-`aws polly describe-voices --region us-east-1` antes de T11.
+**NEEDS OFFICIAL VERIFICATION**: Amazon Polly is documented as available in `us-east-1`.
+Confirm availability via `aws polly describe-voices --region us-east-1` before T11.
 
 ---
 
@@ -145,26 +137,26 @@ deben hardcodearse sin verificación en la consola de AWS.
 Metodología de cálculo (estructura de precios conocida a la fecha de entrenamiento del
 modelo, verificar actualización):
 
-| Motor | Precio aproximado (USD/millón de caracteres) |
+| Motor | Precio (USD/millón de caracteres) |
 |---|---|
-| Standard | ~$4.00 |
-| Neural | ~$16.00 |
-| Generative | ~$30.00 |
+| Standard | **NEEDS OFFICIAL VERIFICATION** |
+| Neural | **NEEDS OFFICIAL VERIFICATION** |
+| Generative | **NEEDS OFFICIAL VERIFICATION** |
 
 **Estimación para 3–5 clips cortos (5–15s, ~50–100 palabras ~ 300–600 caracteres cada
 uno)**:
 
 | Escenario | Caracteres totales | Motor | Estimación |
 |---|---|---|---|
-| 5 clips × 500 chars | 2,500 chars | Neural | ~USD 0.00004 |
-| 5 clips × 500 chars | 2,500 chars | Standard | ~USD 0.00001 |
+| 5 clips × 500 chars | 2,500 chars | Neural | **PENDING OFFICIAL CHECK** (expected < USD 0.01) |
+| 5 clips × 500 chars | 2,500 chars | Standard | **PENDING OFFICIAL CHECK** (expected < USD 0.01) |
 
-**INFERENCIA**: el costo de generar los 5 clips con Polly es inferior a USD 0.001 —
-prácticamente gratuito y no requiere presupuesto separado dentro del USD 3.50 total.
+**INFERENCIA**: el costo de generar 5 clips con Polly es expected to be negligible
+(< USD 0.01) given standard pricing structures, but exact amounts require official
+price verification.
 
-Capa gratuita: 5 millones de caracteres/mes en los primeros 12 meses (Standard),
-1 millón de caracteres/mes (Neural). Si la cuenta AWS está dentro de la capa gratuita,
-el costo es USD 0.00.
+Capa gratuita: **NEEDS OFFICIAL VERIFICATION** — free tier availability depends on
+account age. Do not assume active.
 
 ---
 

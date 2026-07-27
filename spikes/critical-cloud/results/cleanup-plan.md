@@ -35,22 +35,11 @@ retenga permisos durante el cleanup.
 No hay modelos custom, endpoints, ni configuraciones que persistan tras las llamadas.
 
 ```
-[ ] 1-01  Confirmar que no se creó ningún recurso Bedrock:
-          aws bedrock list-foundation-models --region <REGIÓN> --profile <PERFIL>
+[ ] 1-01  Confirmar que no se crearon recursos Bedrock inesperados:
+          aws bedrock list-foundation-models --region us-east-1 --profile agrosbo-role
           (solo lectura — confirmar que no hay modelos custom ni endpoints custom)
 
-[ ] 1-02  Confirmar que no hay CloudWatch log groups de Bedrock creados por el spike:
-          aws logs describe-log-groups --log-group-name-prefix "/aws/bedrock" \
-            --region <REGIÓN> --profile <PERFIL>
-          Si existen grupos del spike: eliminarlos (ver comando abajo)
-
-          Comando de eliminación (solo si existen grupos del spike):
-          aws logs delete-log-group --log-group-name "/aws/bedrock/..." \
-            --region <REGIÓN> --profile <PERFIL>
-          Resultado esperado: exit 0
-          Verificación: aws logs describe-log-groups --log-group-name-prefix "/aws/bedrock" → vacío
-
-[ ] 1-03  S1 CLEANUP CONFIRMADO: sin recursos residuales de Bedrock
+[ ] 1-02  S1 CLEANUP CONFIRMADO: sin recursos residuales de Bedrock
 ```
 
 ---
@@ -150,32 +139,14 @@ No hay modelos custom, endpoints, ni configuraciones que persistan tras las llam
 
 ## SECCIÓN 3 — S3: SES / EventBridge / SQS
 
-**Orden**: consumir mensajes pendientes → eliminar EventBridge targets → eliminar
+**Orden**: eliminar EventBridge targets → eliminar
 EventBridge rule → eliminar SES event destination → eliminar SES configuration set
 → eliminar SQS queue → eliminar identidad SES temporal (si corresponde).
 
-### 3-A: Consumir mensajes SQS pendientes
+### 3-A: EventBridge targets
 
 ```
-[ ] 3-01  Obtener URL de la cola:
-          aws sqs get-queue-url \
-            --queue-name agrosbo-spike-ses-events-<TS> \
-            --region <REGIÓN> --profile <PERFIL>
-          Registrar: QueueUrl = ____________________
-
-[ ] 3-02  Purgar mensajes pendientes (más rápido que recibir uno a uno):
-          aws sqs purge-queue \
-            --queue-url <QueueUrl> \
-            --region <REGIÓN> --profile <PERFIL>
-          Resultado esperado: exit 0
-          Nota: purge puede tardar hasta 60s en completarse.
-          Si la cola ya no existe: NotFound es aceptable → pasar a 3-03.
-```
-
-### 3-B: EventBridge targets
-
-```
-[ ] 3-03  Listar targets de la regla del spike:
+[ ] 3-01  Listar targets de la regla del spike:
           aws events list-targets-by-rule \
             --rule agrosbo-spike-ses-rule-<TS> \
             --region <REGIÓN> --profile <PERFIL>
@@ -191,7 +162,7 @@ EventBridge rule → eliminar SES event destination → eliminar SES configurati
           Si la regla no existe (NotFound): aceptable → pasar a 3-05.
 ```
 
-### 3-C: EventBridge rule
+### 3-B: EventBridge rule
 
 ```
 [ ] 3-05  Eliminar la regla EventBridge:
@@ -210,25 +181,25 @@ EventBridge rule → eliminar SES event destination → eliminar SES configurati
           Resultado esperado: lista vacía
 ```
 
-### 3-D: SES event destination
+### 3-C: SES event destination
 
 ```
 [ ] 3-07  Eliminar el event destination del configuration set:
           aws sesv2 delete-configuration-set-event-destination \
-            --configuration-set-name agrosbo-spike-config-<TS> \
-            --event-destination-name agrosbo-spike-eventbridge-<TS> \
-            --region <REGIÓN> --profile <PERFIL>
+            --configuration-set-name agrosbo-spike-ses-config-20260727 \
+            --event-destination-name agrosbo-spike-eb-dest \
+            --region us-east-1 --profile agrosbo-role
           Resultado esperado: exit 0
           Si NotFound: aceptable.
 ```
 
-### 3-E: SES configuration set
+### 3-D: SES configuration set
 
 ```
 [ ] 3-08  Eliminar el configuration set:
           aws sesv2 delete-configuration-set \
-            --configuration-set-name agrosbo-spike-config-<TS> \
-            --region <REGIÓN> --profile <PERFIL>
+            --configuration-set-name agrosbo-spike-ses-config-20260727 \
+            --region us-east-1 --profile agrosbo-role
           Resultado esperado: exit 0
           Si NotFound: aceptable.
 
@@ -237,7 +208,7 @@ EventBridge rule → eliminar SES event destination → eliminar SES configurati
           Resultado esperado: agrosbo-spike-config-<TS> no aparece en la lista
 ```
 
-### 3-F: SQS queue
+### 3-E: SQS queue
 
 ```
 [ ] 3-10  Eliminar la cola SQS:
@@ -255,7 +226,7 @@ EventBridge rule → eliminar SES event destination → eliminar SES configurati
           Resultado esperado: sin URLs con prefijo agrosbo-spike
 ```
 
-### 3-G: Identidad SES temporal (solo si se creó una exclusivamente para el spike)
+### 3-F: Identidad SES temporal (solo si se creó una exclusivamente para el spike)
 
 ```
 [ ] 3-12  Verificar si se creó una identidad SES exclusivamente para el spike:

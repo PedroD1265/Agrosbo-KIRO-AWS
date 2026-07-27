@@ -29,12 +29,11 @@
 |---|---|
 | Remitente (sanitizado) | operator@example.com |
 | Destinatario Delivery | success@simulator.amazonses.com (SES Mailbox Simulator) |
-| Destinatario Bounce | bounce@simulator.amazonses.com (SES Mailbox Simulator) |
 | SES sandbox activo | Sí / No — [RELLENAR] |
-| Configuration set | agrosbo-spike-config-\<TS> |
-| Event destination | agrosbo-spike-eventbridge-\<TS> |
-| EventBridge rule | agrosbo-spike-ses-rule-\<TS> |
-| SQS queue | agrosbo-spike-ses-events-\<TS> |
+| Configuration set | agrosbo-spike-ses-config-20260727 |
+| Event destination | agrosbo-spike-eb-dest |
+| EventBridge rule | agrosbo-spike-ses-rule-20260727 |
+| SQS queue | agrosbo-spike-ses-events-20260727 |
 | Run ID (UUID generado) | [RELLENAR: primeros 8 chars]-... |
 
 ---
@@ -58,16 +57,8 @@
 |---|---|
 | Tipo | Delivery — destinatario success@simulator.amazonses.com |
 | MessageId (sanitizado) | [primeros 8 chars]-...-[últimos 4 chars] |
-| ConfigurationSetName | agrosbo-spike-config-\<TS> |
+| ConfigurationSetName | agrosbo-spike-ses-config-20260727 |
 | Tags en el envío | spike=s3, run-id=\<UUID> |
-| SES acepta el envío (exit 0) | Sí / No — [RELLENAR] |
-
-### Envío 2 — Bounce test
-
-| Campo | Valor |
-|---|---|
-| Tipo | Bounce — destinatario bounce@simulator.amazonses.com |
-| MessageId (sanitizado) | [primeros 8 chars]-...-[últimos 4 chars] |
 | SES acepta el envío (exit 0) | Sí / No — [RELLENAR] |
 
 ---
@@ -78,21 +69,13 @@
 
 | Campo | Valor |
 |---|---|
-| Tipo de evento (eventType) | [RELLENAR: Delivery / Bounce / Complaint] |
-| detail-type (EventBridge) | [RELLENAR: "Email Sending Events"] |
+| Tipo de evento (eventType) | [RELLENAR: SEND / DELIVERY] |
+| detail-type (EventBridge) | [RELLENAR: "Email Sent" / "Email Delivered"] |
 | source | [RELLENAR: "aws.ses"] |
 | mail.messageId (del evento, sanitizado) | [primeros 8 chars]-...-[últimos 4 chars] |
 | Correlación con MessageId de SendEmail | [RELLENAR: MATCH / MISMATCH] |
 | Latencia envío → evento recibido | [RELLENAR] ms (o seg) |
 | Mensaje SQS eliminado post-procesamiento | Sí / No — [RELLENAR] |
-
-### Evento 2 (Bounce, si aplica)
-
-| Campo | Valor |
-|---|---|
-| Tipo de evento | [RELLENAR] |
-| mail.messageId correlacionado | [RELLENAR: MATCH / MISMATCH] |
-| Latencia | [RELLENAR] ms |
 
 ---
 
@@ -111,7 +94,7 @@
 
 | Campo | Valor |
 |---|---|
-| Se simuló llegada de `opened_link` antes de `delivered` | Sí / No — [RELLENAR] |
+| Se simuló llegada de Delivered antes de Sent | Sí / No — [RELLENAR] |
 | El procesador toleró el orden incorrecto sin crash | [RELLENAR: Sí (PASS) / No (FAIL)] |
 | Estado final correcto tras reordenamiento | Sí / No — [RELLENAR] |
 | Veredicto | [PASS / FAIL] |
@@ -132,8 +115,6 @@
 |---|---|
 | Latencia envío → Delivery p50 | [RELLENAR] ms |
 | Latencia envío → Delivery p95 | [RELLENAR] ms |
-| Latencia envío → Bounce p50 | [RELLENAR] ms |
-| Latencia envío → Bounce p95 | [RELLENAR] ms |
 | Correlación MessageId | [RELLENAR] / [RELLENAR total] MATCH |
 | Deduplicación | PASS / FAIL |
 | Tolerancia a orden | PASS / FAIL |

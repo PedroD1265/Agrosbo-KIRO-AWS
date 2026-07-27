@@ -191,13 +191,13 @@ Fuente: tasks.md §8 Definition of Done, runbook §16.
 | Tarea | Estado |
 |---|---|
 | T01–T03 (Kickoff documental) | COMPLETED (en origin/main) |
-| T04 (Preflight cloud) | PASS (según estado autoritativo) |
-| T05 (IAM policies) | PASS — 4 políticas creadas y adjuntas |
-| T06 (Harness S4) | PASS (según estado autoritativo) |
-| T07 (Harness S1) | COMPLETED (harness en origin/main) |
-| T08 (Harness S2) | COMPLETED (harness en origin/main) |
-| T09 (Harness S3) | IN PROGRESS (Kiro trabajando en paralelo) |
-| T13 (Ejecutar S4) | PARTIAL (Part A: 18/18 PASS; Part B: NOT REPRODUCED en Replit) |
+| T04 (Preflight cloud) | PASS |
+| T05 (IAM policies) | PASS — AgrosboSpikeTemporaryPolicy adjunta a AgrosboDeveloperRole |
+| T06 (Harness S4) | PASS |
+| T07 (Harness S1) | COMPLETED (merged PR #16) |
+| T08 (Harness S2) | COMPLETED (merged PR #17) |
+| T09 (Harness S3) | COMPLETED (merged PR #19) |
+| T13 (Ejecutar S4) | PASS (Part A: 18/18, Part B: 3/3, Total: 21/21) |
 | T15 (Microvalidaciones M1+M2) | READY — documentos creados en este paquete |
 | T10–T12 (Ejecución cloud) | PENDING — requiere autorización humana y credenciales |
 | T14 (Resumen ejecutivo) | PENDING — requiere T10–T12 |
@@ -217,7 +217,7 @@ Fuente: tasks.md §8 Definition of Done, runbook §16.
 [ ] S1 (Bedrock tool calling): PASS o FAIL documentado con evidencia — PENDING (T10)
 [ ] S2 (Transcribe voz agrícola): PASS o FAIL documentado con evidencia — PENDING (T11)
 [ ] S3 (SES eventos): PASS o FAIL documentado con evidencia — PENDING (T12)
-[ ] S4 (Token seguro): PASS documentado con evidencia — PARTIAL (Part B pendiente)
+[ ] S4 (Token seguro): PASS documentado con evidencia — **PASS** (21/21)
 [ ] Microvalidaciones M1 y M2 documentadas ✓ (completado en este paquete)
 [ ] Resumen ejecutivo producido — PENDING (T14)
 [ ] Cleanup completado y verificado (0 recursos residuales) — PENDING (T16–T17)

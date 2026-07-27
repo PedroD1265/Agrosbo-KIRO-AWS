@@ -35,7 +35,7 @@ roadmap, y cualquier bloqueante identificado para Specs 18+.]
 | S1 | Amazon Bedrock | [RELLENAR] | [RELLENAR] ms | [RELLENAR] ms | USD [RELLENAR] | [RELLENAR] |
 | S2 | Amazon Transcribe | [RELLENAR] | [RELLENAR] ms | [RELLENAR] ms | USD [RELLENAR] | [RELLENAR] |
 | S3 | SES/EventBridge/SQS | [RELLENAR] | [RELLENAR] ms | [RELLENAR] ms | USD [RELLENAR] | [RELLENAR] |
-| S4 | Token (local) | **PARTIAL** (Part A PASS, Part B NOT REPRODUCED en Replit) | N/A | N/A | USD 0.00 | Throughput: 163,592 ops/seg |
+| S4 | Token (local) | **PASS** (Part A + B: 21/21) | N/A | N/A | USD 0.00 | Throughput: 215,413 ops/seg |
 | **TOTAL** | | | | | **USD [RELLENAR]** | |
 
 ---
@@ -166,7 +166,7 @@ Cada una se toma en la Spec correspondiente.
 | Bedrock tool calling (Converse API) | VERIFIED_IN_SPIKE (si S1 PASS) / NOT_VERIFIED (si FAIL) — [RELLENAR] |
 | Transcribe voz agrícola es-* | VERIFIED_IN_SPIKE (si S2 PASS) / APPROVED_WITH_LIMITATIONS / NOT_VERIFIED — [RELLENAR] |
 | SES → EventBridge → SQS event flow | VERIFIED_IN_SPIKE (si S3 PASS) / NOT_VERIFIED — [RELLENAR] |
-| Token opaco SHA-256 + máquina de estados | VERIFIED_IN_SPIKE (Part A) / NOT_VERIFIED (Part B PostgreSQL en Replit) |
+| Token opaco SHA-256 + máquina de estados | VERIFIED_IN_SPIKE (Part A + Part B: 21/21 PASS) |
 | Aurora Serverless v2 + Data API | NOT_IMPLEMENTED — documentación solo (M2); validación en Spec 18 |
 | Amazon Polly voces es-* | NOT_IMPLEMENTED — documentación solo (M1) |
 
@@ -185,7 +185,7 @@ Cada una se toma en la Spec correspondiente.
 | Modelo Bedrock producción | design.md §12.2 | Spec 21 |
 | Región de producción | design.md §12.2 | Spec 18 |
 | STT motor definitivo | design.md §12.2 | Spec 23 |
-| Arquitectura SES eventos producción (SNS vs HTTP vs EventBridge) | design.md §12.2 | Spec 24 |
+| Arquitectura SES eventos producción | Spike validó SES→EventBridge→SQS; decisión definitiva | Spec 24 |
 | Custom vocabulary permanente | design.md §12.2 | Spec 23 |
 | CloudFront /api/* routing | design.md §12.2 | Spec 18/19 |
 | Esquema tablas tokens producción | design.md §12.2 | Spec 24 |

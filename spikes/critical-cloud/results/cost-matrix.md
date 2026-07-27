@@ -15,7 +15,7 @@ Fuente: requirements.md REQ-COST-01, runbook §8.
 | Campo | Valor |
 |---|---|
 | Unidad de facturación | Tokens de entrada + tokens de salida |
-| Presupuesto límite aprobado | <= USD 2.00 |
+| Presupuesto límite aprobado | <= USD 2.00 — PROPOSED ALLOCATION — PENDING HUMAN APPROVAL |
 | Fuente oficial de precios | https://aws.amazon.com/bedrock/pricing/ |
 | Fecha de consulta de precios | **PENDING OFFICIAL CHECK** — verificar antes de T10 |
 
@@ -63,7 +63,7 @@ Costo_S1 = (tokens_entrada_total / 1,000,000) × precio_input
 | Campo | Valor |
 |---|---|
 | Unidad de facturación | Por segundo de audio transcrito (redondeado a 15s mínimo para batch) |
-| Presupuesto límite aprobado | <= USD 1.00 |
+| Presupuesto límite aprobado | <= USD 1.00 — PROPOSED ALLOCATION — PENDING HUMAN APPROVAL |
 | Fuente oficial de precios | https://aws.amazon.com/transcribe/pricing/ |
 | Fecha de consulta de precios | **PENDING OFFICIAL CHECK** — verificar antes de T11 |
 
@@ -116,7 +116,7 @@ esta tabla.
 | Campo | Valor |
 |---|---|
 | Unidad de facturación | Por correo enviado (SES) + por mensaje SQS + requests EventBridge |
-| Presupuesto límite aprobado | <= USD 0.50 |
+| Presupuesto límite aprobado | <= USD 0.50 — PROPOSED ALLOCATION — PENDING HUMAN APPROVAL |
 | Fuente oficial de precios SES | https://aws.amazon.com/ses/pricing/ |
 | Fuente oficial de precios SQS | https://aws.amazon.com/sqs/pricing/ |
 | Fuente oficial de precios EventBridge | https://aws.amazon.com/eventbridge/pricing/ |
@@ -126,19 +126,19 @@ esta tabla.
 
 | Servicio | Volumen estimado |
 |---|---|
-| Correos enviados (SES) | ~10–15 correos (incluyendo bounce y complaint simulados) |
-| Mensajes SQS recibidos y eliminados | ~30–50 mensajes |
-| EventBridge rules invocadas | ~30–50 invocaciones |
+| Correos enviados (SES) | 1–3 correos (mínimo necesario para obtener Email Sent + Email Delivered) |
+| Mensajes SQS recibidos y eliminados | ~2–6 mensajes |
+| EventBridge rules invocadas | ~2–6 invocaciones |
 | S3 (bucket temporal audio S2 batch) | ~5 objetos × ~100KB = ~0.5 MB, ciclo de vida < 1 hora |
 
 ### Precios actuales
 
 | Servicio | Precio | Fuente |
 |---|---|---|
-| SES envío (sandbox) | **PENDING OFFICIAL CHECK** (generalmente ~$0.10/1,000 emails) | https://aws.amazon.com/ses/pricing/ |
-| SQS mensajes (primeros 1M/mes gratis) | **PENDING OFFICIAL CHECK** | https://aws.amazon.com/sqs/pricing/ |
-| EventBridge eventos (primeros 14M/mes gratis) | **PENDING OFFICIAL CHECK** | https://aws.amazon.com/eventbridge/pricing/ |
-| S3 storage (primeros 5GB/mes gratis) | **PENDING OFFICIAL CHECK** | https://aws.amazon.com/s3/pricing/ |
+| SES envío (sandbox) | **PENDING OFFICIAL CHECK** | https://aws.amazon.com/ses/pricing/ |
+| SQS mensajes | **PENDING OFFICIAL CHECK** | https://aws.amazon.com/sqs/pricing/ |
+| EventBridge eventos | **PENDING OFFICIAL CHECK** | https://aws.amazon.com/eventbridge/pricing/ |
+| S3 storage | **PENDING OFFICIAL CHECK** | https://aws.amazon.com/s3/pricing/ |
 
 ### Fórmula de cálculo
 
@@ -149,8 +149,8 @@ Costo_S3 = (correos / 1,000) × precio_SES
          + storage_S3_GB × precio_S3 × (horas / 720)
 ```
 
-**INFERENCIA**: con los volúmenes estimados y las capas gratuitas de SQS y EventBridge,
-el costo de S3 debería ser < USD 0.05. El ítem de mayor costo es SES.
+**INFERENCIA**: con los volúmenes estimados (1–3 correos), el costo de S3 debería ser
+minimal. Los precios de free tier aplican pero no se verifican como vigentes.
 
 ### Campos post-ejecución
 

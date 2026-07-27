@@ -6,10 +6,10 @@
 |---|---|
 | Tarea | T13 |
 | Spike | S4 — Token Externo Seguro |
-| Commit base | 44da638 |
-| Fecha UTC | 2026-07-27T19:59:46Z |
-| Entorno | Replit workspace — Node.js v22.22.0 (linux/x64) |
-| Veredicto | **PARTIAL** — Part A: 18/18 PASS; Part B: NOT REPRODUCED |
+| Commit base | 04b4a1d |
+| Fecha UTC | 2026-07-27T20:15:00Z |
+| Entorno | Windows — Node.js v24.18.0 (win32/x64), Docker (postgres:15-alpine) |
+| Veredicto | **PASS** — Part A: 18/18 PASS; Part B: 3/3 PASS (Total: 21/21) |
 | Recursos AWS creados | 0 |
 | Costo AWS | USD 0.00 |
 
@@ -17,24 +17,19 @@
 
 ## Método de ejecución
 
-`tsx` no está instalado en este entorno (sin `node_modules` del spike; `npm install`
-requiere autorización humana según el runbook §6). El harness Part A utiliza
-exclusivamente módulos built-in de Node.js (`node:crypto`, `node:perf_hooks`), por lo
-que se ejecutó la misma lógica inline usando:
+Ejecutado via scripts reales del monorepo en el worktree del operador:
 
+```bash
+cd spikes/critical-cloud
+npm run s4         # Part A: 18/18 PASS (exit 0)
+npm run s4:db:up   # Inicia contenedor agrosbo-spike-token-db en puerto 54322
+npm run s4:pg      # Part B: 21/21 PASS (18 Part A + 3 Part B, exit 0)
+npm run s4:db:down # Detiene y elimina contenedor
 ```
-/nix/store/bl6iwirn83qj9r8wng43kfdqd5mfahj8-nodejs-22.22.0/bin/node --input-type=module
-```
 
-El código ejecutado es idéntico al de
-`harnesses/s4-token-secure/{token-service.ts,index.ts}` — se inlineó el mismo
-algoritmo sin modificaciones funcionales para evitar el problema de resolución de
-extensiones `.js` de TypeScript en ESM. Toda afirmación de PASS corresponde a
-ejecución real en este entorno.
-
-**Part B (PostgreSQL concurrencia)**: requiere el contenedor Docker dedicado
-`agrosbo-spike-token-db` en el puerto 54322. Docker no está disponible en el entorno
-Replit. Marcado como NOT REPRODUCED.
+Part B utiliza el contenedor dedicado `agrosbo-spike-token-db` (postgres:15-alpine)
+en el puerto 54322, base de datos `agrosbo_spike_token`. NO usa `agrosbo-local-db`
+(puerto 54321, reservado para desarrollo de la aplicacion).
 
 ---
 
@@ -67,18 +62,13 @@ Replit. Marcado como NOT REPRODUCED.
 
 ## Casos — Part B (PostgreSQL concurrencia)
 
-| # | Caso | Resultado | Bloqueo |
+| # | Caso | Resultado | Detalle |
 |---|---|---|---|
-| PG-1 | Concurrency: 10 requests → exactly 1 transition | **NOT REPRODUCED** | Docker no disponible en Replit; contenedor `agrosbo-spike-token-db:54322` no puede iniciarse sin autorización humana |
-| PG-2 | Replay: identical action is idempotent | **NOT REPRODUCED** | Mismo bloqueo |
-| PG-3 | Contradictory: responded vs revoked → one wins, one conflicts | **NOT REPRODUCED** | Mismo bloqueo |
+| PG-1 | Concurrency: 10 requests -> exactly 1 transition | **PASS** | transitioned=1, idempotent=9, conflict=0, finalState=responded |
+| PG-2 | Replay: identical action is idempotent | **PASS** | first=transitioned, replay=idempotent |
+| PG-3 | Contradictory: responded vs revoked -> one wins, one conflicts | **PASS** | resultA=conflict, resultB=transitioned |
 
-**Impacto en veredicto de T13**: el criterio "Concurrencia PG: 10 solicitudes
-concurrentes producen una sola transición" (requirements.md §9) requiere PostgreSQL. No
-habiendo evidencia reproducida en este entorno, el veredicto formal es **PARTIAL**.
-
-El estado autoritativo del proyecto (`T06/S4: PASS`) corresponde a ejecución en el
-worktree del operador (`D:\Pedro\AGROBO`) donde el contenedor sí estuvo disponible.
+**Part B total: 3/3 PASS**
 
 ---
 
@@ -91,9 +81,10 @@ worktree del operador (`D:\Pedro\AGROBO`) donde el contenedor sí estuvo disponi
 | Hash algorithm | SHA-256 |
 | Hash storage | solo el hash hex (raw token nunca persiste) |
 | Comparación | `timingSafeEqual` (timing-safe) |
-| Throughput generate+hash | 163,592 ops/seg |
+| Throughput generate+hash | 215,413 ops/seg (Part A run) / 178,301 ops/seg (Part B run) |
 | Latencia TTL expiry | 600ms espera → rechazo confirmado |
 | Tasa de error Part A | 0/18 (0%) |
+| Tasa de error Part B | 0/3 (0%) |
 | Costo AWS | USD 0.00 |
 
 ---
@@ -110,9 +101,9 @@ worktree del operador (`D:\Pedro\AGROBO`) donde el contenedor sí estuvo disponi
 | Idempotencia | **PASS** | Casos 16–17: repeated transition → `idempotent=true`, estado no avanza |
 | Transición válida | **PASS** | Casos 11–13: sent→opened_link→responded→completed |
 | Transición inválida | **PASS** | Casos 14–15: sent→completed y responded→opened_link rechazados |
-| Concurrencia PG | **NOT REPRODUCED** | Ver Part B |
-| Replay PG | **NOT REPRODUCED** | Ver Part B |
-| Conflicto PG | **NOT REPRODUCED** | Ver Part B |
+| Concurrencia PG | **PASS** | PG-1: 10 concurrent requests, exactly 1 transition |
+| Replay PG | **PASS** | PG-2: first=transitioned, replay=idempotent |
+| Conflicto PG | **PASS** | PG-3: one wins (transitioned), one conflicts |
 
 ---
 
@@ -142,11 +133,10 @@ worktree del operador (`D:\Pedro\AGROBO`) donde el contenedor sí estuvo disponi
 
 ## Veredicto
 
-**PARTIAL**
+**PASS**
 
-- Part A (18 criterios crypto + in-memory): **PASS**
-- Part B (3 criterios PostgreSQL concurrencia): **NOT REPRODUCED** en este entorno.
-- Estado autoritativo del operador: **PASS** (T06/S4 confirmado en prompt de sesión).
-- Bloqueante para PARTIAL: Docker no disponible en Replit workspace sin autorización.
-- Siguiente acción requerida: el humano ejecuta `npm run s4:db:up && npm run s4:pg` en
-  el worktree local para confirmar Part B y actualizar este manifest con resultados.
+- Part A (18 criterios crypto + in-memory): **PASS** (18/18)
+- Part B (3 criterios PostgreSQL concurrencia): **PASS** (3/3)
+- Ejecucion con scripts reales: `npm run s4` y `npm run s4:pg`
+- Contenedor dedicado: agrosbo-spike-token-db (puerto 54322)
+- Total: **21/21 PASS**
