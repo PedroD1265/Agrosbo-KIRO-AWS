@@ -1,11 +1,23 @@
 # AGROSBO - Mapa de Specs
 
-## Registro histórico: Specs 1–14
+## Estado de fases
+
+| Fase | Objetivo | Estado |
+| --- | --- | --- |
+| 0 | Gobierno documental y técnico (Spec 15) | COMPLETADA (PR #3 merged) |
+| 1 | Preparación de estación de trabajo | COMPLETADA (PRs #4, #5 merged) |
+| 2 | Gobernanza multiagente (Spec 16) | EN PROGRESO (Checkpoint 2.2) |
+| 3–7 | Desarrollo P0/P1 (Specs 17–31) | PLANNED |
+
+---
+
+## Registro histórico: Specs 1–14 (cerradas)
 
 > Las siguientes Specs documentan el mapa previo del proyecto. Algunas están
 > completadas, otras fueron resecuenciadas en la nueva secuencia (Specs 15–31).
-> Esta sección se conserva como registro histórico, no como clasificación activa.
-> La secuencia activa está al final de este documento y en
+> Esta sección se conserva como registro histórico cerrado, no como
+> clasificación activa.
+> La secuencia activa está más adelante en este documento y en
 > [`./roadmap/delivery-roadmap-v2.md`](./roadmap/delivery-roadmap-v2.md).
 
 ### Tabla histórica
@@ -183,8 +195,8 @@
 
 | # | Spec | Horizonte | Estado |
 |---|------|-----------|--------|
-| 15 | product-agent-scope-v2 | P0 | COMPLETADA (PR #3 pendiente de merge) |
-| 16 | multi-agent-workflow | P0 | PLANNED (habilitador posterior a Fase 0) |
+| 15 | product-agent-scope-v2 | P0 | COMPLETADA (PR #3 merged) |
+| 16 | multi-agent-workflow | P0 | EN PROGRESO (Checkpoint 2.2 activo) |
 | 17 | critical-cloud-spikes | P0 | PLANNED |
 | 18 | aws-infrastructure-baseline | P0 | PLANNED |
 | 19 | aws-core-deployment | P0 | PLANNED |
@@ -201,9 +213,49 @@
 | 30 | security-cost-reliability-hardening | P0 | PLANNED |
 | 31 | demo-hardening-and-submission-v2 | P0 | PLANNED |
 
-> **Spec 15**: Fase 0 completada documentalmente. Los archivos existen en
-> `.kiro/specs/product-agent-scope-v2/` (requirements.md, design.md, tasks.md).
-> 85 requirement IDs únicos. PR #3 pendiente de revisión final y merge.
+---
+
+## 15. product-agent-scope-v2 — Fase 0
+
+- **Objetivo**: formalizar requirements, design y tasks de la nueva dirección de
+  producto.
+- **Estado**: **COMPLETADA** (PR #3 merged; Fase 0 cerrada).
+- **Módulos**: `.kiro/specs/product-agent-scope-v2/` (requirements.md, design.md,
+  tasks.md). 85 requirement IDs únicos.
+- **Dependencias**: Checkpoints 0.2–0.8.
+- **Terminado**: Requirements EARS + Design + Tasks coherentes y trazables.
+- **AWS**: ninguno. **Kiro**: Steering, Specs, ADRs 014–018, checkpoints 0.9–0.15.
+
+## 16. multi-agent-workflow — habilitador P0
+
+- **Objetivo**: definir la gobernanza y colaboración segura entre agentes de
+  desarrollo (Kiro, Codex, Antigravity, Lovable, otros): ownership de archivos,
+  handoffs, checkpoints, reglas Git, un solo escritor por working tree,
+  worktrees/ramas separados para paralelismo, prohibición de merge/push/deploy
+  autónomos.
+- **Estado**: **EN PROGRESO** — Checkpoints 2.1/2.1A/2.1B y 2.2 completados;
+  pendiente T09–T16 en checkpoints posteriores.
+- **Baseline inicial de la Fase 2**: `e4fa128`.
+- **Baseline del Checkpoint 2.2**: `f5bcc50`.
+- **Rama**: `docs/phase-2-process-integration` (Checkpoint 2.2).
+- **Artefactos**:
+  - [Requirements](../.kiro/specs/multi-agent-workflow/requirements.md)
+  - [Design](../.kiro/specs/multi-agent-workflow/design.md)
+  - [Tasks](../.kiro/specs/multi-agent-workflow/tasks.md)
+  - [Phase 2 Execution Runbook](./roadmap/phase-2-execution-runbook.md)
+- **Checkpoints completados**:
+  - 2.1 — Spec y runbook creados (T01–T04, PR #6 merged).
+  - 2.1A — Correcciones post-auditoría Antigravity (fusionado).
+  - 2.1B — Registro de hallazgos de auditoría como tareas futuras (fusionado).
+  - 2.2 — Alineación documental (T05–T08, completado).
+- **Pendientes para checkpoints posteriores**: T09–T16 (Bloques C, D y E).
+- **Dependencias**: Spec 15 aprobada; Fase 0 y Fase 1 completadas.
+- **Terminado cuando**: modelo de gobernanza documentado, operativo, verificado
+  y no-bloqueante para Specs 17+.
+- **AWS**: ninguno. **Kiro**: Requirements EARS, Design, Tasks, runbook,
+  auditoría Antigravity.
+
+---
 
 ### Notas de reconciliación con Specs 1–14
 

@@ -1,6 +1,6 @@
 # AGROSBO — Proceso de desarrollo con Kiro
 
-> Última actualización: julio 2026 (Fase 0).
+> Última actualización: julio 2026 (Fase 2 en progreso).
 
 Documenta cómo Kiro guía la ingeniería de AGROSBO. Solo se describen usos reales
 o aprobados. No se inventan estadísticas de productividad.
@@ -25,11 +25,13 @@ Specs materializadas (carpeta y archivos existen):
 - `project-foundation-and-risk-spikes` (histórica).
 - `platform-stabilization-and-governance` (completada).
 - `cloud-services-readiness` (completada, PR #2).
-- `product-agent-scope-v2` (completada, PR #3 pendiente de merge; 85 IDs
-  únicos; Requirements, Design y Tasks existen).
+- `product-agent-scope-v2` (completada, PR #3 merged; 85 IDs únicos;
+  Requirements, Design y Tasks existen).
+- `multi-agent-workflow` (en progreso, PR #6 merged para Checkpoint 2.1;
+  Checkpoint 2.2 activo; Requirements, Design y Tasks existen).
 
-Fase 0 completó Checkpoints 0.2–0.15. PR #3 permanece Draft hasta revisión
-humana. Spec 16 y Spec 17 son trabajo posterior no iniciado.
+Fase 0 completó Checkpoints 0.2–0.15 y cerró con PR #3. Fase 1 cerrada con
+PRs #4 y #5. Fase 2 (Spec 16) en progreso.
 
 Mapa completo: [`docs/spec-map.md`](../spec-map.md). Secuencia aprobada: Specs
 15–31 en [`docs/roadmap/delivery-roadmap-v2.md`](../roadmap/delivery-roadmap-v2.md).
@@ -50,16 +52,89 @@ Quality gates deterministas, sin IA ni despliegue:
 - `compile-check`, `unit-tests` (Stop).
 - `secret-scan` (PreToolUse; bloquea commit/push con secretos staged).
 
-## Fase 0 — Proceso documental actual
+## Fases de proceso
 
-Dirigida por el [runbook](../roadmap/phase-0-execution-runbook.md):
+### Fase 0 — Gobierno documental y técnico (cerrada)
+
+Dirigida por el [runbook de Fase 0](../roadmap/phase-0-execution-runbook.md):
 - Bloques 1–5 con puertas humanas.
 - Una sola sesión escritora por working tree.
-- Paralelismo de escritura solo con worktree, rama y ownership separados.
-- Ningún agente hace commit, push, PR, merge o deploy sin autorización.
-- Spec 16 (multi-agent-workflow) definirá el workflow detallado de colaboración
-  entre agentes de desarrollo (Kiro, Codex, Antigravity, Lovable) después de
-  Fase 0; no es entregable del runbook actual.
+- Spec 15 formalizada y aprobada (PR #3 merged).
+- Quality gates: format, encoding, lint, typecheck, test, build, diff --check.
+
+### Fase 1 — Preparación de estación de trabajo (cerrada)
+
+- Workstation readiness completada (PRs #4, #5 merged).
+- Topología multiagente definida.
+- Hooks de quality gates instalados.
+
+### Fase 2 — Gobernanza multiagente (en progreso)
+
+Dirigida por el [runbook de Fase 2](../roadmap/phase-2-execution-runbook.md) y
+la Spec 16 ([Requirements](../../.kiro/specs/multi-agent-workflow/requirements.md),
+[Design](../../.kiro/specs/multi-agent-workflow/design.md),
+[Tasks](../../.kiro/specs/multi-agent-workflow/tasks.md)).
+
+Define cómo múltiples agentes de desarrollo colaboran de forma segura sobre el
+repositorio. Las reglas operativas fundamentales son:
+
+**Sesión única de escritura**
+- Un solo agente escritor activo por working tree en todo momento.
+- Auditorías paralelas de solo lectura (Antigravity en worktree separado).
+- Escritura paralela autorizada solo con worktree propio, rama dedicada y
+  ownership de archivos disjunto; requiere aprobación humana explícita.
+
+**Preflight obligatorio**
+- Antes de cualquier escritura: verificar rama, HEAD, status y whitespace.
+- Fallo en preflight → STOP REQUIRED.
+
+**Allowlist explícita por tarea**
+- Cada checkpoint o tarea define qué archivos se pueden crear o modificar.
+- El agente no puede ampliar la allowlist unilateralmente.
+- Escribir fuera de allowlist → STOP REQUIRED.
+
+**Ownership de archivos**
+- Cada tarea declara ownership exclusivo.
+- Dos agentes no pueden tener write-ownership sobre el mismo archivo.
+- Transferencia requiere handoff + autorización humana + preflight del receptor.
+
+**Clasificación de comandos**
+- Seguros (sin autorización): git status/log/diff, npm run format/lint/
+  typecheck/test/build/check:encoding, lectura de archivos.
+- Restringidos (requieren autorización humana): git commit, push, branch
+  (crear), tag, worktree add, gh pr create, npm install.
+- Prohibidos (sin excepción): git push --force, reset --hard, clean -fd,
+  branch -D, rebase -i, merge por agente, cdk deploy/destroy, escritura AWS.
+
+**Quality gates**
+- Obligatorios antes de cerrar un bloque: format, encoding, lint, typecheck,
+  test, build, git diff --check.
+- Fallo no corregible dentro de allowlist → STOP REQUIRED.
+- No se desactivan reglas para superar un gate.
+
+**Formato de handoff**
+- Al final de cada sesión o bloque: rama, HEAD, archivos creados/modificados,
+  validaciones, ambigüedades, git status, confirmación de no commit/push/deploy.
+- Al reanudar: re-ejecutar preflight y verificar estado contra el handoff.
+
+**STOP REQUIRED**
+- Se aplica inmediatamente cuando: gate falla sin corrección posible, archivo no
+  autorizado aparece, rama/HEAD incorrectos, contradicción de alcance/seguridad/
+  arquitectura, se necesita decisión humana, se requiere código/schema/deps,
+  secreto detectado, o se necesita commit/push/PR/merge/deploy.
+
+**Autorización humana obligatoria**
+- Commit, push, PR, merge y deploy solo con autorización humana explícita.
+- Ningún agente puede hacer merge.
+
+**Auditoría independiente**
+- Antigravity produce revisión estructurada antes de merge.
+- El humano es la autoridad final para aprobar.
+
+**No duplicar**
+- development-process.md es guía breve; la definición formal completa reside en
+  la Spec 16 y el runbook de Fase 2 (enlaces arriba).
+- No se duplica Steering ni se copian extensamente requirements.md o design.md.
 
 ## Baseline técnico
 
@@ -71,6 +146,7 @@ Dirigida por el [runbook](../roadmap/phase-0-execution-runbook.md):
 
 - Steering, Specs (EARS/Design/Tasks), ADRs y Spec map versionados.
 - Auditoría de capacidades (`docs/reviews/current-capability-audit-v2.md`).
-- Runbook y checkpoints.
+- Runbooks y checkpoints.
 - Resultados de quality gates.
 - Hooks deterministas.
+- Auditorías independientes (Antigravity).
