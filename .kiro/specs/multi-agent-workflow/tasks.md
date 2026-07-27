@@ -194,7 +194,7 @@ Notas:
 | T12 | Completada (Checkpoint 2.3, solo lectura/verificacion) |
 | T13 | Completada (Checkpoint 2.4) |
 | T14 | Completada (Checkpoint 2.4) |
-| T15 | Pendiente (Bloque D) |
+| T15 | Completada (Checkpoint 2.5): 4 agentes + 5 skills creados; 0 MCP nuevos; comportamiento runtime reservado para T16 |
 | T16 | Pendiente (Bloque E, cierre) |
 
 ## 6. Hallazgos de auditoria Antigravity (tareas futuras registradas)
