@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | 0 | Gobierno documental y técnico (Spec 15) | COMPLETADA (PR #3 merged) |
 | 1 | Preparación de estación de trabajo | COMPLETADA (PRs #4, #5 merged) |
-| 2 | Gobernanza multiagente (Spec 16) | EN CIERRE — Checkpoint 2.6 runtime PASS; auditoria final, CI y merge pendientes |
+| 2 | Gobernanza multiagente (Spec 16) | COMPLETADA — Spec 16 y Checkpoint 2.6 cerrados mediante PR #11 |
 | 3–7 | Desarrollo P0/P1 (Specs 17–31) | PLANNED |
 
 ---
@@ -196,7 +196,7 @@
 | # | Spec | Horizonte | Estado |
 |---|------|-----------|--------|
 | 15 | product-agent-scope-v2 | P0 | COMPLETADA (PR #3 merged) |
-| 16 | multi-agent-workflow | P0 | EN CIERRE (Checkpoint 2.6 runtime PASS) |
+| 16 | multi-agent-workflow | P0 | COMPLETADA (PR #11 merged) |
 | 17 | critical-cloud-spikes | P0 | PLANNED |
 | 18 | aws-infrastructure-baseline | P0 | PLANNED |
 | 19 | aws-core-deployment | P0 | PLANNED |
@@ -233,15 +233,15 @@
   handoffs, checkpoints, reglas Git, un solo escritor por working tree,
   worktrees/ramas separados para paralelismo, prohibición de merge/push/deploy
   autónomos.
-- **Estado**: **EN CIERRE** — T01–T15 completadas; T16 en cierre (Checkpoint
-  2.6); simulacion runtime PASS; auditoria final, CI remoto y merge pendientes.
+- **Estado**: **COMPLETADA** — T01–T16 completadas; PR #11 merged; baseline
+  final d3150a4.
 - **Baseline inicial de la Fase 2**: `e4fa128`.
 - **Baseline del Checkpoint 2.2**: `f5bcc50`.
 - **Baseline del Checkpoint 2.3**: `660574f`.
 - **Baseline del Checkpoint 2.4**: `9a58455`.
 - **Baseline del Checkpoint 2.5**: `a4b9bbd`.
-- **Baseline de cierre**: `d9c0e0a`.
-- **Rama de cierre**: `docs/phase-2-closeout`.
+- **Baseline del Checkpoint 2.6**: `d9c0e0a`.
+- **Baseline final**: `d3150a4` (merge commit PR #11).
 - **Artefactos**:
   - [Requirements](../.kiro/specs/multi-agent-workflow/requirements.md)
   - [Design](../.kiro/specs/multi-agent-workflow/design.md)
@@ -255,12 +255,16 @@
   - 2.3 — Endurecimiento del baseline (T09–T12, PR #8 merged).
   - 2.4 — Superficie documental de gobernanza (T13–T14, PR #9 merged).
   - 2.5 — Configuración Kiro: 4 agentes + 5 skills (T15, PR #10 merged).
-  - 2.6 — Simulacion runtime PASS (T16, en cierre).
+  - 2.6 — Simulacion, auditoria y cierre (T16, PR #11 merged).
 - **Configuracion materializada**: 4 agents, 5 skills, 0 MCP.
-- **Pendientes para cierre definitivo**: auditoria final, CI remoto, merge del
-  PR de cierre.
+- **Verificacion**:
+  - Runtime de 4 agentes: PASS.
+  - 5 skills verificadas.
+  - Auditoria independiente (Antigravity): PASS.
+  - CI: quality-gates SUCCESS, integration-postgres SUCCESS.
+  - 0 codigo funcional, 0 dependencias, 0 migraciones, 0 recursos AWS.
 - **Dependencias**: Spec 15 aprobada; Fase 0 y Fase 1 completadas.
-- **Terminado cuando**: modelo de gobernanza documentado, operativo, verificado
+- **Terminado**: modelo de gobernanza documentado, operativo, verificado
   y no-bloqueante para Specs 17+.
 - **AWS**: ninguno. **Kiro**: Requirements EARS, Design, Tasks, runbook,
   auditoría Antigravity.

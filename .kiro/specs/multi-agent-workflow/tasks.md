@@ -195,7 +195,7 @@ Notas:
 | T13 | Completada (Checkpoint 2.4) |
 | T14 | Completada (Checkpoint 2.4) |
 | T15 | Completada (Checkpoint 2.5): 4 agentes + 5 skills creados; 0 MCP nuevos; comportamiento runtime reservado para T16 |
-| T16 | En cierre (Checkpoint 2.6): simulacion runtime PASS; gates locales, auditoria final, CI remoto y merge pendientes |
+| T16 | Completada (Checkpoint 2.6, PR #11 merged) |
 
 ### Evidencia runtime del Checkpoint 2.6
 
@@ -209,6 +209,16 @@ Simulacion ejecutada en Kiro IDE con perfiles reales:
 
 Resultado agregado: 4 agents verificados, 5 skills reconocidas; 0 archivos
 modificados durante la simulacion; 0 MCP; 0 recursos AWS.
+
+Cierre confirmado:
+
+- Auditoria independiente (Antigravity): PASS.
+- Quality gates CI (quality-gates): SUCCESS.
+- Integration-postgres CI: SUCCESS.
+- PR #11 merged (2026-07-27T03:45:30Z).
+- Merge commit: d3150a4.
+- Baseline final: d3150a4.
+- 0 codigo funcional, 0 dependencias, 0 migraciones, 0 MCP, 0 recursos AWS.
 
 ## 6. Hallazgos de auditoria Antigravity (tareas futuras registradas)
 
@@ -370,9 +380,9 @@ posterior, segun corresponda).
 - [x] Documentacion en docs/agents/ y adaptadores creados (T14).
 - [x] Configuracion Kiro (4 agents + 5 skills) creada y verificada (T15).
 - [x] Simulacion multiagente exitosa (T16 — runtime PASS).
-- [ ] Quality gates verdes (pendiente ejecucion completa del Checkpoint 2.6A).
-- [ ] Auditoria independiente completada (pendiente auditoria final del Checkpoint 2.6).
-- [ ] CI remoto verde (pendiente PR de cierre).
+- [x] Quality gates verdes (quality-gates CI SUCCESS, PR #11).
+- [x] Auditoria independiente completada (Antigravity PASS, PR #11).
+- [x] CI remoto verde (quality-gates + integration-postgres SUCCESS, PR #11).
 - [x] Cero contradicciones con product-scope-v2 o ADRs.
 - [x] Ningun codigo funcional modificado.
 - [x] Ninguna dependencia instalada.
