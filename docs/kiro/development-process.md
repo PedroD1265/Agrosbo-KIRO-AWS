@@ -1,6 +1,6 @@
 # AGROSBO — Proceso de desarrollo con Kiro
 
-> Última actualización: julio 2026 (Fase 2 en progreso).
+> Última actualización: julio 2026 (Fase 2 en cierre).
 
 Documenta cómo Kiro guía la ingeniería de AGROSBO. Solo se describen usos reales
 o aprobados. No se inventan estadísticas de productividad.
@@ -27,11 +27,13 @@ Specs materializadas (carpeta y archivos existen):
 - `cloud-services-readiness` (completada, PR #2).
 - `product-agent-scope-v2` (completada, PR #3 merged; 85 IDs únicos;
   Requirements, Design y Tasks existen).
-- `multi-agent-workflow` (en progreso, PR #6 merged para Checkpoint 2.1;
-  Checkpoint 2.2 activo; Requirements, Design y Tasks existen).
+- `multi-agent-workflow` (en cierre, Checkpoint 2.6; simulacion runtime
+  completada; auditoria final, CI remoto y merge pendientes; Requirements,
+  Design y Tasks existen).
 
 Fase 0 completó Checkpoints 0.2–0.15 y cerró con PR #3. Fase 1 cerrada con
-PRs #4 y #5. Fase 2 (Spec 16) en progreso.
+PRs #4 y #5. Fase 2 (Spec 16) en cierre — Checkpoint 2.6, simulacion runtime
+completada; auditoria final, CI y merge pendientes.
 
 Mapa completo: [`docs/spec-map.md`](../spec-map.md). Secuencia aprobada: Specs
 15–31 en [`docs/roadmap/delivery-roadmap-v2.md`](../roadmap/delivery-roadmap-v2.md).
@@ -68,12 +70,15 @@ Dirigida por el [runbook de Fase 0](../roadmap/phase-0-execution-runbook.md):
 - Topología multiagente definida.
 - Hooks de quality gates instalados.
 
-### Fase 2 — Gobernanza multiagente (en progreso)
+### Fase 2 — Gobernanza multiagente (en cierre)
 
 Dirigida por el [runbook de Fase 2](../roadmap/phase-2-execution-runbook.md) y
 la Spec 16 ([Requirements](../../.kiro/specs/multi-agent-workflow/requirements.md),
 [Design](../../.kiro/specs/multi-agent-workflow/design.md),
 [Tasks](../../.kiro/specs/multi-agent-workflow/tasks.md)).
+
+Checkpoint 2.6 en cierre. Simulacion runtime completada. Auditoria final, CI
+remoto y merge pendientes.
 
 Define cómo múltiples agentes de desarrollo colaboran de forma segura sobre el
 repositorio. Las reglas operativas fundamentales son:
@@ -135,6 +140,32 @@ repositorio. Las reglas operativas fundamentales son:
 - development-process.md es guía breve; la definición formal completa reside en
   la Spec 16 y el runbook de Fase 2 (enlaces arriba).
 - No se duplica Steering ni se copian extensamente requirements.md o design.md.
+
+## Configuracion Kiro materializada
+
+Los cuatro perfiles fueron seleccionados y verificados en Kiro IDE:
+
+Custom agents (`.kiro/agents/`):
+- planner
+- implementer
+- aws-architect
+- reviewer
+
+Workspace skills (`.kiro/skills/`):
+- repo-preflight
+- quality-gates
+- task-handoff
+- pr-audit
+- aws-change-plan
+
+MCP nuevos: 0.
+
+### Evidencia de deny runtime
+
+El perfil reviewer bloqueo automaticamente `git add -n AGENTS.md` por regla deny
+configurada en la skill pr-audit. El comando prohibido no se ejecuto y no
+aparecio solicitud de autorizacion. `git merge-base main origin/main` continuo
+permitido como comando seguro de solo lectura.
 
 ## Baseline técnico
 
