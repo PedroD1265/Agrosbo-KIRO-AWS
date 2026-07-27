@@ -36,6 +36,21 @@ The dry-run mode uses a mock client that simulates Bedrock Converse API response
 It validates: tool definitions, argument validation, conversation loop, iteration
 limits, timeouts, sanitized logs, and execution evidence.
 
+## Running S2 — Transcribe Voice
+
+**Dry-run (default, no AWS):**
+
+```bash
+npm run s2
+```
+
+Validates locally: WAV parsing, corpus structure (40 synthetic phrases),
+vocabulary candidate list, WER metrics, critical term detection, number/unit/temporal
+accuracy, mock Transcribe scenarios, log sanitization, and structured evidence.
+
+No locale has been selected as definitive. Live execution against Amazon Transcribe
+corresponds to T11 and requires separate human authorization.
+
 ## Running S4 (local only)
 
 ```bash
