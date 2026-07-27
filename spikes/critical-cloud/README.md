@@ -51,6 +51,22 @@ accuracy, mock Transcribe scenarios, log sanitization, and structured evidence.
 No locale has been selected as definitive. Live execution against Amazon Transcribe
 corresponds to T11 and requires separate human authorization.
 
+## Running S3 -- SES Events
+
+**Dry-run (default, no AWS):**
+
+```bash
+npm run s3
+```
+
+Validates locally: SES send simulation, EventBridge event parsing, SQS message
+handling, correlation by MessageId, deduplication, out-of-order events, expiry,
+queue policy validation, error handling, log sanitization, cleanup plan, and
+structured evidence.
+
+Architecture: SES v2 ConfigurationSet -> EventBridge default bus -> SQS queue.
+SES remains in sandbox. Live execution corresponds to T12.
+
 ## Running S4 (local only)
 
 ```bash
