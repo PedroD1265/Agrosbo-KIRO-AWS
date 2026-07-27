@@ -184,16 +184,16 @@ Notas:
 | T02 | Completada (Checkpoint 2.1) |
 | T03 | Completada (Checkpoint 2.1) |
 | T04 | Completada (Checkpoint 2.1) |
-| T05 | Pendiente |
-| T06 | Pendiente |
-| T07 | Pendiente |
-| T08 | Pendiente |
-| T09 | Pendiente (Bloque C) |
-| T10 | Pendiente (Bloque C) |
-| T11 | Pendiente (Bloque C) |
-| T12 | Pendiente (Bloque C, solo lectura/verificacion) |
-| T13 | Pendiente (Bloque D) |
-| T14 | Pendiente (Bloque D) |
+| T05 | Completada (Checkpoint 2.2) |
+| T06 | Completada (Checkpoint 2.2) |
+| T07 | Completada (Checkpoint 2.2) |
+| T08 | Completada (Checkpoint 2.2) |
+| T09 | Completada (Checkpoint 2.3) |
+| T10 | Completada (Checkpoint 2.3) |
+| T11 | Completada (Checkpoint 2.3) |
+| T12 | Completada (Checkpoint 2.3, solo lectura/verificacion) |
+| T13 | Completada (Checkpoint 2.4) |
+| T14 | Completada (Checkpoint 2.4) |
 | T15 | Pendiente (Bloque D) |
 | T16 | Pendiente (Bloque E, cierre) |
 

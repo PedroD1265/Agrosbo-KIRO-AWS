@@ -196,7 +196,7 @@
 | # | Spec | Horizonte | Estado |
 |---|------|-----------|--------|
 | 15 | product-agent-scope-v2 | P0 | COMPLETADA (PR #3 merged) |
-| 16 | multi-agent-workflow | P0 | EN PROGRESO (Checkpoint 2.2 activo) |
+| 16 | multi-agent-workflow | P0 | EN PROGRESO (Checkpoint 2.4 completado) |
 | 17 | critical-cloud-spikes | P0 | PLANNED |
 | 18 | aws-infrastructure-baseline | P0 | PLANNED |
 | 19 | aws-core-deployment | P0 | PLANNED |
@@ -233,11 +233,13 @@
   handoffs, checkpoints, reglas Git, un solo escritor por working tree,
   worktrees/ramas separados para paralelismo, prohibición de merge/push/deploy
   autónomos.
-- **Estado**: **EN PROGRESO** — Checkpoints 2.1/2.1A/2.1B y 2.2 completados;
-  pendiente T09–T16 en checkpoints posteriores.
+- **Estado**: **EN PROGRESO** — Checkpoints 2.1/2.1A/2.1B, 2.2, 2.3 y 2.4
+  completados; pendiente T15–T16 en checkpoints posteriores.
 - **Baseline inicial de la Fase 2**: `e4fa128`.
 - **Baseline del Checkpoint 2.2**: `f5bcc50`.
-- **Rama**: `docs/phase-2-process-integration` (Checkpoint 2.2).
+- **Baseline del Checkpoint 2.3**: `660574f`.
+- **Baseline del Checkpoint 2.4**: `9a58455`.
+- **Rama**: `docs/phase-2-agent-governance` (Checkpoint 2.4).
 - **Artefactos**:
   - [Requirements](../.kiro/specs/multi-agent-workflow/requirements.md)
   - [Design](../.kiro/specs/multi-agent-workflow/design.md)
@@ -247,8 +249,10 @@
   - 2.1 — Spec y runbook creados (T01–T04, PR #6 merged).
   - 2.1A — Correcciones post-auditoría Antigravity (fusionado).
   - 2.1B — Registro de hallazgos de auditoría como tareas futuras (fusionado).
-  - 2.2 — Alineación documental (T05–T08, completado).
-- **Pendientes para checkpoints posteriores**: T09–T16 (Bloques C, D y E).
+  - 2.2 — Alineación documental (T05–T08, PR #7 merged).
+  - 2.3 — Endurecimiento del baseline (T09–T12, PR #8 merged).
+  - 2.4 — Superficie documental de gobernanza (T13–T14, completado).
+- **Pendientes para checkpoints posteriores**: T15–T16.
 - **Dependencias**: Spec 15 aprobada; Fase 0 y Fase 1 completadas.
 - **Terminado cuando**: modelo de gobernanza documentado, operativo, verificado
   y no-bloqueante para Specs 17+.
