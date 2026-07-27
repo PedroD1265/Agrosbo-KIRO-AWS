@@ -1,0 +1,22 @@
+{
+  "name": "@agrosbo/spike-critical-cloud",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Spec 17: Critical cloud spikes (Bedrock, Transcribe, SES, Token). DISPOSABLE.",
+  "scripts": {
+    "s4": "npx tsx harnesses/s4-token-secure/index.ts",
+    "s4:pg": "npx tsx harnesses/s4-token-secure/index.ts --pg",
+    "s4:db:up": "docker run -d --name agrosbo-spike-token-db -p 127.0.0.1:54322:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=agrosbo_spike_token postgres:15-alpine && npx tsx -e \"setTimeout(()=>process.exit(0),3000)\"",
+    "s4:db:down": "docker stop agrosbo-spike-token-db && docker rm agrosbo-spike-token-db"
+  },
+  "dependencies": {
+    "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
+}
