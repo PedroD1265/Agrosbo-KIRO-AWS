@@ -8,7 +8,7 @@
       "matcher": "\\.(ts|tsx)$",
       "action": {
         "type": "command",
-        "command": "npx prettier --check --ignore-unknown \"D:/Pedro/AGROBO/api/src/**/*.ts\" \"D:/Pedro/AGROBO/web/src/**/*.{ts,tsx}\" \"D:/Pedro/AGROBO/shared/**/*.ts\"",
+        "command": "npx prettier --check --ignore-unknown \"api/src/**/*.ts\" \"web/src/**/*.{ts,tsx}\" \"shared/**/*.ts\"",
         "timeout": 30
       }
     }

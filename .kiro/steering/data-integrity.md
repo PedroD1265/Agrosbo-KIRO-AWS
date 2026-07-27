@@ -1,3 +1,12 @@
+---
+inclusion: fileMatch
+fileMatchPattern:
+  - "api/src/dbStorage.ts"
+  - "api/src/storage.ts"
+  - "shared/schema.ts"
+  - "api/migrations/**"
+---
+
 # AGROSBO - Integridad de datos
 
 Responsabilidad: garantías técnicas de consistencia. No repite la semántica de

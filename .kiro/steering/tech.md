@@ -1,3 +1,7 @@
+---
+inclusion: always
+---
+
 # AGROSBO — Tecnología
 
 Responsabilidad: stack y servicios, separando lo implementado de lo objetivo.
