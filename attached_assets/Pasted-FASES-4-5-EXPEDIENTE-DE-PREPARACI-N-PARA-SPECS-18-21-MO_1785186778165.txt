@@ -1,0 +1,693 @@
+FASES 4–5 — EXPEDIENTE DE PREPARACIÓN PARA SPECS 18–21
+
+MODO OBLIGATORIO
+
+PLAN MODE EXCLUSIVAMENTE.
+
+No modificar archivos.
+No crear archivos.
+No usar Build Mode.
+No ejecutar builds.
+No instalar dependencias.
+No crear commits.
+No hacer push.
+No crear PR.
+No hacer merge.
+No ejecutar AWS.
+No usar Replit Database, Replit Auth ni Replit Deployments.
+
+CONTEXTO
+
+Repositorio:
+AGROSBO
+
+Rama de lectura:
+replit/spec-18-readiness-plan
+
+La rama fue creada manualmente por el humano desde origin/main.
+
+Baseline mínimo esperado:
+
+156036a
+Merge pull request #18 from PedroD1265/replit/spec-17-cloud-prep
+
+Si origin/main tiene un commit más reciente, usar el más reciente y registrarlo.
+
+La Fase 3 / Spec 17 está en cierre.
+
+Ya existen:
+
+- harness local S1 Bedrock;
+- harness local S2 Transcribe;
+- harness local S3 SES → EventBridge → SQS;
+- harness local S4 token seguro;
+- evidencia S4;
+- microvalidaciones Polly y Aurora;
+- checklist pre-cloud;
+- templates de manifests;
+- cleanup plan.
+
+Todavía NO asumir completados:
+
+- T10 Bedrock real;
+- T11 Transcribe real;
+- T12 SES real;
+- cleanup AWS final;
+- cierre formal de Spec 17.
+
+OBJETIVO
+
+Preparar un expediente analítico completo que reduzca al mínimo el trabajo de
+planificación de Kiro al iniciar:
+
+- Spec 18 — aws-infrastructure-baseline;
+- Spec 19 — aws-core-deployment;
+- Spec 20 — cloud-auth-and-attachments;
+- Spec 21 — farm-operational-agent.
+
+El resultado debe entregarse únicamente en la conversación.
+
+No constituye una Spec.
+No constituye un ADR.
+No constituye una decisión arquitectónica.
+No constituye código implementado.
+No debe guardarse en el repositorio.
+
+GOBERNANZA OBLIGATORIA
+
+Leer primero:
+
+- AGENTS.md
+- docs/AGENTS.md
+- infra/AGENTS.md
+- docs/agents/replit-acceleration-policy.md
+- docs/agents/roles-and-responsibilities.md
+- docs/architecture/collaboration-model.md
+
+Respetar:
+
+- Kiro es autoridad de Specs, arquitectura e integración.
+- Replit solo analiza, compara y propone.
+- El humano toma decisiones finales.
+- No implementar infraestructura final.
+- No modificar infra/src.
+- No crear una segunda fuente de verdad.
+
+PREFLIGHT DE SOLO LECTURA
+
+Ejecutar únicamente comandos read-only:
+
+git branch --show-current
+git status -sb
+git log -1 --oneline
+git log -1 --oneline origin/main
+git diff --check
+git ls-tree -r --name-only origin/main
+git grep <término> origin/main
+
+No ejecutar:
+
+git switch
+git checkout
+git reset
+git add
+git commit
+git push
+npm install
+npm ci
+npm run
+npx
+docker
+aws
+cdk
+
+Si el working tree ya contiene cambios inesperados:
+
+- no corregirlos;
+- no eliminarlos;
+- continuar solo si puede analizar origin/main directamente;
+- de lo contrario devolver STOP REQUIRED.
+
+FUENTES CANÓNICAS
+
+Revisar como mínimo:
+
+PLAN Y ALCANCE
+
+- docs/roadmap/delivery-roadmap-v2.md
+- docs/spec-map.md
+- docs/product/product-scope-v2.md
+- docs/product/capability-status-matrix.md
+- docs/reviews/current-capability-audit-v2.md
+
+ARQUITECTURA
+
+- docs/architecture/current-and-target.md
+- docs/architecture/aws-service-plan.md
+- docs/architecture/cloud-services-readiness-audit.md
+- docs/architecture/operational-agent-plan.md
+- docs/architecture/spatial-gap-register.md
+
+ADRs RELEVANTES
+
+- docs/adr/007*
+- docs/adr/010*
+- docs/adr/012*
+- docs/adr/014*
+- docs/adr/015*
+- docs/adr/016*
+- docs/adr/017*
+- docs/adr/018*
+
+FASE 3
+
+- .kiro/specs/critical-cloud-spikes/requirements.md
+- .kiro/specs/critical-cloud-spikes/design.md
+- .kiro/specs/critical-cloud-spikes/tasks.md
+- docs/roadmap/phase-3-execution-runbook.md
+- spikes/critical-cloud/results/**
+- spikes/critical-cloud/harnesses/**
+
+WORKSPACES
+
+- package.json
+- infra/**
+- api/package.json
+- api/src/env.ts
+- api/src/db.ts
+- api/src/handlers/**
+- api/src/health.ts
+- api/src/providers/**
+- api/src/auth.ts
+- api/src/attachments.ts
+- api/src/idempotency.ts
+- api/migrations/**
+- api/drizzle.config.ts
+- web/package.json
+- web/src/lib/api-config.ts
+- web/src/lib/auth.tsx
+- web/src/lib/sync/**
+- web/public/sw.js
+- shared/**
+
+REGLAS DE EVIDENCIA
+
+Cada afirmación debe clasificarse como una de:
+
+- VERIFIED_IN_REPOSITORY
+- CANONICAL_DECISION
+- INFERENCE
+- OPEN_DECISION
+- RUNTIME_VALIDATION_REQUIRED
+- HUMAN_CONFIRMATION_REQUIRED
+
+No presentar una inferencia como hecho.
+No presentar un placeholder como implementado.
+No presentar un harness de spike como código productivo.
+No asumir que una ejecución AWS pendiente ya pasó.
+
+ENTREGABLE 1 — MAPA ACTUAL DEL PROYECTO
+
+Producir una tabla por workspace:
+
+- web;
+- api;
+- shared;
+- infra;
+- spikes;
+- docs/governance.
+
+Para cada uno indicar:
+
+- responsabilidad;
+- componentes implementados;
+- placeholders;
+- dependencias cloud;
+- tests existentes;
+- deuda relevante;
+- Spec futura responsable.
+
+ENTREGABLE 2 — RECONCILIACIÓN DE ESTADO
+
+Comparar:
+
+- roadmap;
+- spec-map;
+- capability matrix;
+- tasks de Spec 17;
+- commits y resultados existentes.
+
+Identificar:
+
+- estados documentales desactualizados;
+- tareas realmente completadas;
+- tareas cloud todavía pendientes;
+- afirmaciones que dependen del cierre formal de Fase 3.
+
+No modificar los documentos.
+
+ENTREGABLE 3 — READINESS MATRIX DE SPEC 18
+
+Crear una matriz con:
+
+- componente;
+- estado actual;
+- código reutilizable;
+- falta por decidir;
+- falta por implementar;
+- falta por validar en AWS;
+- dependencia;
+- evidencia de Definition of Done.
+
+Componentes mínimos:
+
+- CDK application;
+- stack boundaries;
+- VPC;
+- AZs;
+- public/private subnets;
+- NAT/no NAT;
+- security groups;
+- Aurora PostgreSQL Serverless v2;
+- engine version;
+- min/max ACU;
+- Data API;
+- Secrets Manager;
+- database secret;
+- SESSION_SECRET;
+- S3 frontend;
+- S3 attachments;
+- encryption;
+- lifecycle;
+- CloudWatch;
+- tags;
+- budget controls;
+- CloudFormation outputs;
+- migrations;
+- seed;
+- destroy/cleanup.
+
+ENTREGABLE 4 — REGISTRO DE DECISIONES ABIERTAS
+
+No resolver decisiones.
+
+Para cada decisión entregar:
+
+- ID;
+- pregunta;
+- por qué importa;
+- opciones;
+- ventajas;
+- riesgos;
+- dependencia;
+- evidencia necesaria;
+- autoridad que decide;
+- momento límite para decidir.
+
+Incluir como mínimo:
+
+- región final;
+- stack único vs stacks separados;
+- número de AZ;
+- NAT Gateway;
+- Aurora version;
+- ACU;
+- Data API vs conexión directa;
+- estrategia de migraciones;
+- estrategia de seed;
+- buckets separados;
+- removal policies;
+- CloudFront/API topology;
+- CORS;
+- secrets;
+- ambientes;
+- naming;
+- presupuesto.
+
+ENTREGABLE 5 — CONTRATO SPEC 18 → SPEC 19
+
+Proponer un contrato de outputs, sin volverlo definitivo.
+
+Incluir:
+
+- VPC ID;
+- subnet IDs;
+- security group IDs;
+- Aurora cluster ARN;
+- Aurora secret ARN;
+- database name;
+- Data API enabled;
+- endpoint cuando corresponda;
+- frontend bucket;
+- attachments bucket;
+- log groups;
+- naming prefix;
+- environment;
+- region;
+- stack names;
+- export/import mechanism;
+- deployment order;
+- destroy order.
+
+Para cada output indicar:
+
+- productor;
+- consumidor;
+- formato;
+- sensibilidad;
+- puede aparecer en logs;
+- requiere Secrets Manager;
+- prueba de aceptación.
+
+ENTREGABLE 6 — GAP ANALYSIS DE SPEC 19
+
+Revisar el core existente y listar lo necesario para:
+
+- empaquetar Lambda;
+- desplegar API Gateway;
+- desplegar frontend;
+- CloudFront + OAC;
+- manejar rutas SPA;
+- health/live;
+- health/ready;
+- configuración de variables;
+- acceso Aurora;
+- migraciones;
+- seed;
+- CloudWatch;
+- rollback.
+
+Inspeccionar específicamente:
+
+- inicialización del Lambda handler;
+- ejecución de seed en cold start;
+- timeout;
+- tamaño del bundle;
+- assets;
+- API base URL;
+- cookies actuales;
+- transición futura a JWT;
+- CORS;
+- service worker;
+- rutas /api/*.
+
+No implementar correcciones.
+
+ENTREGABLE 7 — GAP ANALYSIS DE SPEC 20
+
+Producir matrices separadas para:
+
+COGNITO
+
+- provider actual;
+- placeholder;
+- variables existentes;
+- contratos IdentityProvider;
+- claims;
+- roles;
+- orgId;
+- RBAC;
+- frontend token provider;
+- logout;
+- refresh;
+- pruebas requeridas.
+
+S3 ATTACHMENTS
+
+- interface actual;
+- implementación local;
+- objectKey;
+- presigned upload;
+- confirm upload;
+- download access;
+- delete;
+- verify;
+- compensaciones;
+- metadata;
+- offline queue;
+- pruebas requeridas.
+
+No escribir proveedores.
+
+ENTREGABLE 8 — PREPARACIÓN DE SPEC 21
+
+No redactar la Spec oficial.
+
+Crear únicamente insumos mecánicos:
+
+- inventario de herramientas agrícolas candidatas;
+- qué endpoints actuales podría usar cada herramienta;
+- lectura vs escritura;
+- roles permitidos;
+- datos necesarios;
+- riesgos;
+- idempotencia;
+- confirmación requerida;
+- dependencia de Specs 19 y 20;
+- fixtures que Replit podría generar después de aprobar la Spec.
+
+No diseñar system prompt definitivo.
+No elegir modelo final.
+No implementar agente.
+
+ENTREGABLE 9 — MATRIZ DE PRUEBAS Y EVIDENCIA
+
+Crear una matriz de pruebas futuras para Specs 18–20:
+
+SPEC 18
+
+- config validation;
+- CDK synth;
+- template assertions;
+- security properties;
+- outputs;
+- deploy;
+- Aurora AVAILABLE;
+- migration;
+- Data API;
+- destroy.
+
+SPEC 19
+
+- Lambda cold start;
+- health/live;
+- health/ready;
+- API route;
+- frontend root;
+- SPA direct route;
+- CloudFront;
+- logs;
+- rollback.
+
+SPEC 20
+
+- JWT válido;
+- JWT inválido;
+- roles;
+- token expirado;
+- presigned upload;
+- confirm upload;
+- delete;
+- rollback;
+- object isolation;
+- offline retry.
+
+Para cada prueba indicar:
+
+- nivel;
+- precondición;
+- acción;
+- resultado esperado;
+- evidencia;
+- costo;
+- cleanup;
+- Spec responsable.
+
+ENTREGABLE 10 — MATRIZ DE RIESGOS
+
+Incluir:
+
+- costo recurrente;
+- NAT Gateway;
+- Aurora min ACU;
+- cold starts;
+- seed en Lambda;
+- Data API limits;
+- secrets;
+- destroy accidental;
+- bucket retention;
+- CloudFront cache;
+- JWT migration;
+- CORS;
+- service worker;
+- logs con datos sensibles;
+- dependencias cruzadas entre stacks;
+- rollback incompleto;
+- diferencias dev/prod.
+
+Clasificar:
+
+- probabilidad;
+- impacto;
+- detectabilidad;
+- mitigación propuesta;
+- decisión requerida;
+- owner.
+
+ENTREGABLE 11 — DESCOMPOSICIÓN DE TRABAJO
+
+Proponer tareas pequeñas para Kiro después de cerrar Fase 3.
+
+Separar:
+
+- Kiro planner;
+- Kiro aws-architect;
+- Kiro implementer;
+- Codex;
+- Replit;
+- Antigravity;
+- humano.
+
+Para cada tarea indicar:
+
+- objetivo;
+- dependencias;
+- allowlist recomendada;
+- criterios de aceptación;
+- STOP conditions;
+- posible paralelismo;
+- riesgo de conflicto.
+
+No crear IDs oficiales T01/T02.
+Usar identificadores provisionales como:
+
+PREP-18-01
+PREP-18-02
+
+ENTREGABLE 12 — PLAN DE PARALELISMO
+
+Diseñar un plan que minimice tiempo sin romper dependencias.
+
+Debe separar:
+
+TRACK A
+- formalización Spec 18.
+
+TRACK B
+- preparación de matrices y evidencias.
+
+TRACK C
+- revisión del código reutilizable.
+
+TRACK D
+- decisiones humanas.
+
+Después de aprobar Spec 18:
+
+TRACK IMPLEMENTATION
+- CDK por Kiro/Codex.
+
+TRACK VALIDATION
+- tests y auditoría.
+
+Indicar explícitamente qué no puede empezar antes del cierre de Fase 3.
+
+ENTREGABLE 13 — FUTURAS TAREAS SEGURAS PARA REPLIT
+
+Identificar trabajos que sí podrían delegarse a Replit después de que Kiro
+apruebe Specs 18–21.
+
+Solo trabajos:
+
+- mecánicos;
+- sintéticos;
+- aislados;
+- pequeños;
+- verificables;
+- descartables.
+
+Para cada uno indicar:
+
+- Spec;
+- artefacto;
+- allowlist posible;
+- criterio de aceptación;
+- motivo por el que no invade autoridad de Kiro.
+
+ENTREGABLE 14 — PREGUNTAS PARA EL HUMANO
+
+Entregar las 15 preguntas de mayor impacto que el humano debe resolver antes o
+durante Specs 18–20.
+
+Ordenarlas por:
+
+- bloqueante inmediato;
+- importante antes de deploy;
+- diferible.
+
+ENTREGABLE 15 — HANDOFF PARA KIRO
+
+Terminar con un handoff compacto que incluya:
+
+1. Estado verificado.
+2. Top 10 gaps.
+3. Top 10 decisiones abiertas.
+4. Dependencias críticas.
+5. Trabajo paralelizable.
+6. Riesgos bloqueantes.
+7. Secuencia recomendada.
+8. Insumos que Kiro puede convertir en Requirements/Design/Tasks.
+9. Qué debe ignorar o volver a validar.
+10. Próximo checkpoint recomendado.
+
+CRITERIOS DE ACEPTACIÓN
+
+- Cero archivos modificados.
+- Cero archivos creados.
+- Cero dependencias.
+- Cero builds.
+- Cero AWS.
+- Cero decisiones arquitectónicas presentadas como definitivas.
+- Cero Specs redactadas como oficiales.
+- Evidencia trazable al repositorio.
+- Placeholders identificados honestamente.
+- Separación clara entre CURRENT, TARGET y FUTURE.
+- Plan de paralelismo coherente con dependencias.
+- Replit permanece como acelerador, no como fuente de verdad.
+
+CRITERIOS DE RECHAZO
+
+Devolver REVISION REQUIRED si:
+
+- se implementó código;
+- se modificó infra/src;
+- se creó una Spec;
+- se decidió arquitectura;
+- se instalaron dependencias;
+- se ejecutó AWS;
+- se creó commit/push/PR;
+- se presentó un placeholder como implementado;
+- se declaró terminada Fase 3 sin evidencia;
+- se propuso iniciar Spec 19 antes de la salida de Spec 18.
+
+ENTREGA FINAL
+
+Entregar únicamente en la conversación:
+
+1. Baseline analizado.
+2. Fuentes leídas.
+3. Los 15 entregables.
+4. Confirmación de cero modificaciones.
+5. Confirmación de Plan Mode.
+6. Veredicto:
+   - PLAN PACKAGE READY FOR KIRO REVIEW
+   - REVISION REQUIRED.
+7. STOP.
+
+No Build Mode.
+No archivos.
+No código.
+No commit.
+No push.
+No PR.
+No Sync.
