@@ -128,7 +128,31 @@ Este modelo funciona en single-organization (P0/P1). Multi-tenancy completo es
 P2 y no bloquea esta capacidad. El token está scoped a una tarea específica, no
 a una organización ni a un usuario interno.
 
-## 6. Referencias
+## 6. Modelo de desarrollo multiagente
+
+El desarrollo de AGROSBO sigue un modelo de escritor unico por working tree con
+los siguientes roles:
+
+| Agente | Rol | Modo |
+|--------|-----|------|
+| Kiro | Desarrollo principal; arquitectura; integracion | Escritor unico en working tree principal |
+| Codex | Implementador delegado para trabajo extenso | Escritor en worktree propio |
+| Antigravity | Auditor independiente | Solo lectura en worktree separado |
+| Replit | Acelerador externo bajo demanda | Aislado; artefactos descartables |
+| Humano | Autoridad final | Commits, push, PR, merge, dependencias, cloud |
+
+Replit opera por defecto fuera del working tree principal del repositorio.
+Excepcionalmente, el humano puede autorizar una rama o entorno Git aislado con
+ownership disjunto y allowlist exacta; en ningun caso trabaja sobre main ni
+realiza push, PR, merge o deploy. Produce artefactos mecanicos, sinteticos,
+aislados y verificables (datasets, fixtures, corpus, matrices de pruebas,
+prototipos UI). No es fuente de verdad. Replit entrega artefactos aislados;
+Kiro o Codex los adapta; Kiro valida coherencia con las fuentes canonicas;
+el humano autoriza promocion e integracion al repositorio.
+
+Politica detallada: [`../agents/replit-acceleration-policy.md`](../agents/replit-acceleration-policy.md).
+
+## 7. Referencias
 
 - [`../product/product-scope-v2.md`](../product/product-scope-v2.md) §10.
 - [`../product/personas-and-permissions.md`](../product/personas-and-permissions.md).

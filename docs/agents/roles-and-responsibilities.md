@@ -69,13 +69,34 @@
 
 | Attribute | Value |
 | --- | --- |
-| Role | External prototyping environment |
-| Default mode | Isolated |
-| Write capability | Own isolated environment only — not the main repo |
-| Worktree | N/A (external platform) |
-| Limits | No access to DB, auth, or cloud; produces disposable prototypes |
-| Handoff | Export artifacts manually if useful; reimplementation required |
-| Human-only actions | Deciding what to promote from prototype |
+| Role | External acceleration and prototyping environment |
+| Default mode | Plan Mode (read-only analysis; no file modifications) |
+| Write capability | Own isolated environment only — never the main repo directly |
+| Worktree | N/A (external platform); may use an authorized isolated branch for delivery |
+| Limits | Not a source of truth; cannot decide architecture, schemas, regions, models, or IAM; Kiro approves scope and integration |
+| Handoff | Artifacts delivered via conversation, downloadable files, isolated app, or authorized branch; Kiro or Codex adapts; Kiro validates; Antigravity audits if warranted; human authorizes promotion |
+| Human-only actions | Branch creation/authorization, artifact promotion authorization, dependencies and installations, AWS/cloud operations, commit, push, PR, merge, deploy |
+
+**Modes**:
+
+- **Plan Mode** (default): Analyze, compare, propose. No file creation, no
+  workflows, no dependency installation, no service connections. Must be used
+  as the first step in every delegation.
+- **Build Mode** (conditional): Create isolated, disposable artifacts. Requires
+  explicit human authorization, an approved task, exact allowlist, and acceptance
+  criteria. Replit delivers; Kiro or Codex adapts; Kiro validates; the human
+  authorizes promotion.
+
+**Relationship to other agents**:
+
+- Kiro defines scope, approves integration, and holds architectural authority.
+- Codex is preferred for sustained implementation within the monorepo.
+- Replit is preferred for mechanical, synthetic, isolated, and verifiable work
+  that does not require monorepo context or active AWS credentials.
+- Antigravity audits Replit artifacts before promotion if requested.
+- Human controls all promotion to Git.
+
+**Detailed policy**: [`./replit-acceleration-policy.md`](./replit-acceleration-policy.md).
 
 ### Gemini
 
@@ -111,4 +132,4 @@
 | Worktree | Any |
 | Limits | None (sovereign) |
 | Handoff | N/A |
-| Human-only actions | Commit, push, PR, merge, deploy, resource creation, dependency management, branch deletion, conflict resolution |
+| Human-only actions | Branch creation/authorization, artifact promotion, dependency installation, AWS/cloud operations, commit, push, PR, merge, deploy, resource creation, conflict resolution |
