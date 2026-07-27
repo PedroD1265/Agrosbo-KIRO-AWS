@@ -31,7 +31,7 @@ spikes/critical-cloud/
       custom-vocabulary.txt      # Vocabulario agricola (si aplica)
     s3-ses-events/
       index.ts                   # Harness principal (envio + recepcion de eventos)
-      sns-validator.ts           # Verificacion de firma SNS
+      eventbridge-event-parser.ts # Parsing y normalizacion de eventos SES recibidos via EventBridge/SQS
       fixtures/                  # Templates de correo sinteticos
     s4-token-secure/
       index.ts                   # Harness principal (local, sin AWS)

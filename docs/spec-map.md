@@ -296,7 +296,7 @@
 - **Terminado** (esperado): manifests con PASS/FAIL por servicio; cleanup
   verificado; costos dentro de presupuesto; spike code desechable en
   `spikes/critical-cloud/`.
-- **AWS**: Bedrock, Transcribe, SES, S3 (temporal), SQS (temporal), SNS
+- **AWS**: Bedrock, Transcribe, SES, S3 (temporal), SQS (temporal), EventBridge
   (temporal). Todos temporales; cleanup obligatorio.
 - **Kiro**: Requirements, Design, Tasks, runbook, harnesses, ejecución,
   evaluación, handoffs.

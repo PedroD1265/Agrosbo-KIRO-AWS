@@ -196,8 +196,9 @@ Humano → aws login (MFA) → assume spike role → exportar vars → harness u
 | S3 | ses:SendEmail, sesv2:CreateConfigurationSet, sesv2:CreateConfigurationSetEventDestination, sesv2:DeleteConfigurationSet, sesv2:DeleteConfigurationSetEventDestination, events:PutRule, events:PutTargets, events:DeleteRule, events:RemoveTargets, sqs:CreateQueue, sqs:ReceiveMessage, sqs:DeleteMessage, sqs:DeleteQueue, sqs:GetQueueAttributes, sqs:SetQueueAttributes |
 | S4 | Ninguno (local; PostgreSQL local para concurrencia) |
 
-Notas IAM Bedrock: no existe `bedrock:Converse` como accion. Converse usa
-`bedrock:InvokeModel`; ConverseStream usa `bedrock:InvokeModelWithResponseStream`.
+> **Nota IAM Bedrock**: No existe `bedrock:Converse` como acción IAM.
+> Converse API utiliza `bedrock:InvokeModel`; ConverseStream utiliza
+> `bedrock:InvokeModelWithResponseStream`.
 
 Esta tabla es un borrador preliminar. La politica IAM definitiva se genera y
 revisa durante el Checkpoint 3.2 usando documentacion actual de AWS.

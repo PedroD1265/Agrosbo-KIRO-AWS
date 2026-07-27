@@ -14,7 +14,7 @@ Los siguientes cuatro harnesses son obligatorios:
 |---|-------|-------------|----------|
 | S1 | Bedrock tool calling | Amazon Bedrock | Invocar un modelo con tool definitions; recibir tool_use; devolver resultado; verificar composicion de respuesta |
 | S2 | Transcribe voz agricola | Amazon Transcribe | Transcribir clips sinteticos en espanol con vocabulario agricola; medir exactitud (WER) y latencia |
-| S3 | SES eventos verificables | Amazon SES | Enviar correo; recibir eventos SNS (Delivery, Bounce, Complaint); deduplicar; verificar message ID |
+| S3 | SES eventos verificables | Amazon SES | Enviar correo; recibir eventos SES via EventBridge y SQS (Delivery, Bounce, Complaint); deduplicar; verificar message ID |
 | S4 | Token externo seguro | Local + crypto | Generar token opaco; hash SHA-256; validar; expirar por TTL; revocar; transicion idempotente de estados |
 
 Microvalidaciones documentales opcionales (sin harness de ejecucion obligatorio):
