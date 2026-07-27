@@ -18,6 +18,24 @@ cleanup/
   cleanup-checklist.md
 ```
 
+## Running S1 — Bedrock Tool Calling
+
+**Dry-run (default, no AWS):**
+
+```bash
+npm run s1
+```
+
+**Live mode (requires credentials + human authorization — T10 only):**
+
+```bash
+npm run s1:live
+```
+
+The dry-run mode uses a mock client that simulates Bedrock Converse API responses.
+It validates: tool definitions, argument validation, conversation loop, iteration
+limits, timeouts, sanitized logs, and execution evidence.
+
 ## Running S4 (local only)
 
 ```bash
