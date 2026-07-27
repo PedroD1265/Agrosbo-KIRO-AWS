@@ -1,6 +1,6 @@
 # AGROSBO — Proceso de desarrollo con Kiro
 
-> Última actualización: julio 2026 (Fase 2 en cierre).
+> Última actualización: julio 2026 (Fase 2 completada).
 
 Documenta cómo Kiro guía la ingeniería de AGROSBO. Solo se describen usos reales
 o aprobados. No se inventan estadísticas de productividad.
@@ -27,13 +27,13 @@ Specs materializadas (carpeta y archivos existen):
 - `cloud-services-readiness` (completada, PR #2).
 - `product-agent-scope-v2` (completada, PR #3 merged; 85 IDs únicos;
   Requirements, Design y Tasks existen).
-- `multi-agent-workflow` (en cierre, Checkpoint 2.6; simulacion runtime
-  completada; auditoria final, CI remoto y merge pendientes; Requirements,
-  Design y Tasks existen).
+- `multi-agent-workflow` (completada, PR #11 merged; Checkpoint 2.6 completado;
+  CI y auditoria final aprobados; baseline final d3150a4; Requirements, Design
+  y Tasks existen).
 
 Fase 0 completó Checkpoints 0.2–0.15 y cerró con PR #3. Fase 1 cerrada con
-PRs #4 y #5. Fase 2 (Spec 16) en cierre — Checkpoint 2.6, simulacion runtime
-completada; auditoria final, CI y merge pendientes.
+PRs #4 y #5. Fase 2 (Spec 16) completada — Checkpoint 2.6 completado; PR #11
+merged; CI y auditoria final aprobados; baseline final d3150a4.
 
 Mapa completo: [`docs/spec-map.md`](../spec-map.md). Secuencia aprobada: Specs
 15–31 en [`docs/roadmap/delivery-roadmap-v2.md`](../roadmap/delivery-roadmap-v2.md).
@@ -70,15 +70,15 @@ Dirigida por el [runbook de Fase 0](../roadmap/phase-0-execution-runbook.md):
 - Topología multiagente definida.
 - Hooks de quality gates instalados.
 
-### Fase 2 — Gobernanza multiagente (en cierre)
+### Fase 2 — Gobernanza multiagente (completada)
 
 Dirigida por el [runbook de Fase 2](../roadmap/phase-2-execution-runbook.md) y
 la Spec 16 ([Requirements](../../.kiro/specs/multi-agent-workflow/requirements.md),
 [Design](../../.kiro/specs/multi-agent-workflow/design.md),
 [Tasks](../../.kiro/specs/multi-agent-workflow/tasks.md)).
 
-Checkpoint 2.6 en cierre. Simulacion runtime completada. Auditoria final, CI
-remoto y merge pendientes.
+Checkpoint 2.6 completado. PR #11 merged. CI y auditoria final aprobados.
+Baseline final: d3150a4.
 
 Define cómo múltiples agentes de desarrollo colaboran de forma segura sobre el
 repositorio. Las reglas operativas fundamentales son:
