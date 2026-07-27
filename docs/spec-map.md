@@ -7,7 +7,8 @@
 | 0 | Gobierno documental y técnico (Spec 15) | COMPLETADA (PR #3 merged) |
 | 1 | Preparación de estación de trabajo | COMPLETADA (PRs #4, #5 merged) |
 | 2 | Gobernanza multiagente (Spec 16) | COMPLETADA — Spec 16 y Checkpoint 2.6 cerrados mediante PR #11 |
-| 3–7 | Desarrollo P0/P1 (Specs 17–31) | PLANNED |
+| 3 | Spikes críticos de servicios cloud (Spec 17) | IN PROGRESS |
+| 4–9 | Desarrollo P0/P1 (Specs 18–31) | PLANNED |
 
 ---
 
@@ -197,7 +198,7 @@
 |---|------|-----------|--------|
 | 15 | product-agent-scope-v2 | P0 | COMPLETADA (PR #3 merged) |
 | 16 | multi-agent-workflow | P0 | COMPLETADA (PR #11 merged) |
-| 17 | critical-cloud-spikes | P0 | PLANNED |
+| 17 | critical-cloud-spikes | P0 | IN PROGRESS |
 | 18 | aws-infrastructure-baseline | P0 | PLANNED |
 | 19 | aws-core-deployment | P0 | PLANNED |
 | 20 | cloud-auth-and-attachments | P0 | PLANNED |
@@ -268,6 +269,37 @@
   y no-bloqueante para Specs 17+.
 - **AWS**: ninguno. **Kiro**: Requirements EARS, Design, Tasks, runbook,
   auditoría Antigravity.
+
+## 17. critical-cloud-spikes — Fase 3
+
+- **Objetivo**: validar viabilidad técnica de servicios AWS críticos para P0
+  mediante spikes aislados: Bedrock tool calling, Transcribe voz agrícola,
+  SES eventos verificables, tokens externos seguros.
+- **Estado**: **IN PROGRESS** — Checkpoint 3.1 (kickoff documental).
+- **Baseline inicial de Fase 3**: `bfedd57`.
+- **Artefactos**:
+  - [Requirements](../.kiro/specs/critical-cloud-spikes/requirements.md)
+  - [Design](../.kiro/specs/critical-cloud-spikes/design.md)
+  - [Tasks](../.kiro/specs/critical-cloud-spikes/tasks.md)
+  - [Phase 3 Execution Runbook](./roadmap/phase-3-execution-runbook.md)
+- **Checkpoints planificados**:
+  - 3.1 — Kickoff documental (T01–T03).
+  - 3.2 — Preflight cloud (T04–T05).
+  - 3.3 — Harnesses locales (T06–T09).
+  - 3.4 — Ejecución AWS (T10–T13).
+  - 3.5 — Evaluación y microvalidaciones (T14–T15).
+  - 3.6 — Cleanup y verificación (T16–T17).
+  - 3.7 — Auditoría, alineación y cierre (T18–T19).
+- **Spikes obligatorios**: S1 Bedrock, S2 Transcribe, S3 SES, S4 Token.
+- **Microvalidaciones documentales**: M1 Polly, M2 Aurora+Data API.
+- **Dependencias**: Spec 16 completada; Fases 0–2 completadas.
+- **Terminado** (esperado): manifests con PASS/FAIL por servicio; cleanup
+  verificado; costos dentro de presupuesto; spike code desechable en
+  `spikes/critical-cloud/`.
+- **AWS**: Bedrock, Transcribe, SES, S3 (temporal), SQS (temporal), EventBridge
+  (temporal). Todos temporales; cleanup obligatorio.
+- **Kiro**: Requirements, Design, Tasks, runbook, harnesses, ejecución,
+  evaluación, handoffs.
 
 ---
 
