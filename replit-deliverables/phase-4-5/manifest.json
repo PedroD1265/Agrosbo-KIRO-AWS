@@ -1,0 +1,112 @@
+{
+  "_meta": {
+    "description": "Manifest del pack de fixtures AGROSBO Fases 4-5. Contiene metadatos, conteos verificados y hashes SHA-256 de todos los archivos del pack."
+  },
+  "packVersion": "1.0.0",
+  "packName": "agrosbo-phase-4-5-fixture-pack",
+  "baselineSha": "156036a",
+  "baselineDescription": "Merge pull request #18 from PedroD1265/replit/spec-17-cloud-prep",
+  "generatedAt": "2026-07-27T22:33:08Z",
+  "generatedBy": "replit-agent (build-mode-prompt-1)",
+  "workspaceBranch": "replit/spec-18-readiness-plan",
+  "totalRecords": {
+    "readConversations": 48,
+    "writeScenarios": 36,
+    "idempotencyCases": 24,
+    "deploymentFailureCases": 24,
+    "routes": 73,
+    "totalFixtureRecords": 205
+  },
+  "coverage": {
+    "resourcesWithReadCoverage": ["blocks", "greenhouses", "campaigns", "tasks", "observations", "irrigation-events", "inventory", "harvest-lots", "applications", "expenses", "labor-costs", "beekeeping", "weather", "alerts", "health"],
+    "resourcesWithWriteCoverage": ["tasks", "observations", "irrigation-events", "inventory", "harvest-lots", "applications", "expenses", "labor-costs", "beekeeping", "blocks", "campaigns", "greenhouses", "users"],
+    "idempotencyScenarios": ["happy-path", "replay", "conflict", "stale-processing", "expiry", "error-handling", "key-format", "db-transactional", "db-unavailable", "mem-eviction", "cleanup", "schema-check", "response-capture", "transaction-compensation", "release"],
+    "deploymentScenarios": ["cold-start", "auth-provider", "auth-enforcement", "attachments-provider", "database-failure", "validation-failure", "offline-pwa", "alb-health-check", "cors-proxy", "csv-export-import"],
+    "adrConstraintsCovered": ["ADR-015", "ADR-018"],
+    "rbacRolesCovered": ["admin", "tecnico", "encargado", "operario", "finanzas"]
+  },
+  "files": [
+    {
+      "name": "README.md",
+      "description": "Pack overview, key facts, usage instructions",
+      "type": "documentation"
+    },
+    {
+      "name": "source-baseline.json",
+      "description": "Verified source facts from git show origin/main",
+      "type": "reference",
+      "keySections": ["keyFiles", "adrs", "repo"]
+    },
+    {
+      "name": "route-catalog.json",
+      "description": "Complete API route catalog with auth/role/idempotency flags",
+      "type": "catalog",
+      "recordCount": 73
+    },
+    {
+      "name": "rbac-matrix.json",
+      "description": "Role-based access matrix per resource/operation with gap analysis",
+      "type": "catalog",
+      "roles": ["admin", "tecnico", "encargado", "operario", "finanzas"]
+    },
+    {
+      "name": "agent-read-conversations.es.json",
+      "description": "48 agent read-only conversation fixtures in Spanish",
+      "type": "fixture",
+      "recordCount": 48,
+      "idSeries": "RC-001 – RC-048",
+      "language": "es"
+    },
+    {
+      "name": "agent-write-confirmation-scenarios.es.json",
+      "description": "36 agent write+confirmation flow scenarios per ADR-015",
+      "type": "fixture",
+      "recordCount": 36,
+      "idSeries": "WC-001 – WC-036",
+      "language": "es"
+    },
+    {
+      "name": "idempotency-replay-cases.json",
+      "description": "24 idempotency middleware test cases covering both storage backends",
+      "type": "test-case",
+      "recordCount": 24,
+      "idSeries": "IC-001 – IC-024"
+    },
+    {
+      "name": "deployment-and-provider-failure-cases.json",
+      "description": "24 deployment and provider failure scenarios",
+      "type": "test-case",
+      "recordCount": 24,
+      "idSeries": "DC-001 – DC-024"
+    },
+    {
+      "name": "validate-pack.mjs",
+      "description": "Node.js pack validator — 20 checks, exits 0 on success",
+      "type": "tooling",
+      "checksCount": 20
+    },
+    {
+      "name": "validation-report.md",
+      "description": "Validator output — written by validate-pack.mjs",
+      "type": "report"
+    },
+    {
+      "name": "manifest.json",
+      "description": "This file — pack manifest with metadata",
+      "type": "manifest"
+    }
+  ],
+  "verificationMethod": "git-show-origin-main — all facts extracted from direct source reads, not documentation",
+  "knownLimitations": [
+    "Route catalog and RBAC may not cover 100% of edge case middleware interactions not visible from grep",
+    "Fixture case bodies use placeholder values [N], [X] — they are templates, not runnable integration tests",
+    "Idempotency cases describe expected behavior, not executable assertions",
+    "Conversation fixtures assume working local-session auth — cognito-jwt path is NOT_IMPLEMENTED"
+  ],
+  "openDecisionsAffectingThisPack": [
+    "OD-05: requireRole on blocks/greenhouses/campaigns write routes",
+    "OD-06: cognito-jwt implementation timeline (Spec 21)",
+    "OD-07: S3 attachments timeline (Spec 20)",
+    "OD-12: seedDatabase() behavior in Lambda cold start"
+  ]
+}

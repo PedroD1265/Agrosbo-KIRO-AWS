@@ -1,0 +1,199 @@
+{
+  "_meta": {
+    "description": "Matriz RBAC completa por recurso/operación. Verificada desde api/src/routes.ts + api/src/providers/index.ts + api/src/app.ts (origin/main SHA 156036a). Dos capas de control: (1) global auth guard en app.ts, (2) requireRole() inline en routes.ts.",
+    "baselineSha": "156036a",
+    "extractedAt": "2026-07-27T22:33:08Z",
+    "authEnforcementNote": "Cuando AUTH_ENFORCEMENT=off (dev default) TODOS los guards se omiten. Cuando AUTH_ENFORCEMENT=on, global guard requiere req.user para rutas no-públicas, luego requireRole() verifica el role específico."
+  },
+  "roles": {
+    "admin": {
+      "description": "Acceso total. Único rol que puede listar/crear usuarios.",
+      "inherits": ["tecnico", "encargado", "finanzas", "operario"]
+    },
+    "tecnico": {
+      "description": "Operaciones de campo completas. Puede crear/editar todos los recursos agrícolas."
+    },
+    "encargado": {
+      "description": "Gestión de finca. Mismos permisos de escritura que tecnico en la mayoría de recursos."
+    },
+    "operario": {
+      "description": "Solo lectura. NO tiene requireRole en ninguna ruta de escritura verificada."
+    },
+    "finanzas": {
+      "description": "Puede crear/eliminar gastos y costos laborales. NO puede tocar inventario, aplicaciones, colmenas ni cosecha."
+    }
+  },
+  "globalAuthGuard": {
+    "publicPaths": ["/api/health/live", "/api/health/ready", "/api/crops", "/api/auth/login", "/api/auth/me", "/api/auth/logout"],
+    "unauthenticatedBehavior": "401 { error: 'No autenticado' } cuando AUTH_ENFORCEMENT=on",
+    "offModeBehavior": "todos los guards se omiten cuando AUTH_ENFORCEMENT=off"
+  },
+  "resources": [
+    {
+      "resource": "blocks",
+      "operations": {
+        "GET /api/blocks": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"], "note": "Todos los autenticados" },
+        "GET /api/blocks/:id": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/blocks": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"], "note": "GAP: operario y finanzas pueden escribir bloques" },
+        "PATCH /api/blocks/:id": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"], "note": "GAP: igual" },
+        "DELETE /api/blocks/:id": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"], "note": "GAP: igual" }
+      }
+    },
+    {
+      "resource": "greenhouses",
+      "operations": {
+        "GET /api/greenhouses": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "GET /api/greenhouses/:id": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/greenhouses": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"], "note": "GAP: sin roleGuard en mutation" },
+        "PATCH /api/greenhouses/:id": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "DELETE /api/greenhouses/:id": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] }
+      }
+    },
+    {
+      "resource": "campaigns",
+      "operations": {
+        "GET /api/campaigns": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "GET /api/campaigns/:id/summary": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/campaigns": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"], "note": "GAP: sin roleGuard" },
+        "PATCH /api/campaigns/:id": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "DELETE /api/campaigns/:id": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] }
+      }
+    },
+    {
+      "resource": "irrigation-events",
+      "operations": {
+        "GET /api/irrigation-events": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/irrigation-events": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"], "note": "GAP: operario puede crear riego" },
+        "POST /api/irrigation-events/:id/done": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "PATCH /api/irrigation-events/:id": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "DELETE /api/irrigation-events/:id": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] }
+      }
+    },
+    {
+      "resource": "tasks",
+      "operations": {
+        "GET /api/tasks": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/tasks": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"], "note": "GAP: sin roleGuard" },
+        "PATCH /api/tasks/:id": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "PATCH /api/tasks/:id/status": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "DELETE /api/tasks/:id": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] }
+      }
+    },
+    {
+      "resource": "observations",
+      "operations": {
+        "GET /api/observations": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/observations": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "DELETE /api/observations/:id": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"], "note": "GAP: operario puede eliminar observaciones" },
+        "POST /api/observations/:id/tasks": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] }
+      }
+    },
+    {
+      "resource": "inventory",
+      "operations": {
+        "GET /api/inventory": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "GET /api/inventory/:id": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "GET /api/inventory/:id/movements": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "GET /api/inventory-movements": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/inventory": { "roleGuard": ["admin","tecnico","encargado"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado"], "blocked": ["operario","finanzas"] },
+        "PATCH /api/inventory/:id": { "roleGuard": ["admin","tecnico","encargado"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado"], "blocked": ["operario","finanzas"], "note": "Movement endpoint (stock delta)" },
+        "PATCH /api/inventory/:id/edit": { "roleGuard": ["admin","tecnico","encargado"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado"], "blocked": ["operario","finanzas"] },
+        "DELETE /api/inventory/:id": { "roleGuard": ["admin","tecnico","encargado"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado"], "blocked": ["operario","finanzas"] }
+      }
+    },
+    {
+      "resource": "harvest-lots",
+      "operations": {
+        "GET /api/harvest-lots": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/harvest-lots": { "roleGuard": ["admin","tecnico","encargado"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado"], "blocked": ["operario","finanzas"] },
+        "PATCH /api/harvest-lots/:id": { "roleGuard": ["admin","tecnico","encargado"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado"], "blocked": ["operario","finanzas"] },
+        "DELETE /api/harvest-lots/:id": { "roleGuard": ["admin","tecnico","encargado"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado"], "blocked": ["operario","finanzas"] }
+      }
+    },
+    {
+      "resource": "applications (fitosanitarios)",
+      "operations": {
+        "GET /api/applications": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/applications": { "roleGuard": ["admin","tecnico","encargado"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado"], "blocked": ["operario","finanzas"] },
+        "PATCH /api/applications": { "roleGuard": ["admin","tecnico","encargado"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado"], "blocked": ["operario","finanzas"] }
+      }
+    },
+    {
+      "resource": "expenses",
+      "operations": {
+        "GET /api/expenses": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"], "note": "Todos ven gastos" },
+        "POST /api/expenses": { "roleGuard": ["admin","tecnico","encargado","finanzas"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","finanzas"], "blocked": ["operario"], "dbRequired": true },
+        "DELETE /api/expenses/:id": { "roleGuard": ["admin","tecnico","encargado","finanzas"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","finanzas"], "blocked": ["operario"], "dbRequired": true }
+      }
+    },
+    {
+      "resource": "labor-costs",
+      "operations": {
+        "GET /api/labor-costs": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/labor-costs": { "roleGuard": ["admin","tecnico","encargado","finanzas"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","finanzas"], "blocked": ["operario"], "dbRequired": true },
+        "DELETE /api/labor-costs": { "roleGuard": ["admin","tecnico","encargado","finanzas"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","finanzas"], "blocked": ["operario"], "dbRequired": true }
+      }
+    },
+    {
+      "resource": "beekeeping",
+      "operations": {
+        "GET /api/apiaries": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/apiaries": { "roleGuard": ["admin","tecnico","encargado"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado"], "blocked": ["operario","finanzas"], "dbRequired": true },
+        "GET /api/hives": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/hives": { "roleGuard": ["admin","tecnico","encargado"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado"], "blocked": ["operario","finanzas"], "dbRequired": true },
+        "GET /api/hive-inspections": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/hive-inspections": { "roleGuard": ["admin","tecnico","encargado"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado"], "blocked": ["operario","finanzas"], "dbRequired": true },
+        "GET /api/honey-harvests": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/honey-harvests": { "roleGuard": ["admin","tecnico","encargado"], "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado"], "blocked": ["operario","finanzas"], "dbRequired": true }
+      }
+    },
+    {
+      "resource": "users",
+      "operations": {
+        "GET /api/users": { "roleGuard": ["admin"], "effectiveRoles": ["admin"], "blocked": ["tecnico","encargado","operario","finanzas"] },
+        "POST /api/users": { "roleGuard": ["admin"], "idempotent": true, "effectiveRoles": ["admin"], "blocked": ["tecnico","encargado","operario","finanzas"] }
+      }
+    },
+    {
+      "resource": "attachments",
+      "operations": {
+        "GET /api/attachments": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/attachments": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"], "dbRequired": true },
+        "DELETE /api/attachments/:id": { "roleGuard": null, "idempotent": true, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"], "dbRequired": true }
+      }
+    },
+    {
+      "resource": "alerts",
+      "operations": {
+        "GET /api/alerts": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] }
+      }
+    },
+    {
+      "resource": "weather",
+      "operations": {
+        "GET /api/weather/forecast": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] }
+      }
+    },
+    {
+      "resource": "integrations",
+      "operations": {
+        "GET /api/integrations/export/:dataset": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] },
+        "POST /api/integrations/import/:dataset": { "roleGuard": null, "effectiveRoles": ["admin","tecnico","encargado","operario","finanzas"] }
+      }
+    }
+  ],
+  "gapSummary": {
+    "description": "Rutas de escritura SIN requireRole — cualquier usuario autenticado puede mutar estos recursos",
+    "gaps": [
+      { "routes": ["POST /api/blocks","PATCH /api/blocks/:id","DELETE /api/blocks/:id"], "impact": "operario/finanzas pueden crear/modificar/eliminar bloques de campo" },
+      { "routes": ["POST /api/greenhouses","PATCH /api/greenhouses/:id","DELETE /api/greenhouses/:id"], "impact": "igual para invernaderos" },
+      { "routes": ["POST /api/campaigns","PATCH /api/campaigns/:id","DELETE /api/campaigns/:id"], "impact": "igual para campañas" },
+      { "routes": ["POST /api/irrigation-events","POST /api/irrigation-events/:id/done","PATCH /api/irrigation-events/:id","DELETE /api/irrigation-events/:id"], "impact": "operario puede registrar riego completado (puede ser intencional)" },
+      { "routes": ["POST /api/tasks","PATCH /api/tasks/:id","PATCH /api/tasks/:id/status","DELETE /api/tasks/:id"], "impact": "operario puede crear/actualizar/eliminar tareas (PATCH /status probablemente intencional)" },
+      { "routes": ["POST /api/observations","DELETE /api/observations/:id","POST /api/observations/:id/tasks"], "impact": "operario puede crear observaciones y vincularlas a tareas (probablemente intencional)" },
+      { "routes": ["POST /api/attachments","DELETE /api/attachments/:id"], "impact": "cualquier autenticado puede subir/eliminar adjuntos" }
+    ],
+    "intentionalExceptions": ["POST /api/observations — el operario registra incidencias en campo", "PATCH /api/tasks/:id/status — el operario marca tareas completadas", "POST /api/irrigation-events/:id/done — el operario confirma riego"],
+    "openDecision": "OD-05: ¿Specs 18–21 deben añadir requireRole a blocks/greenhouses/campaigns write-routes?"
+  }
+}
