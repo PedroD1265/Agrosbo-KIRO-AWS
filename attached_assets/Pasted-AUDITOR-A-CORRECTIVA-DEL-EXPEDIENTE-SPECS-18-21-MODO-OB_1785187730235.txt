@@ -1,0 +1,533 @@
+AUDITORÍA CORRECTIVA DEL EXPEDIENTE SPECS 18–21
+
+MODO OBLIGATORIO
+
+Continuar exclusivamente en PLAN MODE.
+
+No modificar archivos.
+No crear archivos.
+No usar Build Mode.
+No instalar dependencias.
+No ejecutar builds.
+No ejecutar npm, npx, docker, CDK ni AWS.
+No crear commits.
+No hacer push.
+No crear PR.
+No hacer merge.
+No pulsar Sync Changes.
+No crear una Spec oficial.
+No crear decisiones arquitectónicas definitivas.
+
+CONTEXTO
+
+Ya produjiste un expediente analítico para Specs 18–21.
+
+El expediente es útil, pero contiene afirmaciones incorrectas, inferencias
+presentadas con demasiada certeza y datos dinámicos no verificados.
+
+No repitas todo el análisis desde cero.
+
+Realiza una auditoría correctiva sobre tu propia entrega y produce una versión
+final compacta, verificable y lista para revisión por Kiro.
+
+BASELINE
+
+Rama:
+
+replit/spec-18-readiness-plan
+
+Baseline esperado:
+
+156036a
+Merge pull request #18 from PedroD1265/replit/spec-17-cloud-prep
+
+Usar exclusivamente origin/main como fuente de contenido.
+
+PREFLIGHT READ-ONLY
+
+Ejecutar únicamente:
+
+git branch --show-current
+git status -sb
+git log -1 --oneline
+git log -1 --oneline origin/main
+git diff --check
+git ls-tree -r --name-only origin/main
+git show origin/main:<ruta>
+git grep <termino> origin/main
+
+No usar resúmenes de exploradores como evidencia final cuando pueda leerse el
+archivo directamente mediante git show.
+
+REGLA CENTRAL DE EVIDENCIA
+
+Toda afirmación final debe clasificarse como:
+
+- VERIFIED_IN_REPOSITORY
+- CANONICAL_DECISION
+- INFERENCE
+- OPEN_DECISION
+- RUNTIME_VALIDATION_REQUIRED
+- HUMAN_CONFIRMATION_REQUIRED
+- NEEDS_OFFICIAL_VERIFICATION
+
+No presentar:
+
+- una inferencia como hecho;
+- una recomendación como decisión;
+- un placeholder como implementación;
+- un precio dinámico como vigente;
+- un recurso AWS como existente sin salida AWS;
+- un gasto de USD 0.00 sin evidencia de billing;
+- una ejecución pendiente como completada.
+
+CORRECCIONES OBLIGATORIAS
+
+1. AUDITORÍA DE CAPACIDADES
+
+Tu entrega afirma que:
+
+docs/reviews/current-capability-audit-v2.md
+
+no existe.
+
+Eso es incorrecto.
+
+Verifica directamente:
+
+git show origin/main:docs/reviews/current-capability-audit-v2.md
+
+Reconoce su existencia y úsalo como fuente histórica, teniendo presente que su
+baseline corresponde a Fase 0 y no sustituye la evidencia posterior.
+
+2. INFRAESTRUCTURA
+
+Verifica directamente:
+
+git show origin/main:infra/src/index.ts
+
+El estado correcto es:
+
+- archivo placeholder;
+- comentario de entrada CDK;
+- export {};
+- cero stacks;
+- cero constructs;
+- cero recursos;
+- cero tests CDK demostrados.
+
+No describirlo como “CDK stack definition”.
+No afirmar que contiene imports o estructura reutilizable real.
+
+3. API BASE URL
+
+Verifica:
+
+git show origin/main:web/src/lib/api-config.ts
+
+El estado correcto debe reflejar:
+
+- VITE_API_BASE_URL configurable;
+- default vacío;
+- default same-origin;
+- no URL localhost hardcodeada en ese archivo;
+- AuthTokenProvider abstracto;
+- LocalSessionAuthProvider funcional;
+- CognitoAuthProvider futuro, no implementado.
+
+4. ROLES Y RBAC
+
+No utilizar:
+
+- owner;
+- collaborator;
+
+como roles internos actuales.
+
+Los roles implementados son exactamente:
+
+- admin;
+- tecnico;
+- encargado;
+- operario;
+- finanzas.
+
+Verificar en:
+
+- api/src/providers/index.ts;
+- shared/schema.ts;
+- docs/product/personas-and-permissions.md;
+- web/src/lib/permissions.ts.
+
+Para colaboradores externos futuros, usar:
+
+EXTERNAL_COLLABORATOR — PLANNED P0
+
+No confundirlos con los roles internos actuales.
+
+Corregir completamente la matriz de herramientas propuesta para Spec 21 usando
+los roles reales.
+
+5. COGNITO
+
+No afirmar que existe:
+
+providers/identity/cognito-jwt.ts
+
+salvo que git ls-tree confirme ese archivo.
+
+El estado correcto esperado es:
+
+- AuthProviderType acepta cognito-jwt;
+- env acepta cognito-jwt;
+- la fábrica de providers lanza “not yet implemented”;
+- no existe implementación funcional verificada;
+- el frontend tiene una abstracción AuthTokenProvider, pero no un provider
+  Cognito funcional.
+
+Verificar los nombres exactos de variables.
+
+No usar:
+
+COGNITO_CLIENT_ID
+
+si el código usa:
+
+COGNITO_APP_CLIENT_ID
+
+Registrar también:
+
+COGNITO_USER_POOL_ID
+COGNITO_APP_CLIENT_ID
+COGNITO_ISSUER
+
+solo si aparecen exactamente en el código.
+
+6. CONFIGURACIÓN DE PROVIDERS
+
+Usar los valores exactos que acepta el código:
+
+APP_AUTH_PROVIDER:
+- local-session
+- cognito-jwt
+
+ATTACHMENTS_STORAGE_DRIVER:
+- local
+- s3
+
+No usar formas abreviadas en ejemplos normativos.
+
+7. SECRETOS
+
+Eliminar toda afirmación de que SESSION_SECRET:
+
+- está configurado en Replit Secrets;
+- existe en AWS;
+- ya está gestionado por Secrets Manager.
+
+El estado permitido es:
+
+- SESSION_SECRET existe como variable esperada por la aplicación;
+- en desarrollo puede generarse un fallback efímero cuando auth está off;
+- para producción debe decidirse su gestión;
+- Secrets Manager para producción es objetivo planificado;
+- existencia real del secreto: HUMAN_CONFIRMATION_REQUIRED.
+
+No inspeccionar ni mostrar secretos de Replit.
+
+8. HEALTH ROUTES
+
+Verificar directamente:
+
+git show origin/main:api/src/health.ts
+
+Usar las rutas exactas implementadas:
+
+- GET /health/live
+- GET /health/ready
+
+No sustituirlas por /api/health/* salvo que routes.ts demuestre un prefijo real
+aplicado al router.
+
+Registrar el cuerpo esperado según el código, sin inventar:
+
+- /health/live devuelve ok y uptime;
+- /health/ready devuelve ok, checks y now;
+- readiness puede responder 503.
+
+9. ESTADO DE FASE 3
+
+Mantener:
+
+- T10 pending;
+- T11 pending;
+- T12 pending;
+- T14 pending;
+- T16–T19 pending;
+- Spec 17 no cerrada formalmente.
+
+No afirmar que S1, S2 o S3 “resultaron” en us-east-1 porque todavía no fueron
+ejecutados contra AWS.
+
+Puede afirmarse solamente:
+
+- us-east-1 es la región seleccionada para el spike según la evidencia actual,
+  si el repositorio lo demuestra;
+- ejecución real S1–S3: PENDING.
+
+T05 debe permanecer:
+
+HUMAN_CONFIRMATION_REQUIRED
+
+hasta verificar realmente la policy temporal y su vigencia.
+
+10. PRESUPUESTO Y COSTOS
+
+No afirmar:
+
+- presupuesto consumido USD 0.00;
+- NAT Gateway cuesta una cifra específica;
+- Aurora cuesta una cifra mensual específica;
+- VPC endpoint cuesta una cifra específica;
+- min ACU implica una cifra específica;
+- capas gratuitas vigentes;
+- precios actuales de servicios.
+
+Sin evidencia de billing:
+
+OBSERVED_COST: UNKNOWN — PENDING AWS BILLING VERIFICATION
+
+Los USD 3.50 corresponden únicamente al presupuesto aprobado de Spec 17.
+
+No asumir que ese monto es el presupuesto mensual de Spec 18.
+
+Todo precio o costo futuro debe marcarse:
+
+NEEDS_OFFICIAL_VERIFICATION
+
+11. DATOS DINÁMICOS DE AWS
+
+Degradar a NEEDS_OFFICIAL_VERIFICATION cualquier afirmación sobre:
+
+- precios;
+- versiones Aurora disponibles;
+- ACU mínimo permitido;
+- tiempos de pausa/reanudación;
+- regiones disponibles;
+- límites actuales de Data API;
+- free tiers;
+- latencia regional;
+- requisitos actuales de AZ;
+- disponibilidad de modelos.
+
+No utilizar blogs ni memoria del modelo como fuente.
+
+No es necesario investigar internet en esta ronda; basta con identificar qué
+debe verificarse con documentación oficial AWS durante Spec 18.
+
+12. REGIÓN Y UBICACIÓN
+
+Eliminar referencias a:
+
+- México;
+- Colombia;
+
+como justificación del proyecto.
+
+No inferir la ubicación de usuarios o infraestructura desde información no
+canónica.
+
+La región final de producción permanece OPEN_DECISION salvo decisión canónica
+posterior.
+
+La región del spike y la región final productiva no deben confundirse.
+
+13. SPEC 18 Y CIERRE DE SPEC 17
+
+El roadmap establece dependencia:
+
+Spec 17 → Spec 18
+
+Por tanto:
+
+- análisis y preparación documental de Spec 18 pueden adelantarse;
+- formalización o implementación de Spec 18 no debe presentarse como autorizada
+  antes del cierre de Spec 17;
+- ningún CDK debe implementarse desde este expediente.
+
+Eliminar cualquier redacción que sugiera que Replit puede comenzar la
+implementación de Spec 18 en paralelo.
+
+14. LÍMITES ENTRE SPECS 18, 19 Y 20
+
+Reconciliar cuidadosamente:
+
+SPEC 18
+- baseline de infraestructura;
+- VPC;
+- Aurora;
+- S3 base;
+- Secrets Manager;
+- CloudWatch;
+- CDK.
+
+SPEC 19
+- despliegue del core;
+- Lambda;
+- API Gateway;
+- frontend;
+- CloudFront + OAC;
+- health checks;
+- seed.
+
+SPEC 20
+- provider Cognito JWT funcional;
+- provider S3 attachments funcional;
+- login cloud;
+- presigned URLs.
+
+Si el roadmap menciona Cognito en Spec 19, distinguir:
+
+- posible aprovisionamiento del recurso Cognito en Spec 19;
+- implementación e integración del provider en Spec 20.
+
+No resolver esta frontera; marcarla OPEN_DECISION / DOCUMENTATION_RECONCILIATION_REQUIRED.
+
+15. ENDPOINTS Y HERRAMIENTAS DEL AGENTE
+
+No inventar endpoints.
+
+Para cada herramienta propuesta para Spec 21:
+
+1. Verificar la ruta exacta en el código.
+2. Verificar el verbo HTTP.
+3. Verificar el rol actual permitido.
+4. Verificar si usa PostgreSQL o MemStorage.
+5. Clasificar lectura o mutación.
+6. Indicar confirmación requerida según ADR 015.
+7. Indicar idempotencia únicamente si la ruta realmente está cubierta.
+
+Eliminar o marcar MISSING cualquier herramienta cuyo endpoint no exista.
+
+No incluir implementaciones futuras de Specs 24–26 como herramientas actuales.
+
+16. RECOMENDACIONES DE INFRAESTRUCTURA
+
+Las siguientes propuestas deben permanecer como opciones, no recomendaciones
+definitivas:
+
+- uno o varios stacks;
+- NAT Gateway;
+- NAT instance;
+- VPC endpoints;
+- Lambda dentro o fuera de VPC;
+- Data API o conexión directa;
+- dos buckets o uno;
+- CloudFront proxy de /api/* o API separada;
+- estrategia de migraciones;
+- estrategia de seed;
+- CloudFormation exports o SSM;
+- budgets dentro de CDK;
+- log groups creados anticipadamente.
+
+No decidirlas.
+
+17. CONTRATO SPEC 18 → SPEC 19
+
+Mantenerlo como:
+
+PROPOSED CONTRACT — NOT APPROVED
+
+No declarar que todos los outputs propuestos serán producidos por Spec 18.
+
+Para cada output añadir:
+
+- CANONICAL_REQUIRED;
+- PROPOSED;
+- DEPENDS_ON_OPEN_DECISION;
+- SECRET — MUST NOT BE EXPOSED.
+
+AuroraSecretArn puede ser referenciado como ARN, pero nunca como secreto en
+texto. No afirmar que el ARN debe ocultarse completamente; distinguir ARN de
+valor secreto.
+
+18. CONTROL DE CALIDAD DE TU PROPIA ENTREGA
+
+Construir una tabla de erratas con:
+
+- afirmación original;
+- problema;
+- evidencia directa;
+- corrección;
+- clasificación final.
+
+Incluir como mínimo todas las correcciones anteriores.
+
+FORMATO FINAL
+
+No vuelvas a emitir las quince secciones completas con la misma extensión.
+
+Entrega una versión compacta dividida en cinco bloques:
+
+BLOQUE A — ERRATAS
+
+- tabla completa de errores y correcciones;
+- máximo 30 filas.
+
+BLOQUE B — ESTADO VERIFICADO
+
+- mapa real por workspace;
+- estado de Fase 3;
+- dependencias Specs 18–21;
+- máximo 1.500 palabras.
+
+BLOQUE C — READINESS CORREGIDO
+
+- matriz Spec 18;
+- gaps Spec 19;
+- gaps Spec 20;
+- inputs mecánicos Spec 21;
+- máximo 3.000 palabras.
+
+BLOQUE D — DECISION REGISTER
+
+- únicamente decisiones verdaderamente abiertas;
+- sin precios dinámicos;
+- sin recomendaciones definitivas;
+- máximo 20 decisiones.
+
+BLOQUE E — HANDOFF PARA KIRO
+
+Debe incluir exactamente:
+
+1. Baseline.
+2. Estado verificado.
+3. Top 10 gaps.
+4. Top 10 decisiones abiertas.
+5. Dependencias obligatorias.
+6. Trabajo que puede prepararse en paralelo.
+7. Trabajo que debe esperar.
+8. Fuentes que Kiro debe releer directamente.
+9. Afirmaciones que requieren AWS runtime.
+10. Próximo checkpoint recomendado.
+
+FINALIZACIÓN
+
+Termina con:
+
+PLAN PACKAGE CORRECTED — READY FOR KIRO REVIEW
+
+y confirma:
+
+- cero archivos modificados;
+- cero archivos creados;
+- cero dependencias;
+- cero builds;
+- cero AWS;
+- cero commit;
+- cero push;
+- cero PR;
+- cero Sync;
+- Plan Mode mantenido.
+
+STOP.
