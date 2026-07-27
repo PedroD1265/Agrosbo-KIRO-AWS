@@ -195,7 +195,20 @@ Notas:
 | T13 | Completada (Checkpoint 2.4) |
 | T14 | Completada (Checkpoint 2.4) |
 | T15 | Completada (Checkpoint 2.5): 4 agentes + 5 skills creados; 0 MCP nuevos; comportamiento runtime reservado para T16 |
-| T16 | Pendiente (Bloque E, cierre) |
+| T16 | En cierre (Checkpoint 2.6): simulacion runtime PASS; gates locales, auditoria final, CI remoto y merge pendientes |
+
+### Evidencia runtime del Checkpoint 2.6
+
+Simulacion ejecutada en Kiro IDE con perfiles reales:
+
+- planner (repo-preflight): preflight con allowlist vacia → PASS.
+- implementer (quality-gates): gates seguros sin escritura → PASS.
+- aws-architect (aws-change-plan): plan-only, 0 cloud → PASS.
+- reviewer (pr-audit): git merge-base permitido, git add -n bloqueado por deny → PASS.
+- task-handoff: skill reconocida y usada para handoff de simulacion.
+
+Resultado agregado: 4 agents verificados, 5 skills reconocidas; 0 archivos
+modificados durante la simulacion; 0 MCP; 0 recursos AWS.
 
 ## 6. Hallazgos de auditoria Antigravity (tareas futuras registradas)
 
@@ -335,7 +348,7 @@ posterior, segun corresponda).
 
 | Campo | Valor |
 | --- | --- |
-| Checkpoint | 2.4 (cierre) |
+| Checkpoint | 2.6 (cierre) |
 | Agente | Kiro |
 | Dependencias | T15 completada; T11 completada; T12 completada |
 | Requisitos cubiertos | REQ-A01–A05, REQ-D01–D02, REQ-H01–H03, REQ-I01–I03, REQ-K01–K03, REQ-N01 |
@@ -348,25 +361,25 @@ posterior, segun corresponda).
 
 ## 7. Definition of Done de Spec 16
 
-- [ ] Requirements, Design y Tasks coherentes y trazables.
-- [ ] Phase-2-execution-runbook completo.
-- [ ] spec-map.md actualizado.
-- [ ] development-process.md actualizado.
-- [ ] Hallazgos de Antigravity registrados y resueltos (T09–T12).
-- [ ] AGENTS.md raiz y locales creados (T13).
-- [ ] Documentacion en docs/agents/ y adaptadores creados (T14).
-- [ ] Configuracion Kiro (4 agents + 5 skills) creada y verificada (T15).
-- [ ] Simulacion multiagente exitosa (T16).
-- [ ] Quality gates verdes.
-- [ ] Auditoria independiente completada.
-- [ ] CI remoto verde.
-- [ ] Cero contradicciones con product-scope-v2 o ADRs.
-- [ ] Ningun codigo funcional modificado.
-- [ ] Ninguna dependencia instalada.
-- [ ] Cero MCP nuevos.
-- [ ] Cero recursos AWS creados.
-- [ ] Ningun commit, push, PR, merge o deploy sin autorizacion humana.
-- [ ] Modelo de gobernanza minimo y no-bloqueante para Specs 17+.
+- [x] Requirements, Design y Tasks coherentes y trazables.
+- [x] Phase-2-execution-runbook completo.
+- [x] spec-map.md actualizado.
+- [x] development-process.md actualizado.
+- [x] Hallazgos de Antigravity registrados y resueltos (T09–T12).
+- [x] AGENTS.md raiz y locales creados (T13).
+- [x] Documentacion en docs/agents/ y adaptadores creados (T14).
+- [x] Configuracion Kiro (4 agents + 5 skills) creada y verificada (T15).
+- [x] Simulacion multiagente exitosa (T16 — runtime PASS).
+- [ ] Quality gates verdes (pendiente ejecucion completa del Checkpoint 2.6A).
+- [ ] Auditoria independiente completada (pendiente auditoria final del Checkpoint 2.6).
+- [ ] CI remoto verde (pendiente PR de cierre).
+- [x] Cero contradicciones con product-scope-v2 o ADRs.
+- [x] Ningun codigo funcional modificado.
+- [x] Ninguna dependencia instalada.
+- [x] Cero MCP nuevos.
+- [x] Cero recursos AWS creados.
+- [x] Ningun commit, push, PR, merge o deploy sin autorizacion humana.
+- [x] Modelo de gobernanza minimo y no-bloqueante para Specs 17+.
 
 ## 8. Trazabilidad Tasks → Requirements
 

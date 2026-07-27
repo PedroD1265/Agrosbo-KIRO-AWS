@@ -1,9 +1,10 @@
 # AGROSBO Phase 2 Execution Runbook
 
-> **Estado: EN PROGRESO.**
+> **Estado: EN CIERRE.**
 >
-> Spec 16 (multi-agent-workflow) materializada. Checkpoint 2.1 en curso.
-> Pendiente de revision humana para continuar.
+> Checkpoint 2.6 con simulacion runtime completada.
+> Pendientes: gates locales completos, auditoria independiente final,
+> CI remoto y merge del PR de cierre.
 
 ## Convenciones normativas
 
@@ -28,8 +29,10 @@ design.md, tasks.md).
 
 - Fase 0: COMPLETADA (PR #3 merged o draft aprobado).
 - Fase 1: COMPLETADA (PR #4, #5 merged; workstation-readiness cerrado).
-- Rama de trabajo: `chore/multi-agent-workflow`.
-- Base: `e4fa128` (HEAD de main al iniciar Fase 2).
+- Rama de trabajo inicial: `chore/multi-agent-workflow`.
+- Rama de cierre: `docs/phase-2-closeout`.
+- Baseline inicial: `e4fa128` (HEAD de main al iniciar Fase 2).
+- Baseline de cierre: `d9c0e0a` (HEAD de main tras merge de Checkpoint 2.5).
 - Working tree principal: `D:\Pedro\AGROBO` (escritor: Kiro).
 - Worktree de auditoria: `D:\Pedro\AGROBO-audit` (solo lectura: Antigravity).
 
@@ -43,8 +46,8 @@ La autoridad se resuelve por materia, no por cadena lineal unica:
 | Decisiones arquitectonicas | ADRs vigentes (Accepted, no Superseded) |
 | Estado real CURRENT | Codigo, tests, CI y `docs/product/capability-status-matrix.md` |
 | Trabajo autorizado | Spec activa aprobada + checkpoint/runbook activo |
-| Reglas permanentes del agente | Steering (`.kiro/steering/`) y AGENTS.md (futuro) |
-| Reglas locales por directorio | AGENTS.md mas especifico (futuro) |
+| Reglas permanentes del agente | Steering (`.kiro/steering/`) y AGENTS.md (raiz y locales, existentes) |
+| Reglas locales por directorio | AGENTS.md mas especifico (existente por directorio) |
 | Prompt de tarea | Puede restringir o acotar, nunca contradecir fuentes superiores |
 
 ### Jerarquia general (cuando las materias se solapan)
@@ -372,7 +375,7 @@ Puerta humana al final de T04.
 
 Puerta humana al final de T08.
 
-### Bloque C — Hallazgos Antigravity (Checkpoint 2.2 o posterior)
+### Bloque C — Hallazgos Antigravity (Checkpoint 2.3)
 
 | Tarea | Descripcion |
 | --- | --- |
@@ -383,7 +386,7 @@ Puerta humana al final de T08.
 
 Puerta humana al final de T12.
 
-### Bloque D — Gobernanza operativa (Checkpoint 2.3)
+### Bloque D — Gobernanza operativa (Checkpoint 2.4)
 
 | Tarea | Descripcion |
 | --- | --- |
@@ -393,7 +396,7 @@ Puerta humana al final de T12.
 
 Puerta humana al final de T15.
 
-### Bloque E — Simulacion y cierre (Checkpoint 2.4)
+### Bloque E — Simulacion y cierre (Checkpoint 2.6)
 
 | Tarea | Descripcion |
 | --- | --- |
@@ -401,30 +404,55 @@ Puerta humana al final de T15.
 
 Puerta humana al final de T16.
 
-## 18. Definition of Done — Fase 2
+## 18. Evidencia runtime del Checkpoint 2.6
 
-- [ ] Spec 16 (Requirements + Design + Tasks) completa y coherente.
-- [ ] Phase-2-execution-runbook completo y coherente.
-- [ ] spec-map.md actualizado.
-- [ ] development-process.md actualizado.
-- [ ] Hallazgos Antigravity resueltos (T09–T12).
-- [ ] AGENTS.md raiz y locales creados (T13).
-- [ ] Documentacion en docs/agents/ y adaptadores creados (T14).
-- [ ] Configuracion Kiro (4 agents + 5 skills) creada y verificada (T15).
-- [ ] Simulacion multiagente exitosa (T16).
-- [ ] Quality gates verdes.
-- [ ] Auditoria independiente completada.
-- [ ] CI remoto verde.
-- [ ] Cero contradicciones con product-scope-v2 o ADRs.
-- [ ] Ningun codigo funcional modificado.
-- [ ] Ninguna dependencia instalada.
-- [ ] Cero MCP nuevos.
-- [ ] Cero recursos AWS creados.
-- [ ] Ningun commit, push, PR, merge o deploy sin autorizacion humana.
-- [ ] Modelo de gobernanza minimo y no-bloqueante para Specs 17+.
-- [ ] Handoff final producido.
+Simulacion ejecutada en Kiro IDE con perfiles reales de custom agents:
 
-## 19. Trabajo expresamente excluido
+| Perfil | Skill | Prueba principal | Resultado |
+| --- | --- | --- | --- |
+| planner | repo-preflight | preflight con allowlist vacia | PASS |
+| implementer | quality-gates | gates seguros sin escritura | PASS |
+| aws-architect | aws-change-plan | plan-only, 0 cloud | PASS |
+| reviewer | pr-audit | merge-base permitido y git add bloqueado | PASS |
+
+Skill adicional verificada: **task-handoff** (reconocida y usada para producir
+el handoff de la simulacion).
+
+Resultado agregado:
+
+- 4 custom agents verificados en perfiles reales.
+- 5 workspace skills reconocidas.
+- deny runtime confirmado (git add -n AGENTS.md bloqueado).
+- git merge-base permitido como comando seguro.
+- 0 archivos modificados durante la simulacion.
+- 0 MCP nuevos.
+- 0 recursos AWS.
+- 0 commit, push, PR, merge, deploy.
+
+## 19. Definition of Done — Fase 2
+
+- [x] Spec 16 (Requirements + Design + Tasks) completa y coherente.
+- [x] Phase-2-execution-runbook completo y coherente.
+- [x] spec-map.md actualizado.
+- [x] development-process.md actualizado.
+- [x] Hallazgos Antigravity resueltos (T09–T12).
+- [x] AGENTS.md raiz y locales creados (T13).
+- [x] Documentacion en docs/agents/ y adaptadores creados (T14).
+- [x] Configuracion Kiro (4 agents + 5 skills) creada y verificada (T15).
+- [x] Simulacion multiagente exitosa (T16 — runtime PASS).
+- [ ] Quality gates verdes (pendiente ejecucion completa del Checkpoint 2.6A).
+- [ ] Auditoria independiente completada (pendiente auditoria final).
+- [ ] CI remoto verde (pendiente PR de cierre).
+- [x] Cero contradicciones con product-scope-v2 o ADRs.
+- [x] Ningun codigo funcional modificado.
+- [x] Ninguna dependencia instalada.
+- [x] Cero MCP nuevos.
+- [x] Cero recursos AWS creados.
+- [x] Ningun commit, push, PR, merge o deploy sin autorizacion humana.
+- [x] Modelo de gobernanza minimo y no-bloqueante para Specs 17+.
+- [ ] Handoff final producido (pendiente cierre definitivo de T16).
+
+## 20. Trabajo expresamente excluido
 
 ### Restricciones permanentes de Fase 2
 
@@ -454,7 +482,7 @@ Queda prohibido unicamente durante estos checkpoints iniciales:
 Estos archivos son entregables planificados de checkpoints posteriores de Fase 2
 (T13–T15) con allowlist y aprobacion humana explicitas.
 
-## 20. Reanudacion entre sesiones
+## 21. Reanudacion entre sesiones
 
 1. Leer este runbook.
 2. Leer el ultimo handoff disponible.
@@ -464,7 +492,7 @@ Estos archivos son entregables planificados de checkpoints posteriores de Fase 2
 6. Continuar dentro del bloque autorizado.
 7. Detenerse en la puerta humana o ante STOP REQUIRED.
 
-## 21. Regla final
+## 22. Regla final
 
 Este runbook autoriza procedimiento, no autonomia.
 
