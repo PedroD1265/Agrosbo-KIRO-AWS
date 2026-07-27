@@ -3,7 +3,7 @@
 > Fuente canónica:
 > [`../product/product-scope-v2.md`](../product/product-scope-v2.md).
 >
-> Última actualización: julio 2026 (Fase 0, revisión final del PR #3).
+> Última actualización: julio 2026 (Fase 3 iniciada; Fases 0–2 completadas).
 >
 > Este documento ordena las fases y Specs sin crear carpetas de Specs futuras.
 > La numeración de Specs (15–31) es un identificador estable; no equivale
@@ -14,31 +14,31 @@
 
 | Fase | Objetivo | Horizonte | Estado |
 | --- | --- | --- | --- |
-| 0 | Gobierno documental y técnico (incluye Spec 15) | P0 | COMPLETADA (PR #3 pendiente de merge) |
-| 1 | Spikes críticos y baseline AWS | P0 | PLANNED |
-| 2 | Despliegue AWS del core existente | P0 | PLANNED |
-| 3 | Agente operacional | P0 | PLANNED |
-| 4 | Colaboradores y notificaciones | P0 | PLANNED |
-| 5 | Inteligencia agrícola (voz, visión, escenarios) | P0 | PLANNED |
-| 6 | Calidad, seguridad y demo P0 | P0 | PLANNED |
-| 7 | Tienda pública y comunicación P1 | P1 | PLANNED |
+| 0 | Gobierno documental y técnico (incluye Spec 15) | P0 | COMPLETADA (PR #3 merged) |
+| 1 | Preparación de estación de trabajo | P0 | COMPLETADA (PRs #4, #5 merged) |
+| 2 | Gobernanza multiagente (Spec 16) | P0 | COMPLETADA (PR #11 merged) |
+| 3 | Spikes críticos de servicios cloud (Spec 17) | P0 | IN PROGRESS |
+| 4 | Despliegue AWS del core existente | P0 | PLANNED |
+| 5 | Agente operacional | P0 | PLANNED |
+| 6 | Colaboradores y notificaciones | P0 | PLANNED |
+| 7 | Inteligencia agrícola (voz, visión, escenarios) | P0 | PLANNED |
+| 8 | Calidad, seguridad y demo P0 | P0 | PLANNED |
+| 9 | Tienda pública y comunicación P1 | P1 | PLANNED |
 
 ## Dependencias entre fases
 
 ```text
-Fase 0 (docs, Spec 15) → Fase 1 (spikes)
-Fase 1 → Fase 2 (AWS deploy)
-Fase 2 → Fase 3 (agente) → Fase 4 (colaboradores)
-Fase 3 → Fase 5 (inteligencia)
-Fases 2–5 → Fase 6 (calidad, seguridad, demo P0)
-Fase 6 (P0 cerrado) → Fase 7 (P1)
+Fase 0 (docs, Spec 15) → Fase 1 (workstation) → Fase 2 (gobernanza) → Fase 3 (spikes)
+Fase 3 → Fase 4 (AWS deploy)
+Fase 4 → Fase 5 (agente) → Fase 6 (colaboradores)
+Fase 5 → Fase 7 (inteligencia)
+Fases 4–7 → Fase 8 (calidad, seguridad, demo P0)
+Fase 8 (P0 cerrado) → Fase 9 (P1)
 ```
 
-Spec 16 (multi-agent-workflow) es un habilitador posterior a Fase 0. Puede
-comenzar después de aprobar Spec 15 y antes del desarrollo intensivo. Puede
-ejecutarse en paralelo con spikes independientes si usa rama, worktree y
-ownership de archivos controlados. No es un entregable del runbook actual de
-Fase 0.
+Spec 16 (multi-agent-workflow) es un habilitador completado en Fase 2 (PR #11
+merged). Habilita la operación multiagente segura para todas las fases
+posteriores.
 
 P0 debe completarse (incluyendo Spec 31) antes de iniciar P1. P2 no bloquea.
 
@@ -46,9 +46,9 @@ P0 debe completarse (incluyendo Spec 31) antes de iniciar P1. P2 no bloquea.
 
 | # | Spec | Horizonte | Dependencia | Objetivo | Criterio de entrada | Criterio de salida | Estado |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 15 | product-agent-scope-v2 | P0 | Contrato canónico aprobado; auditoría y documentos derivados aprobados; ADRs y arquitectura aprobados; documentación y Steering alineados (Checkpoints 0.2–0.8) | Formalizar requirements, design y tasks de la nueva dirección de producto | Checkpoints 0.2–0.8 aprobados | requirements.md + design.md + tasks.md coherentes, trazables y aprobados | COMPLETADA (PR #3 pendiente de merge) |
-| 16 | multi-agent-workflow | P0 | Spec 15 aprobada | Definir colaboración segura entre agentes de desarrollo (Kiro, Codex, Antigravity, Lovable, otros): ownership de archivos, handoffs, checkpoints, reglas Git, un solo escritor por working tree, worktrees/ramas separadas para paralelismo, prohibición de merge/push/deploy autónomos | Spec 15 aprobada | Reglas de colaboración multi-agente documentadas y operativas | PLANNED |
-| 17 | critical-cloud-spikes | P0 | Spec 15 aprobada | Validar viabilidad técnica: Bedrock tool calling, Transcribe streaming, SES delivery events, token hash flow | Spec 15 aprobada | Spike report con resultados verificados por servicio | PLANNED |
+| 15 | product-agent-scope-v2 | P0 | Contrato canónico aprobado; auditoría y documentos derivados aprobados; ADRs y arquitectura aprobados; documentación y Steering alineados (Checkpoints 0.2–0.8) | Formalizar requirements, design y tasks de la nueva dirección de producto | Checkpoints 0.2–0.8 aprobados | requirements.md + design.md + tasks.md coherentes, trazables y aprobados | COMPLETADA (PR #3 merged) |
+| 16 | multi-agent-workflow | P0 | Spec 15 aprobada | Definir colaboración segura entre agentes de desarrollo (Kiro, Codex, Antigravity, Lovable, otros): ownership de archivos, handoffs, checkpoints, reglas Git, un solo escritor por working tree, worktrees/ramas separadas para paralelismo, prohibición de merge/push/deploy autónomos | Spec 15 aprobada | Reglas de colaboración multi-agente documentadas y operativas | COMPLETADA (PR #11 merged) |
+| 17 | critical-cloud-spikes | P0 | Spec 15 aprobada | Validar viabilidad técnica: Bedrock tool calling, Transcribe streaming, SES delivery events, token hash flow | Spec 15 aprobada | Spike report con resultados verificados por servicio | IN PROGRESS |
 | 18 | aws-infrastructure-baseline | P0 | Spec 17 | CDK stack mínimo: VPC, Aurora, S3, Secrets Manager, CloudWatch | Spikes validados | Stack desplegable; db:migrate exitoso contra Aurora | PLANNED |
 | 19 | aws-core-deployment | P0 | Spec 18 | Desplegar core existente: Lambda, API GW, CF+OAC, Cognito | Infra baseline desplegada | App accesible; health checks verdes; seed exitoso | PLANNED |
 | 20 | cloud-auth-and-attachments | P0 | Spec 19 | Cognito JWT provider + S3 attachment provider funcionales | Core desplegado | Login vía Cognito; adjuntos en S3 con presigned URLs | PLANNED |
@@ -75,11 +75,8 @@ P0 debe completarse (incluyendo Spec 31) antes de iniciar P1. P2 no bloquea.
 22–26 → 29 → 30 → 31
 ```
 
-Spec 16 es un habilitador posterior a Fase 0. Puede comenzar después de aprobar
-Spec 15 y antes del desarrollo intensivo, sin bloquear spikes que sean
-independientes de ella. Puede ejecutarse en paralelo con spikes si usa rama,
-worktree y ownership de archivos separados. Su orden exacto relativo a 17 se
-determinará en su Design. No es un entregable del runbook de Fase 0.
+Spec 16 es un habilitador completado (PR #11 merged, Fase 2 cerrada). Habilita
+la operación multiagente segura para todas las fases posteriores.
 
 ### P1 (solo después de cerrar P0)
 
