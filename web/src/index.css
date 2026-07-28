@@ -54,6 +54,22 @@
     --status-idle-soft: 220 12% 94%;
     --status-pending-sync: 220 70% 50%;
     --status-pending-sync-soft: 220 80% 95%;
+    --status-info: 210 80% 45%;
+    --status-info-soft: 210 80% 95%;
+    --status-offline: 220 10% 40%;
+    --status-offline-soft: 220 15% 93%;
+    --status-syncing: 220 70% 50%;
+    --status-syncing-soft: 220 80% 95%;
+    --status-queued: 260 55% 50%;
+    --status-queued-soft: 260 60% 95%;
+
+    /* Confidence tokens for agent/assessment results */
+    --confidence-high: 142 55% 38%;
+    --confidence-high-soft: 142 50% 92%;
+    --confidence-medium: 36 88% 48%;
+    --confidence-medium-soft: 38 90% 93%;
+    --confidence-low: 4 70% 48%;
+    --confidence-low-soft: 4 75% 95%;
 
     /* Crop stage tokens */
     --stage-seed: 32 60% 45%;
