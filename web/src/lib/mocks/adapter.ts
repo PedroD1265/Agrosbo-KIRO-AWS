@@ -30,10 +30,7 @@ function toURL(input: RequestInfo | URL): URL {
  * - In demo mode: resolves to a mock Response (or `UNMOCKED_ENDPOINT` 501).
  * - Otherwise: forwards to global `fetch` unchanged.
  */
-export async function apiFetch(
-  input: RequestInfo | URL,
-  init?: RequestInit,
-): Promise<Response> {
+export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   if (!isDemoMode()) {
     return fetch(input, init);
   }

@@ -13,8 +13,7 @@ export function mountDemoBannerIfEnabled(): void {
   el.id = 'agrosbo-demo-banner';
   el.setAttribute('role', 'status');
   el.setAttribute('aria-live', 'polite');
-  el.textContent =
-    'MODO DEMO — datos sintéticos locales. Sin backend, sin AWS, sin persistencia.';
+  el.textContent = 'MODO DEMO — datos sintéticos locales. Sin backend, sin AWS, sin persistencia.';
   Object.assign(el.style, {
     position: 'fixed',
     top: '0',

@@ -201,7 +201,6 @@ export const DEMO_SETTINGS: Settings = {
   criticalAlertsBanner: true,
 };
 
-
 export function buildWeatherForecast(lat: number, lng: number): WeatherForecast {
   return {
     lat,

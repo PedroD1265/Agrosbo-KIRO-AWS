@@ -122,7 +122,12 @@ export function handleMockRequest(url: URL, method: string): Response | null {
   if (path === '/api/weather/forecast') {
     const lat = Number(url.searchParams.get('lat'));
     const lng = Number(url.searchParams.get('lng'));
-    return json(buildWeatherForecast(Number.isFinite(lat) ? lat : -17.39, Number.isFinite(lng) ? lng : -66.15));
+    return json(
+      buildWeatherForecast(
+        Number.isFinite(lat) ? lat : -17.39,
+        Number.isFinite(lng) ? lng : -66.15,
+      ),
+    );
   }
 
   return unmocked(path, m);
