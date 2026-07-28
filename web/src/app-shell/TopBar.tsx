@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/lib/auth';
+import { AssistantLauncher } from '@/features/assistant';
 
 interface TopBarProps {
   onOpenCommand: () => void;
@@ -37,6 +38,7 @@ export function TopBar({ onOpenCommand }: TopBarProps) {
         </kbd>
       </button>
       <div className="ml-auto flex items-center gap-1.5">
+        <AssistantLauncher variant="topbar" />
         <SyncIndicator />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
