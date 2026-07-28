@@ -205,26 +205,6 @@ export const DEMO_SETTINGS: Settings = {
   criticalAlertsBanner: true,
 };
 
-export const DEMO_CROPS: CropDef[] = [
-  {
-    key: 'cafe',
-    label: 'Café',
-    stages: ['seed', 'veg', 'flower', 'harvest'],
-    defaultVariety: 'Castillo',
-  },
-  {
-    key: 'aguacate',
-    label: 'Aguacate',
-    stages: ['seed', 'veg', 'flower', 'harvest'],
-    defaultVariety: 'Hass',
-  },
-  {
-    key: 'tomate',
-    label: 'Tomate',
-    stages: ['seed', 'veg', 'flower', 'harvest'],
-    defaultVariety: 'Roma',
-  },
-];
 
 export function buildWeatherForecast(lat: number, lng: number): WeatherForecast {
   return {
