@@ -12,7 +12,6 @@ import type {
   Alert,
   Block,
   Campaign,
-  CropDef,
   Greenhouse,
   IrrigationEvent,
   Observation,
@@ -21,7 +20,10 @@ import type {
   User,
   WeatherForecast,
 } from '@shared/schema';
+import { CROP_CATALOG } from '@shared/cropCatalog';
 import type { CampaignSummary } from '@/lib/apiTypes';
+
+export const DEMO_CROPS = CROP_CATALOG;
 
 const NOW = new Date('2026-07-28T13:00:00Z');
 const iso = (offsetHours: number) =>
