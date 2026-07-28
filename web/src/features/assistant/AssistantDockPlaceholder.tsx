@@ -1,4 +1,10 @@
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from '@/components/ui/sheet';
 import { useAssistant } from './AssistantContext';
 import { Bot, Sparkles, Mic, ClipboardCheck } from 'lucide-react';
 
@@ -41,14 +47,16 @@ export function AssistantDockPlaceholder() {
             <li className="flex items-start gap-3 rounded-lg border border-border/70 bg-card p-3">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
               <span>
-                Consultar el estado de la finca, tareas del día, clima e inventario en lenguaje natural.
+                Consultar el estado de la finca, tareas del día, clima e inventario en lenguaje
+                natural.
               </span>
             </li>
             <li className="flex items-start gap-3 rounded-lg border border-border/70 bg-card p-3">
               <ClipboardCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
               <span>
                 Preparar borradores de tareas, asignaciones y observaciones que
-                <strong className="font-medium"> siempre requerirán tu confirmación</strong> antes de guardarse.
+                <strong className="font-medium"> siempre requerirán tu confirmación</strong> antes
+                de guardarse.
               </span>
             </li>
             <li className="flex items-start gap-3 rounded-lg border border-border/70 bg-card p-3">
@@ -58,8 +66,8 @@ export function AssistantDockPlaceholder() {
           </ul>
 
           <div className="mt-6 rounded-lg border border-dashed border-border bg-muted/40 p-4 text-xs text-muted-foreground">
-            Este panel es solo un contenedor. Ninguna acción del Asistente se ejecutará
-            sin revisión y confirmación humana explícita.
+            Este panel es solo un contenedor. Ninguna acción del Asistente se ejecutará sin revisión
+            y confirmación humana explícita.
           </div>
         </div>
       </SheetContent>

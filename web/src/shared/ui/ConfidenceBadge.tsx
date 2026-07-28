@@ -3,7 +3,10 @@ import { ShieldCheck, ShieldAlert, ShieldQuestion } from 'lucide-react';
 
 export type ConfidenceLevel = 'high' | 'medium' | 'low';
 
-const config: Record<ConfidenceLevel, { label: string; icon: typeof ShieldCheck; className: string }> = {
+const config: Record<
+  ConfidenceLevel,
+  { label: string; icon: typeof ShieldCheck; className: string }
+> = {
   high: {
     label: 'Confianza alta',
     icon: ShieldCheck,

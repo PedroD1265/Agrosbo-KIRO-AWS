@@ -43,10 +43,8 @@ export function OfflineBanner({ pending, className, variant = 'banner' }: Props)
         <p className="font-medium text-foreground">Trabajando sin conexión</p>
         <p className="mt-0.5 text-xs text-muted-foreground">
           Los cambios se guardan localmente
-          {typeof pending === 'number' && pending > 0
-            ? ` (${pending} pendientes) `
-            : ' '}
-          y se sincronizarán automáticamente al recuperar la red.
+          {typeof pending === 'number' && pending > 0 ? ` (${pending} pendientes) ` : ' '}y se
+          sincronizarán automáticamente al recuperar la red.
         </p>
       </div>
     </div>
