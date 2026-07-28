@@ -31,13 +31,7 @@
       "/api/auth/me",
       "/api/auth/logout"
     ],
-    "authenticatedRoles": [
-      "admin",
-      "tecnico",
-      "encargado",
-      "operario",
-      "finanzas"
-    ],
+    "authenticatedRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
     "note": "La ausencia de requireRole no convierte una ruta en pública."
   },
   "resources": [
@@ -74,13 +68,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -90,13 +78,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -106,13 +88,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -122,13 +98,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -138,13 +108,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -159,13 +123,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -175,13 +133,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -191,13 +143,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -207,13 +153,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -223,13 +163,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -244,13 +178,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -260,13 +188,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -276,13 +198,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -292,13 +208,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -308,13 +218,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -324,13 +228,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -345,13 +243,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -361,13 +253,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -377,13 +263,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -393,13 +273,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -409,13 +283,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -430,13 +298,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -446,13 +308,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -462,13 +318,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -478,13 +328,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -494,13 +338,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -515,13 +353,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -531,13 +363,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -547,13 +373,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -563,13 +383,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -584,13 +398,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -599,16 +407,8 @@
           "routeId": "R-033",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado"],
+          "effectiveRoles": ["admin", "tecnico", "encargado"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -617,16 +417,8 @@
           "routeId": "R-034",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado"],
+          "effectiveRoles": ["admin", "tecnico", "encargado"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -636,13 +428,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -651,16 +437,8 @@
           "routeId": "R-037",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado"],
+          "effectiveRoles": ["admin", "tecnico", "encargado"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -669,16 +447,8 @@
           "routeId": "R-038",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado"],
+          "effectiveRoles": ["admin", "tecnico", "encargado"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -693,13 +463,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -714,13 +478,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -729,16 +487,8 @@
           "routeId": "R-040",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado"],
+          "effectiveRoles": ["admin", "tecnico", "encargado"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -747,16 +497,8 @@
           "routeId": "R-041",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado"],
+          "effectiveRoles": ["admin", "tecnico", "encargado"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -765,16 +507,8 @@
           "routeId": "R-042",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado"],
+          "effectiveRoles": ["admin", "tecnico", "encargado"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -789,13 +523,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -810,13 +538,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -846,13 +568,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -861,16 +577,8 @@
           "routeId": "R-047",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado"],
+          "effectiveRoles": ["admin", "tecnico", "encargado"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -885,13 +593,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -906,13 +608,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -921,16 +617,8 @@
           "routeId": "R-050",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado"],
+          "effectiveRoles": ["admin", "tecnico", "encargado"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -945,13 +633,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -960,16 +642,8 @@
           "routeId": "R-052",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado"],
+          "effectiveRoles": ["admin", "tecnico", "encargado"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -984,13 +658,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -999,16 +667,8 @@
           "routeId": "R-054",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado"],
+          "effectiveRoles": ["admin", "tecnico", "encargado"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -1023,13 +683,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1038,16 +692,8 @@
           "routeId": "R-056",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado"],
+          "effectiveRoles": ["admin", "tecnico", "encargado"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -1062,13 +708,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1078,13 +718,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1094,13 +728,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1115,13 +743,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1130,18 +752,8 @@
           "routeId": "R-061",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "finanzas"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "finanzas"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado", "finanzas"],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -1150,18 +762,8 @@
           "routeId": "R-062",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "finanzas"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "finanzas"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado", "finanzas"],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -1176,13 +778,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1191,18 +787,8 @@
           "routeId": "R-064",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "finanzas"
-          ],
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "finanzas"
-          ],
+          "roleGuard": ["admin", "tecnico", "encargado", "finanzas"],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "finanzas"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -1217,13 +803,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1237,12 +817,8 @@
           "routeId": "R-067",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin"
-          ],
-          "effectiveRoles": [
-            "admin"
-          ],
+          "roleGuard": ["admin"],
+          "effectiveRoles": ["admin"],
           "mutation": false,
           "idempotent": false,
           "note": "Guard específico verificado."
@@ -1251,12 +827,8 @@
           "routeId": "R-068",
           "globalAuthRequired": true,
           "authPublic": false,
-          "roleGuard": [
-            "admin"
-          ],
-          "effectiveRoles": [
-            "admin"
-          ],
+          "roleGuard": ["admin"],
+          "effectiveRoles": ["admin"],
           "mutation": true,
           "idempotent": true,
           "note": "Guard específico verificado."
@@ -1306,13 +878,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1322,13 +888,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1338,13 +898,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1354,13 +908,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1370,13 +918,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1386,13 +928,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1402,13 +938,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1418,13 +948,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1434,13 +958,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1455,13 +973,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1471,13 +983,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1492,13 +998,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1508,13 +1008,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1524,13 +1018,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1540,13 +1028,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1556,13 +1038,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": false,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
@@ -1572,13 +1048,7 @@
           "globalAuthRequired": true,
           "authPublic": false,
           "roleGuard": null,
-          "effectiveRoles": [
-            "admin",
-            "tecnico",
-            "encargado",
-            "operario",
-            "finanzas"
-          ],
+          "effectiveRoles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
           "mutation": true,
           "idempotent": false,
           "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."

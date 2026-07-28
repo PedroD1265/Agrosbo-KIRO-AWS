@@ -24,13 +24,7 @@
     "totalFixtureRecords": 132
   },
   "coverage": {
-    "rbacRolesCovered": [
-      "admin",
-      "tecnico",
-      "encargado",
-      "operario",
-      "finanzas"
-    ],
+    "rbacRolesCovered": ["admin", "tecnico", "encargado", "operario", "finanzas"],
     "classificationVocabulary": [
       "VERIFIED_IN_REPOSITORY",
       "PROPOSED_TEST_CASE",

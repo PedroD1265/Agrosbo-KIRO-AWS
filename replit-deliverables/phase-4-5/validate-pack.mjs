@@ -96,10 +96,7 @@ function extractRouterRoutes(source, sourceFile) {
     const start = match.index;
     const tail = source.slice(declaration.lastIndex);
     const next = tail.search(/\brouter\.(?:get|post|put|patch|delete)\s*\(/);
-    const segment = source.slice(
-      start,
-      next < 0 ? source.length : declaration.lastIndex + next,
-    );
+    const segment = source.slice(start, next < 0 ? source.length : declaration.lastIndex + next);
     const roleArguments = (segment.match(/requireRole\(([^)]*)\)/) || [])[1];
     const roleGuard = roleArguments
       ? [...roleArguments.matchAll(/['"]([^'"]+)['"]/g)].map((item) => item[1])
@@ -125,13 +122,10 @@ function deriveSourceEvidence() {
     /app\.use\(\s*['"]\/api['"]\s*,\s*apiRouter\s*\)/.test(appSource),
     "api/src/app.ts no longer mounts apiRouter at '/api'",
   );
-  const publicBlock = (appSource.match(
-    /const AUTH_PUBLIC\s*=\s*new Set\(\s*\[([\s\S]*?)\]\s*\)/,
-  ) || [])[1];
+  const publicBlock = (appSource.match(/const AUTH_PUBLIC\s*=\s*new Set\(\s*\[([\s\S]*?)\]\s*\)/) ||
+    [])[1];
   assert(publicBlock, 'AUTH_PUBLIC could not be derived from api/src/app.ts');
-  const publicPaths = [...publicBlock.matchAll(/['"]([^'"]+)['"]/g)].map(
-    (item) => item[1],
-  );
+  const publicPaths = [...publicBlock.matchAll(/['"]([^'"]+)['"]/g)].map((item) => item[1]);
   assert(
     sameArray(publicPaths, PUBLIC_INTERNAL_PATHS),
     `AUTH_PUBLIC mismatch: ${JSON.stringify(publicPaths)}`,
@@ -183,9 +177,7 @@ function pathMatchesTemplate(path, template) {
   const escaped = template
     .split('/')
     .map((segment) =>
-      segment.startsWith(':')
-        ? '[^/]+'
-        : segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      segment.startsWith(':') ? '[^/]+' : segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
     )
     .join('/');
   return new RegExp(`^${escaped}$`).test(path);
@@ -206,7 +198,10 @@ let evidence;
 check('CHK-01', 'Exact allowlist is present in the pack directory', () => {
   const actual = readdirSync(PACK_DIR).sort();
   const expected = [...ALLOWLIST].sort();
-  assert(sameArray(actual, expected), `Expected ${expected.join(', ')}; found ${actual.join(', ')}`);
+  assert(
+    sameArray(actual, expected),
+    `Expected ${expected.join(', ')}; found ${actual.join(', ')}`,
+  );
   return `${actual.length} allowed files and no extras`;
 });
 
@@ -225,7 +220,10 @@ check('CHK-02', 'All JSON files parse', () => {
 
 check('CHK-03', 'TypeScript route evidence can be derived', () => {
   evidence = deriveSourceEvidence();
-  assert(evidence.routes.length === 88, `Expected 88 source routes, found ${evidence.routes.length}`);
+  assert(
+    evidence.routes.length === 88,
+    `Expected 88 source routes, found ${evidence.routes.length}`,
+  );
   const sourceDuplicates = duplicates(
     evidence.routes.map((route) => `${route.method} ${route.publicPath}`),
   );
@@ -253,19 +251,13 @@ check('CHK-04', 'Route catalog exactly matches current TypeScript', () => {
       errors.push(`${signature}: routePathAsDefined`);
     if (route.publicPath !== `/api${route.routePathAsDefined}`)
       errors.push(`${signature}: /api prefix`);
-    if (route.internalPath !== source.routePathAsDefined)
-      errors.push(`${signature}: internalPath`);
+    if (route.internalPath !== source.routePathAsDefined) errors.push(`${signature}: internalPath`);
     if (route.authRequired !== source.authRequired || route.authPublic !== source.authPublic)
       errors.push(`${signature}: global auth/public classification`);
-    if (!sameArray(route.roleGuard, source.roleGuard))
-      errors.push(`${signature}: roleGuard`);
-    if (route.idempotent !== source.idempotent)
-      errors.push(`${signature}: idempotency`);
+    if (!sameArray(route.roleGuard, source.roleGuard)) errors.push(`${signature}: roleGuard`);
+    if (route.idempotent !== source.idempotent) errors.push(`${signature}: idempotency`);
     if (route.mutation !== source.mutation) errors.push(`${signature}: mutation`);
-    if (
-      route.evidence?.sourceFile !== source.sourceFile ||
-      route.evidence?.line !== source.line
-    )
+    if (route.evidence?.sourceFile !== source.sourceFile || route.evidence?.line !== source.line)
       errors.push(`${signature}: source evidence`);
   }
   const sourceSignatures = new Set(
@@ -305,8 +297,7 @@ check('CHK-06', 'All fixture route references resolve to route IDs', () => {
     }
     for (const ref of collectApiSignatures(parsed[file])) {
       const resolved = catalog.routes.some(
-        (route) =>
-          route.method === ref.method && pathMatchesTemplate(ref.path, route.publicPath),
+        (route) => route.method === ref.method && pathMatchesTemplate(ref.path, route.publicPath),
       );
       if (!resolved)
         errors.push(`${file} ${ref.location}: invented/removed ${ref.method} ${ref.path}`);
@@ -342,10 +333,16 @@ check('CHK-07', 'RBAC matrix matches global auth and route guards', () => {
     const expectedRoles = route.authPublic ? [] : route.roleGuard || VALID_ROLES;
     if (!sameArray(operation.effectiveRoles, expectedRoles)) errors.push(`${signature}: roles`);
   }
-  assert(operations.size === parsed['route-catalog.json'].routes.length, 'RBAC has extra operations');
+  assert(
+    operations.size === parsed['route-catalog.json'].routes.length,
+    'RBAC has extra operations',
+  );
   assert(errors.length === 0, errors.join('; '));
   const roleContext = JSON.stringify(matrix);
-  assert(!/"(?:roleGuard|effectiveRoles|blocked|role)"[^]*?"(?:owner|collaborator)"/i.test(roleContext), 'Prohibited internal role');
+  assert(
+    !/"(?:roleGuard|effectiveRoles|blocked|role)"[^]*?"(?:owner|collaborator)"/i.test(roleContext),
+    'Prohibited internal role',
+  );
   return 'Global authentication is distinct from requireRole';
 });
 
@@ -381,7 +378,11 @@ check('CHK-09', 'Write executions have a visible draft and explicit confirmation
       .filter((turn) => turn.role === 'user')
       .map((turn) => turn.content || '')
       .join(' ');
-    if (!/(confirm|sí|si,|hazlo|adelante|procede|correcto|registra|guarda|elimina|crea|marca|actualiza)/i.test(userText))
+    if (
+      !/(confirm|sí|si,|hazlo|adelante|procede|correcto|registra|guarda|elimina|crea|marca|actualiza)/i.test(
+        userText,
+      )
+    )
       errors.push(`${scenario.id}: no explicit confirmation`);
   }
   assert(errors.length === 0, errors.join('; '));
@@ -397,7 +398,10 @@ check('CHK-10', 'Conversation fixtures respect ADR-018 boundaries', () => {
     !/(?:el |mi )?diagnóstico definitivo (?:es|indica)|diagnóstico seguro:/i.test(raw),
     'Affirmative definitive diagnosis found',
   );
-  assert(!/recomiendo (?:el |un )?(?:pesticida|fungicida|herbicida)/i.test(raw), 'Pesticide recommendation found');
+  assert(
+    !/recomiendo (?:el |un )?(?:pesticida|fungicida|herbicida)/i.test(raw),
+    'Pesticide recommendation found',
+  );
   return 'No definitive diagnosis or specific pesticide recommendation';
 });
 
@@ -411,7 +415,10 @@ check('CHK-11', 'Idempotency cases match current constants and cover payload sem
   assert(/IDEM_MAX_MEM = 5000/.test(source), 'memory limit source evidence missing');
   assert(/IDEMPOTENCY_IN_PROGRESS/.test(source), 'processing code source evidence missing');
   const raw = JSON.stringify(data).toLowerCase();
-  assert(raw.includes('misma clave') && raw.includes('mismo payload'), 'Same-key/same-payload case missing');
+  assert(
+    raw.includes('misma clave') && raw.includes('mismo payload'),
+    'Same-key/same-payload case missing',
+  );
   assert(raw.includes('payload distinto'), 'Same-key/different-payload case missing');
   assert(raw.includes('concurrent') || raw.includes('simultáneamente'), 'Concurrency case missing');
   assert(raw.includes('in-memory') && raw.includes('postgresql'), 'Both backends are not covered');
@@ -463,14 +470,11 @@ check('CHK-14', 'No secrets, real ARNs, ZIPs, or hard-coded localhost URLs', () 
 });
 
 check('CHK-15', 'Git changes remain inside the exact allowlist and are unstaged', () => {
-  const output = execFileSync(
-    'git',
-    ['status', '--porcelain=v1', '--untracked-files=all'],
-    { cwd: REPO_ROOT, encoding: 'utf8' },
-  );
-  const allowed = new Set(
-    ALLOWLIST.map((file) => `replit-deliverables/phase-4-5/${file}`),
-  );
+  const output = execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+  });
+  const allowed = new Set(ALLOWLIST.map((file) => `replit-deliverables/phase-4-5/${file}`));
   const errors = [];
   for (const line of output.split(/\r?\n/).filter(Boolean)) {
     const indexStatus = line[0];

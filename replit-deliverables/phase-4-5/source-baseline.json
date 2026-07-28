@@ -80,18 +80,11 @@
         "DELETE /expenses/:id",
         "POST /labor-costs"
       ],
-      "requireRoleAdmin": [
-        "GET /users",
-        "POST /users"
-      ]
+      "requireRoleAdmin": ["GET /users", "POST /users"]
     },
     "api/src/env.ts": {
       "authProvider": "APP_AUTH_PROVIDER = 'local-session' | 'cognito-jwt'",
-      "cognitoVars": [
-        "COGNITO_USER_POOL_ID",
-        "COGNITO_APP_CLIENT_ID",
-        "COGNITO_ISSUER"
-      ],
+      "cognitoVars": ["COGNITO_USER_POOL_ID", "COGNITO_APP_CLIENT_ID", "COGNITO_ISSUER"],
       "sessionSecret": "SESSION_SECRET — ephemeral fallback when AUTH_ENFORCEMENT=off; required when on",
       "attachmentsDriver": "ATTACHMENTS_STORAGE_DRIVER = 'local' | 's3'",
       "cognitoJwtStatus": "throws 'not yet implemented' — cognito-jwt.ts does not exist",
@@ -106,34 +99,16 @@
       "ttlMs": 86400000,
       "processingStaleMs": 600000,
       "maxMemEntries": 5000,
-      "storageBackends": [
-        "in-memory (Map)",
-        "PostgreSQL idempotency_keys table"
-      ],
-      "claimResults": [
-        "completed",
-        "processing",
-        "claimed",
-        "unavailable"
-      ],
+      "storageBackends": ["in-memory (Map)", "PostgreSQL idempotency_keys table"],
+      "claimResults": ["completed", "processing", "claimed", "unavailable"],
       "replayHeader": "X-Idempotent-Replay: 1",
       "processingConflictCode": "IDEMPOTENCY_IN_PROGRESS",
       "conflictStatus": 409,
       "retryAfterHeader": "Retry-After: 2"
     },
     "api/src/providers/index.ts": {
-      "roles": [
-        "admin",
-        "tecnico",
-        "encargado",
-        "operario",
-        "finanzas"
-      ],
-      "prohibitedRoleNames": [
-        "owner",
-        "collaborator",
-        "colaborador"
-      ]
+      "roles": ["admin", "tecnico", "encargado", "operario", "finanzas"],
+      "prohibitedRoleNames": ["owner", "collaborator", "colaborador"]
     },
     "infra/src/index.ts": {
       "content": "3-line placeholder — comment + export {}. Zero CDK constructs.",

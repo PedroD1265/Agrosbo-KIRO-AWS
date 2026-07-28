@@ -52,12 +52,7 @@
               "X-Idempotency-Key": "wc-001-<uuid>"
             },
             "expectedStatus": 201,
-            "auditFields": [
-              "userId",
-              "tool",
-              "timestamp",
-              "entityId"
-            ]
+            "auditFields": ["userId", "tool", "timestamp", "entityId"]
           }
         },
         {
@@ -119,9 +114,7 @@
         }
       ],
       "expectedBehavior": "PATCH /tasks/:id/status — shortcut de estado. Borrador muestra cambio explícito old→new.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "WC-003",
@@ -238,9 +231,7 @@
         }
       ],
       "expectedBehavior": "PATCH parcial — solo los campos a cambiar.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "WC-005",
@@ -350,10 +341,7 @@
         }
       ],
       "expectedBehavior": "Distingue creación de observación de adjunto de fotos. Aviso ADR-018.",
-      "adrConstraints": [
-        "ADR-018: no diagnóstico definitivo",
-        "ADR-015: borrador visible"
-      ]
+      "adrConstraints": ["ADR-018: no diagnóstico definitivo", "ADR-015: borrador visible"]
     },
     {
       "id": "WC-007",
@@ -405,9 +393,7 @@
         }
       ],
       "expectedBehavior": "durationMin > 0 validado por schema (DB check). Borrador muestra timestamp en UTC.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "WC-008",
@@ -502,9 +488,7 @@
         }
       ],
       "expectedBehavior": "DELETE con aviso en el borrador. Sugiere registro de motivo como observación.",
-      "adrConstraints": [
-        "ADR-015: eliminaciones requieren confirmación explícita"
-      ]
+      "adrConstraints": ["ADR-015: eliminaciones requieren confirmación explícita"]
     },
     {
       "id": "WC-010",
@@ -550,11 +534,7 @@
               "X-Idempotency-Key": "wc-010-<uuid>"
             },
             "expectedStatus": 200,
-            "roles": [
-              "admin",
-              "tecnico",
-              "encargado"
-            ]
+            "roles": ["admin", "tecnico", "encargado"]
           }
         },
         {
@@ -617,9 +597,7 @@
         }
       ],
       "expectedBehavior": "delta positivo = ingreso. requireRole. Sugiere actualizar costo unitario si está disponible.",
-      "adrConstraints": [
-        "ADR-015: confirmación reforzada para inventario"
-      ]
+      "adrConstraints": ["ADR-015: confirmación reforzada para inventario"]
     },
     {
       "id": "WC-012",
@@ -667,9 +645,7 @@
         }
       ],
       "expectedBehavior": "El agente procesa el flujo hasta el 403. Explica el RBAC claramente.",
-      "adrConstraints": [
-        "ADR-015: el RBAC del servidor es la autoridad final"
-      ]
+      "adrConstraints": ["ADR-015: el RBAC del servidor es la autoridad final"]
     },
     {
       "id": "WC-013",
@@ -720,9 +696,7 @@
         }
       ],
       "expectedBehavior": "requireRole('admin','tecnico','encargado'). Cosecha es acción sensible.",
-      "adrConstraints": [
-        "ADR-015: acción sensible — confirmación reforzada"
-      ]
+      "adrConstraints": ["ADR-015: acción sensible — confirmación reforzada"]
     },
     {
       "id": "WC-014",
@@ -772,9 +746,7 @@
         }
       ],
       "expectedBehavior": "PATCH parcial. requireRole.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "WC-015",
@@ -940,9 +912,7 @@
         }
       ],
       "expectedBehavior": "403 manejado con gracia. El agente explica quién puede hacerlo.",
-      "adrConstraints": [
-        "ADR-015: RBAC del servidor es definitivo"
-      ]
+      "adrConstraints": ["ADR-015: RBAC del servidor es definitivo"]
     },
     {
       "id": "WC-018",
@@ -995,10 +965,7 @@
         }
       ],
       "expectedBehavior": "El agente muestra el cálculo en el borrador para validación. requireRole incluye 'finanzas'.",
-      "adrConstraints": [
-        "ADR-015",
-        "ADR-018: no automatización financiera o contractual"
-      ]
+      "adrConstraints": ["ADR-015", "ADR-018: no automatización financiera o contractual"]
     },
     {
       "id": "WC-019",
@@ -1180,9 +1147,7 @@
         }
       ],
       "expectedBehavior": "requireRole. requireDatabaseExecutor. Aviso de diferencia entre observación de campo y diagnóstico.",
-      "adrConstraints": [
-        "ADR-018: observación de campo ≠ diagnóstico definitivo"
-      ]
+      "adrConstraints": ["ADR-018: observación de campo ≠ diagnóstico definitivo"]
     },
     {
       "id": "WC-022",
@@ -1232,9 +1197,7 @@
         }
       ],
       "expectedBehavior": "requireRole. requireDatabaseExecutor. Acción sensible.",
-      "adrConstraints": [
-        "ADR-015: acción sensible"
-      ]
+      "adrConstraints": ["ADR-015: acción sensible"]
     },
     {
       "id": "WC-023",
@@ -1340,9 +1303,7 @@
         }
       ],
       "expectedBehavior": "Sin requireRole (GAP documentado). Borrador muestra todos los campos.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "WC-025",
@@ -1444,9 +1405,7 @@
         }
       ],
       "expectedBehavior": "PATCH parcial. Sin requireRole (GAP).",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "WC-027",
@@ -1506,9 +1465,7 @@
         }
       ],
       "expectedBehavior": "Lectura previa antes de proponer eliminación. Borrador muestra contenido de lo que se eliminará.",
-      "adrConstraints": [
-        "ADR-015: eliminaciones requieren confirmación reforzada"
-      ]
+      "adrConstraints": ["ADR-015: eliminaciones requieren confirmación reforzada"]
     },
     {
       "id": "WC-028",
@@ -1571,9 +1528,7 @@
         }
       ],
       "expectedBehavior": "Aviso de impacto cascada en el borrador. Confirmación reforzada.",
-      "adrConstraints": [
-        "ADR-015: eliminaciones = acción sensible con advertencia de impacto"
-      ]
+      "adrConstraints": ["ADR-015: eliminaciones = acción sensible con advertencia de impacto"]
     },
     {
       "id": "WC-029",
@@ -1626,9 +1581,7 @@
         }
       ],
       "expectedBehavior": "El agente reconoce el header X-Idempotent-Replay:1 y lo comunica al usuario.",
-      "adrConstraints": [
-        "ADR-015: cola offline + idempotencia previenen duplicados"
-      ]
+      "adrConstraints": ["ADR-015: cola offline + idempotencia previenen duplicados"]
     },
     {
       "id": "WC-030",
@@ -1703,9 +1656,7 @@
         }
       ],
       "expectedBehavior": "El agente NO ejecuta si el usuario cancela. El borrador se descarta silenciosamente.",
-      "adrConstraints": [
-        "ADR-015: consentimiento explícito — cancelación = no acción"
-      ]
+      "adrConstraints": ["ADR-015: consentimiento explícito — cancelación = no acción"]
     },
     {
       "id": "WC-032",
@@ -1798,9 +1749,7 @@
         }
       ],
       "expectedBehavior": "503 DATABASE_REQUIRED manejado con explicación clara. No encola en Dexie (requiere DB real).",
-      "adrConstraints": [
-        "ADR-015: transparencia sobre limitaciones técnicas"
-      ]
+      "adrConstraints": ["ADR-015: transparencia sobre limitaciones técnicas"]
     },
     {
       "id": "WC-034",
@@ -1856,9 +1805,7 @@
         }
       ],
       "expectedBehavior": "El agente reconoce IDEMPOTENCY_IN_PROGRESS y aplica Retry-After antes de reintentar.",
-      "adrConstraints": [
-        "ADR-015: idempotencia — no duplicar mutaciones"
-      ]
+      "adrConstraints": ["ADR-015: idempotencia — no duplicar mutaciones"]
     },
     {
       "id": "WC-035",
@@ -1905,9 +1852,7 @@
         }
       ],
       "expectedBehavior": "409 InventoryStockError manejado con la cantidad disponible. Ofrece alternativas.",
-      "adrConstraints": [
-        "ADR-015: el servidor protege la integridad del stock"
-      ]
+      "adrConstraints": ["ADR-015: el servidor protege la integridad del stock"]
     },
     {
       "id": "WC-036",

@@ -73,9 +73,7 @@
         }
       ],
       "expectedBehavior": "Solo lectura. El agente no asume que el bloque existe — si la herramienta retorna 404 lo indica.",
-      "adrConstraints": [
-        "ADR-015: lectura sin confirmación PWA"
-      ]
+      "adrConstraints": ["ADR-015: lectura sin confirmación PWA"]
     },
     {
       "id": "RC-003",
@@ -140,9 +138,7 @@
         }
       ],
       "expectedBehavior": "El agente agrega datos del response — no llama endpoint de agregación inexistente.",
-      "adrConstraints": [
-        "ADR-015: afirmación basada en datos consultados"
-      ]
+      "adrConstraints": ["ADR-015: afirmación basada en datos consultados"]
     },
     {
       "id": "RC-005",
@@ -209,9 +205,7 @@
         }
       ],
       "expectedBehavior": "Lectura directa, respuesta fiel al dato.",
-      "adrConstraints": [
-        "ADR-015: lectura sin mutación"
-      ]
+      "adrConstraints": ["ADR-015: lectura sin mutación"]
     },
     {
       "id": "RC-007",
@@ -242,9 +236,7 @@
         }
       ],
       "expectedBehavior": "Filtrado en memoria del resultado. Sin SQL.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-008",
@@ -275,9 +267,7 @@
         }
       ],
       "expectedBehavior": "El agente no asume cuáles están 'activos' — usa el campo status del dato.",
-      "adrConstraints": [
-        "ADR-015: afirmaciones basadas en datos"
-      ]
+      "adrConstraints": ["ADR-015: afirmaciones basadas en datos"]
     },
     {
       "id": "RC-009",
@@ -308,9 +298,7 @@
         }
       ],
       "expectedBehavior": "Lista y filtra. No propone mutaciones.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-010",
@@ -356,9 +344,7 @@
         }
       ],
       "expectedBehavior": "Dos herramientas en secuencia. La segunda requiere ID de la primera.",
-      "adrConstraints": [
-        "ADR-015: herramientas estructuradas, no SQL"
-      ]
+      "adrConstraints": ["ADR-015: herramientas estructuradas, no SQL"]
     },
     {
       "id": "RC-011",
@@ -389,9 +375,7 @@
         }
       ],
       "expectedBehavior": "Filtrado por fecha en cliente. Aviso de sincronía de datos.",
-      "adrConstraints": [
-        "ADR-015: afirmaciones basadas en datos consultados"
-      ]
+      "adrConstraints": ["ADR-015: afirmaciones basadas en datos consultados"]
     },
     {
       "id": "RC-012",
@@ -422,9 +406,7 @@
         }
       ],
       "expectedBehavior": "Filtro en memoria por scopeId.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-013",
@@ -455,9 +437,7 @@
         }
       ],
       "expectedBehavior": "Filtrado en memoria por status=pending y dueDate. No modifica estado.",
-      "adrConstraints": [
-        "ADR-015: lectura sin mutación"
-      ]
+      "adrConstraints": ["ADR-015: lectura sin mutación"]
     },
     {
       "id": "RC-014",
@@ -488,9 +468,7 @@
         }
       ],
       "expectedBehavior": "El agente ofrece preparar borrador (no ejecuta directamente). Lectura primero.",
-      "adrConstraints": [
-        "ADR-015: mutación requiere borrador y confirmación PWA"
-      ]
+      "adrConstraints": ["ADR-015: mutación requiere borrador y confirmación PWA"]
     },
     {
       "id": "RC-015",
@@ -521,9 +499,7 @@
         }
       ],
       "expectedBehavior": "Filtrado doble en memoria.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-016",
@@ -554,9 +530,7 @@
         }
       ],
       "expectedBehavior": "Agregación en memoria.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-017",
@@ -587,9 +561,7 @@
         }
       ],
       "expectedBehavior": "El agente filtra type=incident y fecha en memoria. Advierte posible retraso de sync.",
-      "adrConstraints": [
-        "ADR-015: datos basados en herramienta, no inventados"
-      ]
+      "adrConstraints": ["ADR-015: datos basados en herramienta, no inventados"]
     },
     {
       "id": "RC-018",
@@ -654,9 +626,7 @@
         }
       ],
       "expectedBehavior": "Filtra por author y fecha. Advierte latencia offline-sync.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-020",
@@ -687,9 +657,7 @@
         }
       ],
       "expectedBehavior": "Filtra type=disease y mes actual. Aviso ADR-018.",
-      "adrConstraints": [
-        "ADR-018: no diagnóstico definitivo"
-      ]
+      "adrConstraints": ["ADR-018: no diagnóstico definitivo"]
     },
     {
       "id": "RC-021",
@@ -720,9 +688,7 @@
         }
       ],
       "expectedBehavior": "Filtra en memoria por fecha y status.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-022",
@@ -753,9 +719,7 @@
         }
       ],
       "expectedBehavior": "Filtra por scopeId y status=done, ordena por fecha.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-023",
@@ -786,9 +750,7 @@
         }
       ],
       "expectedBehavior": "Informa al operario qué confirmar. No ejecuta POST /done automáticamente.",
-      "adrConstraints": [
-        "ADR-015: el agente no ejecuta mutación sin confirmación"
-      ]
+      "adrConstraints": ["ADR-015: el agente no ejecuta mutación sin confirmación"]
     },
     {
       "id": "RC-024",
@@ -819,9 +781,7 @@
         }
       ],
       "expectedBehavior": "Filtra status=done + mes + suma volumeL. Advierte campos nulos.",
-      "adrConstraints": [
-        "ADR-015: transparencia sobre datos faltantes"
-      ]
+      "adrConstraints": ["ADR-015: transparencia sobre datos faltantes"]
     },
     {
       "id": "RC-025",
@@ -852,9 +812,7 @@
         }
       ],
       "expectedBehavior": "Búsqueda textual en memoria. No afirma pesticide específico.",
-      "adrConstraints": [
-        "ADR-018: no recomendar dosis ni producto agroquímico específico"
-      ]
+      "adrConstraints": ["ADR-018: no recomendar dosis ni producto agroquímico específico"]
     },
     {
       "id": "RC-026",
@@ -885,9 +843,7 @@
         }
       ],
       "expectedBehavior": "Filtra en memoria. No recomienda proveedor ni producto específico.",
-      "adrConstraints": [
-        "ADR-018"
-      ]
+      "adrConstraints": ["ADR-018"]
     },
     {
       "id": "RC-027",
@@ -918,9 +874,7 @@
         }
       ],
       "expectedBehavior": "Calcula en memoria. Advierte ítems sin unitCost.",
-      "adrConstraints": [
-        "ADR-015: transparencia sobre datos incompletos"
-      ]
+      "adrConstraints": ["ADR-015: transparencia sobre datos incompletos"]
     },
     {
       "id": "RC-028",
@@ -953,9 +907,7 @@
         }
       ],
       "expectedBehavior": "Consulta endpoint específico de movimientos.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-029",
@@ -986,9 +938,7 @@
         }
       ],
       "expectedBehavior": "Lista y agrega.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-030",
@@ -1019,9 +969,7 @@
         }
       ],
       "expectedBehavior": "Filtra por scopeId en memoria.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-031",
@@ -1085,9 +1033,7 @@
         }
       ],
       "expectedBehavior": "Filtra por campo de carencia. Aviso ADR-018.",
-      "adrConstraints": [
-        "ADR-018: no validar ni recomendar productos agroquímicos"
-      ]
+      "adrConstraints": ["ADR-018: no validar ni recomendar productos agroquímicos"]
     },
     {
       "id": "RC-033",
@@ -1121,9 +1067,7 @@
         }
       ],
       "expectedBehavior": "Usa parámetros from/to. Advierte dependencia de DB.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-034",
@@ -1156,9 +1100,7 @@
         }
       ],
       "expectedBehavior": "Filtra por campaignId. El agente es honesto sobre lo que el sistema no tiene.",
-      "adrConstraints": [
-        "ADR-015: no afirmar funcionalidades inexistentes"
-      ]
+      "adrConstraints": ["ADR-015: no afirmar funcionalidades inexistentes"]
     },
     {
       "id": "RC-035",
@@ -1189,9 +1131,7 @@
         }
       ],
       "expectedBehavior": "Filtra por mes en memoria del response.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-036",
@@ -1222,9 +1162,7 @@
         }
       ],
       "expectedBehavior": "Solo lectura de alertas derivadas.",
-      "adrConstraints": [
-        "ADR-015: datos del motor de reglas, no inventados"
-      ]
+      "adrConstraints": ["ADR-015: datos del motor de reglas, no inventados"]
     },
     {
       "id": "RC-037",
@@ -1255,9 +1193,7 @@
         }
       ],
       "expectedBehavior": "Filtra por tipo de alerta.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-038",
@@ -1291,10 +1227,7 @@
         }
       ],
       "expectedBehavior": "Usa coordenadas de la finca. Aviso de incertidumbre del pronóstico.",
-      "adrConstraints": [
-        "ADR-018: no proyecciones como certezas",
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-018: no proyecciones como certezas", "ADR-015"]
     },
     {
       "id": "RC-039",
@@ -1363,9 +1296,7 @@
         }
       ],
       "expectedBehavior": "Solo lectura.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-041",
@@ -1403,9 +1334,7 @@
         }
       ],
       "expectedBehavior": "Dos herramientas en paralelo, cruce en memoria.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-042",
@@ -1436,9 +1365,7 @@
         }
       ],
       "expectedBehavior": "Lista y agrega.",
-      "adrConstraints": [
-        "ADR-015"
-      ]
+      "adrConstraints": ["ADR-015"]
     },
     {
       "id": "RC-043",
@@ -1490,9 +1417,7 @@
         }
       ],
       "expectedBehavior": "El agente rechaza la recomendación de pesticida de forma directa. Ofrece alternativa dentro del sistema.",
-      "adrConstraints": [
-        "ADR-018: prohibición explícita de recomendar fungicidas/pesticidas"
-      ]
+      "adrConstraints": ["ADR-018: prohibición explícita de recomendar fungicidas/pesticidas"]
     },
     {
       "id": "RC-045",
@@ -1580,10 +1505,7 @@
         }
       ],
       "expectedBehavior": "4 herramientas en paralelo. Síntesis cruzada en respuesta.",
-      "adrConstraints": [
-        "ADR-015: sin mutación",
-        "ADR-015: datos consultados, no inventados"
-      ]
+      "adrConstraints": ["ADR-015: sin mutación", "ADR-015: datos consultados, no inventados"]
     },
     {
       "id": "RC-047",
@@ -1615,9 +1537,7 @@
         }
       ],
       "expectedBehavior": "El agente llama a la herramienta, recibe 403 y lo comunica correctamente sin exponer datos.",
-      "adrConstraints": [
-        "ADR-015: el agente respeta el RBAC del servidor"
-      ]
+      "adrConstraints": ["ADR-015: el agente respeta el RBAC del servidor"]
     },
     {
       "id": "RC-048",
@@ -1648,9 +1568,7 @@
         }
       ],
       "expectedBehavior": "Usa /health/ready para diagnóstico de sistema. Explica implicaciones de cada check.",
-      "adrConstraints": [
-        "ADR-015: datos reales de herramienta"
-      ]
+      "adrConstraints": ["ADR-015: datos reales de herramienta"]
     }
   ]
 }

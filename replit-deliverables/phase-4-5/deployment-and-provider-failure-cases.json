@@ -147,11 +147,7 @@
         "Servidor no arranca"
       ],
       "expectedState": "FATAL — cognito-jwt.ts no existe en el baseline. No usar en producción hasta que Spec 21 lo implemente.",
-      "affectedVars": [
-        "COGNITO_USER_POOL_ID",
-        "COGNITO_APP_CLIENT_ID",
-        "COGNITO_ISSUER"
-      ],
+      "affectedVars": ["COGNITO_USER_POOL_ID", "COGNITO_APP_CLIENT_ID", "COGNITO_ISSUER"],
       "notes": "Los 3 vars de Cognito están definidos en env.ts pero el proveedor no está implementado. COGNITO_CLIENT_ID no existe (usar COGNITO_APP_CLIENT_ID).",
       "classification": "NOT_IMPLEMENTED",
       "classificationRationale": "Proveedor o infraestructura explícitamente no implementado."

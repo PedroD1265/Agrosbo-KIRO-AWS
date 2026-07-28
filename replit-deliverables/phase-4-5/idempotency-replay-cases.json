@@ -278,10 +278,7 @@
       },
       "scenario": "Dos instancias Lambda intentan INSERT simultáneamente con la misma key",
       "expectedFlow": "Instance A: INSERT ok → type:claimed. Instance B: INSERT → onConflictDoNothing → inserted.length=0 → SELECT → state:processing, age < stale → type:processing → 409",
-      "expectedStatuses": [
-        201,
-        409
-      ],
+      "expectedStatuses": [201, 409],
       "notes": "onConflictDoNothing previene duplicate key error. El perdedor recibe 409 con Retry-After:2."
     },
     {

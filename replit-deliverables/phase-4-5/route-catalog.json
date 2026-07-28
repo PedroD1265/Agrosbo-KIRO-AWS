@@ -20,9 +20,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "{ ok: true, uptime: number }",
-      "statusCodes": [
-        200
-      ],
+      "statusCodes": [200],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -43,10 +41,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "{ ok: boolean, checks: { config: boolean, database: boolean }, now: string }",
-      "statusCodes": [
-        200,
-        503
-      ],
+      "statusCodes": [200, 503],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -67,10 +62,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "Block[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -91,11 +83,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "Block",
-      "statusCodes": [
-        200,
-        401,
-        404
-      ],
+      "statusCodes": [200, 401, 404],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -116,12 +104,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "Block",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        409
-      ],
+      "statusCodes": [201, 400, 401, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -142,13 +125,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "Block",
-      "statusCodes": [
-        200,
-        400,
-        401,
-        404,
-        409
-      ],
+      "statusCodes": [200, 400, 401, 404, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -169,12 +146,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "{ ok: true }",
-      "statusCodes": [
-        200,
-        401,
-        404,
-        409
-      ],
+      "statusCodes": [200, 401, 404, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -195,10 +167,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "Greenhouse[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -219,11 +188,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "Greenhouse",
-      "statusCodes": [
-        200,
-        401,
-        404
-      ],
+      "statusCodes": [200, 401, 404],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -244,12 +209,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "Greenhouse",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        409
-      ],
+      "statusCodes": [201, 400, 401, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -270,13 +230,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "Greenhouse",
-      "statusCodes": [
-        200,
-        400,
-        401,
-        404,
-        409
-      ],
+      "statusCodes": [200, 400, 401, 404, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -297,12 +251,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "{ ok: true }",
-      "statusCodes": [
-        200,
-        401,
-        404,
-        409
-      ],
+      "statusCodes": [200, 401, 404, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -323,10 +272,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "Campaign[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -347,12 +293,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "Campaign",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        409
-      ],
+      "statusCodes": [201, 400, 401, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -373,11 +314,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "CampaignSummary",
-      "statusCodes": [
-        200,
-        401,
-        404
-      ],
+      "statusCodes": [200, 401, 404],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -398,13 +335,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "Campaign",
-      "statusCodes": [
-        200,
-        400,
-        401,
-        404,
-        409
-      ],
+      "statusCodes": [200, 400, 401, 404, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -425,12 +356,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "{ ok: true }",
-      "statusCodes": [
-        200,
-        401,
-        404,
-        409
-      ],
+      "statusCodes": [200, 401, 404, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -451,10 +377,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "IrrigationEvent[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -475,12 +398,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "IrrigationEvent",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        409
-      ],
+      "statusCodes": [201, 400, 401, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -501,12 +419,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "IrrigationEvent",
-      "statusCodes": [
-        200,
-        401,
-        404,
-        409
-      ],
+      "statusCodes": [200, 401, 404, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -527,13 +440,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "IrrigationEvent",
-      "statusCodes": [
-        200,
-        400,
-        401,
-        404,
-        409
-      ],
+      "statusCodes": [200, 400, 401, 404, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -554,12 +461,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "{ ok: true }",
-      "statusCodes": [
-        200,
-        401,
-        404,
-        409
-      ],
+      "statusCodes": [200, 401, 404, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -580,10 +482,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "Task[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -604,12 +503,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "Task",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        409
-      ],
+      "statusCodes": [201, 400, 401, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -630,13 +524,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "Task",
-      "statusCodes": [
-        200,
-        400,
-        401,
-        404,
-        409
-      ],
+      "statusCodes": [200, 400, 401, 404, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -657,13 +545,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "Task",
-      "statusCodes": [
-        200,
-        400,
-        401,
-        404,
-        409
-      ],
+      "statusCodes": [200, 400, 401, 404, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -684,12 +566,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "{ ok: true }",
-      "statusCodes": [
-        200,
-        401,
-        404,
-        409
-      ],
+      "statusCodes": [200, 401, 404, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -710,10 +587,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "Observation[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -734,12 +608,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "Observation",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        409
-      ],
+      "statusCodes": [201, 400, 401, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -760,12 +629,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "{ ok: true }",
-      "statusCodes": [
-        200,
-        401,
-        404,
-        409
-      ],
+      "statusCodes": [200, 401, 404, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -786,13 +650,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "Task",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        404,
-        409
-      ],
+      "statusCodes": [201, 400, 401, 404, 409],
       "dbRequired": false,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -813,10 +671,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "InventoryItem[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -833,21 +688,11 @@
       "internalPath": "/inventory",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "InventoryItem",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        403,
-        409
-      ],
+      "statusCodes": [201, 400, 401, 403, 409],
       "dbRequired": false,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -864,22 +709,11 @@
       "internalPath": "/inventory/:id",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "InventoryItem",
-      "statusCodes": [
-        200,
-        400,
-        401,
-        403,
-        404,
-        409
-      ],
+      "statusCodes": [200, 400, 401, 403, 404, 409],
       "dbRequired": false,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -900,10 +734,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "InventoryMovement[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -924,10 +755,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "InventoryMovement[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -944,22 +772,11 @@
       "internalPath": "/inventory/:id/edit",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "InventoryItem",
-      "statusCodes": [
-        200,
-        400,
-        401,
-        403,
-        404,
-        409
-      ],
+      "statusCodes": [200, 400, 401, 403, 404, 409],
       "dbRequired": false,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -976,21 +793,11 @@
       "internalPath": "/inventory/:id",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "{ ok: true }",
-      "statusCodes": [
-        200,
-        401,
-        403,
-        404,
-        409
-      ],
+      "statusCodes": [200, 401, 403, 404, 409],
       "dbRequired": false,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -1011,10 +818,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "HarvestLot[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1031,21 +835,11 @@
       "internalPath": "/harvest-lots",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "HarvestLot",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        403,
-        409
-      ],
+      "statusCodes": [201, 400, 401, 403, 409],
       "dbRequired": false,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -1062,22 +856,11 @@
       "internalPath": "/harvest-lots/:id",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "HarvestLot",
-      "statusCodes": [
-        200,
-        400,
-        401,
-        403,
-        404,
-        409
-      ],
+      "statusCodes": [200, 400, 401, 403, 404, 409],
       "dbRequired": false,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -1094,21 +877,11 @@
       "internalPath": "/harvest-lots/:id",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "{ ok: true }",
-      "statusCodes": [
-        200,
-        401,
-        403,
-        404,
-        409
-      ],
+      "statusCodes": [200, 401, 403, 404, 409],
       "dbRequired": false,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -1129,12 +902,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "WeatherForecast",
-      "statusCodes": [
-        200,
-        400,
-        401,
-        503
-      ],
+      "statusCodes": [200, 400, 401, 503],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1155,10 +923,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "Alert[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1179,9 +944,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "CropCatalog[]",
-      "statusCodes": [
-        200
-      ],
+      "statusCodes": [200],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1202,10 +965,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "Application[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1222,21 +982,11 @@
       "internalPath": "/applications",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "Application",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        403,
-        409
-      ],
+      "statusCodes": [201, 400, 401, 403, 409],
       "dbRequired": false,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -1278,10 +1028,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "Apiary[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": true,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1298,22 +1045,11 @@
       "internalPath": "/apiaries",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "Apiary",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        403,
-        409,
-        503
-      ],
+      "statusCodes": [201, 400, 401, 403, 409, 503],
       "dbRequired": true,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -1334,10 +1070,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "Hive[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": true,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1354,22 +1087,11 @@
       "internalPath": "/hives",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "Hive",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        403,
-        409,
-        503
-      ],
+      "statusCodes": [201, 400, 401, 403, 409, 503],
       "dbRequired": true,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -1390,10 +1112,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "HiveInspection[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": true,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1410,23 +1129,11 @@
       "internalPath": "/hive-inspections",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "HiveInspection",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        403,
-        409,
-        422,
-        503
-      ],
+      "statusCodes": [201, 400, 401, 403, 409, 422, 503],
       "dbRequired": true,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -1447,10 +1154,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "HoneyHarvest[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": true,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1467,22 +1171,11 @@
       "internalPath": "/honey-harvests",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "HoneyHarvest",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        403,
-        409,
-        503
-      ],
+      "statusCodes": [201, 400, 401, 403, 409, 503],
       "dbRequired": true,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -1503,10 +1196,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "Attachment[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1527,13 +1217,7 @@
       "mutation": true,
       "idempotent": true,
       "responseShape": "Attachment",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        409,
-        503
-      ],
+      "statusCodes": [201, 400, 401, 409, 503],
       "dbRequired": true,
       "notes": "wrapper idempotent() verificado.",
       "evidence": {
@@ -1554,13 +1238,7 @@
       "mutation": true,
       "idempotent": false,
       "responseShape": "204",
-      "statusCodes": [
-        204,
-        401,
-        404,
-        409,
-        500
-      ],
+      "statusCodes": [204, 401, 404, 409, 500],
       "dbRequired": true,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1581,10 +1259,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "Expense[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": true,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1601,23 +1276,11 @@
       "internalPath": "/expenses",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado",
-        "finanzas"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado", "finanzas"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "Expense",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        403,
-        409,
-        503
-      ],
+      "statusCodes": [201, 400, 401, 403, 409, 503],
       "dbRequired": true,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -1634,23 +1297,11 @@
       "internalPath": "/expenses/:id",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado",
-        "finanzas"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado", "finanzas"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "{ ok: true } | 204 (tolerant delete)",
-      "statusCodes": [
-        200,
-        204,
-        401,
-        403,
-        409,
-        503
-      ],
+      "statusCodes": [200, 204, 401, 403, 409, 503],
       "dbRequired": true,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -1671,10 +1322,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "LaborCost[]",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": true,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1691,23 +1339,11 @@
       "internalPath": "/labor-costs",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin",
-        "tecnico",
-        "encargado",
-        "finanzas"
-      ],
+      "roleGuard": ["admin", "tecnico", "encargado", "finanzas"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "LaborCost",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        403,
-        409,
-        503
-      ],
+      "statusCodes": [201, 400, 401, 403, 409, 503],
       "dbRequired": true,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -1766,17 +1402,11 @@
       "internalPath": "/users",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin"
-      ],
+      "roleGuard": ["admin"],
       "mutation": false,
       "idempotent": false,
       "responseShape": "User[]",
-      "statusCodes": [
-        200,
-        401,
-        403
-      ],
+      "statusCodes": [200, 401, 403],
       "dbRequired": false,
       "notes": "Guard de rol específico; sin wrapper idempotent().",
       "evidence": {
@@ -1793,19 +1423,11 @@
       "internalPath": "/users",
       "authRequired": true,
       "authPublic": false,
-      "roleGuard": [
-        "admin"
-      ],
+      "roleGuard": ["admin"],
       "mutation": true,
       "idempotent": true,
       "responseShape": "User",
-      "statusCodes": [
-        201,
-        400,
-        401,
-        403,
-        409
-      ],
+      "statusCodes": [201, 400, 401, 403, 409],
       "dbRequired": false,
       "notes": "Guard de rol específico y wrapper idempotent() verificado.",
       "evidence": {
@@ -1826,11 +1448,7 @@
       "mutation": true,
       "idempotent": false,
       "responseShape": "{ user: User } with Set-Cookie",
-      "statusCodes": [
-        200,
-        401,
-        400
-      ],
+      "statusCodes": [200, 401, 400],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1851,10 +1469,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "User | null",
-      "statusCodes": [
-        200,
-        401
-      ],
+      "statusCodes": [200, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -1875,9 +1490,7 @@
       "mutation": true,
       "idempotent": false,
       "responseShape": "{ ok: true }",
-      "statusCodes": [
-        200
-      ],
+      "statusCodes": [200],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -2213,11 +1826,7 @@
       "mutation": false,
       "idempotent": false,
       "responseShape": "text/csv",
-      "statusCodes": [
-        200,
-        400,
-        401
-      ],
+      "statusCodes": [200, 400, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
@@ -2238,11 +1847,7 @@
       "mutation": true,
       "idempotent": false,
       "responseShape": "ImportResult",
-      "statusCodes": [
-        200,
-        400,
-        401
-      ],
+      "statusCodes": [200, 400, 401],
       "dbRequired": false,
       "notes": "sin wrapper idempotent().",
       "evidence": {
