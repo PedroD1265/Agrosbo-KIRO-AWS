@@ -59,6 +59,14 @@ export function loadConfig(): ConfigValidation {
     );
   }
 
+  // Validate chunk duration
+  const chunkDurationMs = parseInt(process.env.TRANSCRIBE_CHUNK_DURATION_MS || '100', 10);
+  if (isNaN(chunkDurationMs) || chunkDurationMs < 50 || chunkDurationMs > 200) {
+    errors.push(
+      `TRANSCRIBE_CHUNK_DURATION_MS must be 50-200, got "${process.env.TRANSCRIBE_CHUNK_DURATION_MS}"`,
+    );
+  }
+
   // Warnings for live mode
   if (!dryRun) {
     const hasProfile = !!process.env.AWS_PROFILE;
@@ -73,9 +81,13 @@ export function loadConfig(): ConfigValidation {
     return { valid: false, config: null, errors, warnings };
   }
 
+  const fixtureDir =
+    process.env.TRANSCRIBE_FIXTURE_DIR ||
+    new URL('./fixtures', import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1');
+
   return {
     valid: true,
-    config: { region, profile, languageCandidates, timeoutMs, dryRun },
+    config: { region, profile, languageCandidates, timeoutMs, dryRun, fixtureDir, chunkDurationMs },
     errors: [],
     warnings,
   };

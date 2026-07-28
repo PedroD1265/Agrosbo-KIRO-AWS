@@ -13,6 +13,8 @@ export interface HarnessConfig {
   languageCandidates: string[];
   timeoutMs: number;
   dryRun: boolean;
+  fixtureDir: string;
+  chunkDurationMs: number;
 }
 
 // ---------- Audio validation ----------
