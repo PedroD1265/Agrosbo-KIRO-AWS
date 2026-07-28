@@ -15,7 +15,7 @@
     "dev:web": "npm run dev --workspace=@agrosbo/web",
     "dev:api": "npm run dev --workspace=@agrosbo/api",
     "dev:lovable": "npm run dev --workspace=@agrosbo/web -- --host 0.0.0.0 --port 8080",
-    "build:dev": "cd web && vite build --mode development",
+    "build:dev": "cd web && vite build --mode development && cd .. && rm -rf dist && cp -r web/dist/public dist",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "lint": "eslint .",
