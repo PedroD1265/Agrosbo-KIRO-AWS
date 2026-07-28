@@ -28,10 +28,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function refresh() {
     try {
-      const { resolveApiUrl, buildFetchInit } = await import('@/lib/api-config');
+      const { resolveApiUrl, buildFetchInit, apiFetch } = await import('@/lib/api-config');
       const url = resolveApiUrl('/api/auth/me');
       const init = await buildFetchInit({});
-      const res = await fetch(url, init);
+      const res = await apiFetch(url, init);
       if (res.ok) {
         const data = (await res.json()) as MeResponse;
         setUser(data.user);

@@ -59,6 +59,8 @@ export function setAuthProvider(provider: AuthTokenProvider): void {
 
 // --- Fetch wrapper ---
 
+import { apiFetch } from '@/lib/mocks/adapter';
+
 /**
  * Build fetch init options with proper auth handling:
  * - If token is available (Cognito): sets Authorization Bearer header.
@@ -77,3 +79,12 @@ export async function buildFetchInit(init?: RequestInit): Promise<RequestInit> {
   // Local session: use cookies
   return { ...init, headers, credentials: 'include' as RequestCredentials };
 }
+
+/**
+ * Central fetch used by queryClient, auth and any hook that would otherwise
+ * call `fetch` directly. In demo mode (VITE_USE_MOCKS=1) it delegates to the
+ * mock adapter; otherwise it is a straight passthrough to global fetch.
+ * Kept here (not in queryClient) so every module using the API layer imports
+ * from the same integration point.
+ */
+export { apiFetch };
