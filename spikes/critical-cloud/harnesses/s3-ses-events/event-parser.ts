@@ -65,12 +65,19 @@ export function validateEvent(raw: unknown): ParseResult {
     );
   }
 
-  // Detail with messageId
+  // Detail with messageId (supports detail.messageId OR detail.mail.messageId)
   const detail = event['detail'] as Record<string, unknown> | undefined;
   if (!detail || typeof detail !== 'object') {
     errors.push('Missing or invalid detail object');
-  } else if (!detail['messageId'] || typeof detail['messageId'] !== 'string') {
-    errors.push('Missing messageId in detail');
+  } else {
+    const directId = detail['messageId'] as string | undefined;
+    const mailObj = detail['mail'] as Record<string, unknown> | undefined;
+    const mailId = mailObj?.['messageId'] as string | undefined;
+    if (!directId && !mailId) {
+      errors.push(
+        'Missing messageId in detail (checked detail.messageId and detail.mail.messageId)',
+      );
+    }
   }
 
   if (errors.length > 0) {
@@ -78,4 +85,16 @@ export function validateEvent(raw: unknown): ParseResult {
   }
 
   return { valid: true, event: raw as EventBridgeEvent, errors: [] };
+}
+
+/**
+ * Extracts the SES messageId from an EventBridge event detail.
+ * Supports both detail.messageId (mock/test) and detail.mail.messageId (real AWS).
+ */
+export function extractMessageId(detail: Record<string, unknown>): string | undefined {
+  const direct = detail['messageId'] as string | undefined;
+  if (direct) return direct.trim();
+  const mail = detail['mail'] as Record<string, unknown> | undefined;
+  const mailId = mail?.['messageId'] as string | undefined;
+  return mailId?.trim();
 }

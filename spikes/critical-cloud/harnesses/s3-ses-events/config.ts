@@ -77,6 +77,7 @@ export function loadConfig(): ConfigValidation {
       senderEmail,
       recipientEmail,
       accountId,
+      setupSettleMs: parseInt(process.env.SES_SETUP_SETTLE_MS || '5000', 10),
     },
     errors: [],
     warnings,

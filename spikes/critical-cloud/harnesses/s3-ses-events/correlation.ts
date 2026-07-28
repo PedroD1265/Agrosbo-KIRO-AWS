@@ -29,7 +29,7 @@ export class CorrelationStore {
    */
   process(event: EventBridgeEvent, nowMs: number = Date.now()): ProcessResult {
     const eventId = event.id;
-    const messageId = event.detail.messageId;
+    const messageId = event.detail.messageId || event.detail.mail?.messageId || '';
     const detailType = event['detail-type'];
 
     // Deduplication by event ID

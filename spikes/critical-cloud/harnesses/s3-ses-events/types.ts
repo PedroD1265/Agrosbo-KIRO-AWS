@@ -18,6 +18,7 @@ export interface HarnessConfig {
   senderEmail: string;
   recipientEmail: string;
   accountId: string;
+  setupSettleMs: number;
 }
 
 // ---------- SES ----------
@@ -43,9 +44,10 @@ export type SesResponse =
 export type SesEventType = 'Email Sent' | 'Email Delivered';
 
 export interface SesEventDetail {
-  messageId: string;
+  messageId?: string;
+  mail?: { messageId: string };
   eventType: string;
-  timestamp: string;
+  timestamp?: string;
   recipient?: string;
 }
 
