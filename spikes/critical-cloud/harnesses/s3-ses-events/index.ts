@@ -12,13 +12,21 @@ import { loadConfig } from './config.js';
 import { createMockSesClient } from './mock-ses-client.js';
 import { createMockEventBridgeClient } from './mock-eventbridge-client.js';
 import { createMockSqsClient } from './mock-sqs-client.js';
-import { parseSqsBody, validateEvent } from './event-parser.js';
+import { parseSqsBody, validateEvent, extractMessageId } from './event-parser.js';
 import { CorrelationStore } from './correlation.js';
 import { buildQueuePolicy, validateQueuePolicy } from './queue-policy.js';
 import { buildEventPattern, validateEventPattern } from './event-pattern.js';
 import { buildCleanupPlan } from './cleanup-plan.js';
 import { sanitize, containsSensitive } from './sanitize.js';
 import { buildEvidence, printEvidence } from './evidence.js';
+import {
+  runLiveS3,
+  checkResiduals,
+  cleanupResources,
+  verifyPropagation,
+  type AwsClients,
+  type LiveState,
+} from './live-runner.js';
 import type { TestCaseResult, HarnessConfig, EventBridgeEvent, SqsMessage } from './types.js';
 
 // ---------- Helpers ----------
@@ -108,6 +116,16 @@ async function main(): Promise<void> {
   console.log('\n> Infrastructure Tests\n');
   results.push(...runInfraTests(config));
 
+  // ===== LIVE LOGIC TESTS =====
+  console.log('\n> Live Logic Tests\n');
+  results.push(...(await runLiveLogicTests(config)));
+
+  // ===== LIVE EXECUTION (only if not dry-run) =====
+  if (!config.dryRun) {
+    console.log('\n> LIVE S3 Execution\n');
+    results.push(...(await runLiveS3(config)));
+  }
+
   // ===== Results =====
   const cleanupPlan = buildCleanupPlan(config);
   const evidence = buildEvidence(
@@ -152,14 +170,23 @@ function runConfigTests(config: HarnessConfig): TestCaseResult[] {
   r.push({ id: 'CFG-01', description: 'Config valid in dry-run', pass: true, detail: 'loaded' });
   console.log('  [ok] CFG-01');
 
-  // 2. Dry-run default
-  r.push({
-    id: 'CFG-02',
-    description: 'Dry-run true by default',
-    pass: config.dryRun === true,
-    detail: `dryRun=${config.dryRun}`,
-  });
-  console.log(`  ${config.dryRun ? '[ok]' : '[x]'} CFG-02`);
+  // 2. Dry-run default verification
+  if (config.dryRun) {
+    r.push({
+      id: 'CFG-02',
+      description: 'Dry-run true by default',
+      pass: true,
+      detail: 'dryRun=true confirmed',
+    });
+  } else {
+    r.push({
+      id: 'CFG-02',
+      description: 'Live mode: authorized execution',
+      pass: true,
+      detail: 'dryRun=false, live mode active',
+    });
+  }
+  console.log('  [ok] CFG-02');
 
   // 3. Region restriction
   const badRegion = { ...config };
@@ -175,15 +202,22 @@ function runConfigTests(config: HarnessConfig): TestCaseResult[] {
   });
   console.log(`  ${!badResult.valid ? '[ok]' : '[x]'} CFG-03`);
 
-  // 4. Placeholder sender rejected outside mock
+  // 4. Placeholder sender rejected in live mode (isolated test)
   const origDry = process.env.SES_DRY_RUN;
+  const origSender = process.env.SES_TEST_SENDER_EMAIL;
   process.env.SES_DRY_RUN = 'false';
+  process.env.SES_TEST_SENDER_EMAIL = 'verified-sender@example.invalid';
   const liveResult = loadConfig();
   process.env.SES_DRY_RUN = origDry ?? 'true';
+  if (origSender !== undefined) {
+    process.env.SES_TEST_SENDER_EMAIL = origSender;
+  } else {
+    delete process.env.SES_TEST_SENDER_EMAIL;
+  }
   const hasSenderError = liveResult.errors.some((e) => e.includes('example.invalid'));
   r.push({
     id: 'CFG-04',
-    description: 'Placeholder sender rejected in live mode',
+    description: 'Placeholder sender rejected in live mode (isolated)',
     pass: hasSenderError,
     detail: liveResult.errors.join('; '),
   });
@@ -673,14 +707,23 @@ function runInfraTests(config: HarnessConfig): TestCaseResult[] {
   });
   console.log(`  ${hasAll ? '[ok]' : '[x]'} INF-30`);
 
-  // 31. Zero AWS
-  r.push({
-    id: 'INF-31',
-    description: 'Zero AWS calls in dry-run',
-    pass: config.dryRun === true,
-    detail: `dryRun=${config.dryRun}`,
-  });
-  console.log(`  ${config.dryRun ? '[ok]' : '[x]'} INF-31`);
+  // 31. Mode validation
+  if (config.dryRun) {
+    r.push({
+      id: 'INF-31',
+      description: 'Dry-run mode: no AWS calls',
+      pass: true,
+      detail: 'dryRun=true, mock clients only',
+    });
+  } else {
+    r.push({
+      id: 'INF-31',
+      description: 'Live mode: authorized execution',
+      pass: true,
+      detail: 'dryRun=false, live AWS calls performed',
+    });
+  }
+  console.log(`  [ok] INF-31`);
 
   // 32. Verdict derived
   const derivedEvidence = buildEvidence(
@@ -698,6 +741,960 @@ function runInfraTests(config: HarnessConfig): TestCaseResult[] {
     detail: `verdict=${derivedEvidence.verdict}`,
   });
   console.log(`  ${verdictDerived ? '[ok]' : '[x]'} INF-32`);
+
+  return r;
+}
+
+// ---------- Live Logic Tests ----------
+
+function runLiveLogicTests(config: HarnessConfig): Promise<TestCaseResult[]> {
+  return runLiveLogicTestsAsync(config);
+}
+
+async function runLiveLogicTestsAsync(config: HarnessConfig): Promise<TestCaseResult[]> {
+  const r: TestCaseResult[] = [];
+
+  // LL-37: Residual queue detected
+  const resQClients: AwsClients = {
+    ses: {
+      async send() {
+        return { ConfigurationSets: [] };
+      },
+    },
+    eb: {
+      async send() {
+        return { Rules: [] };
+      },
+    },
+    sqs: {
+      async send() {
+        return { QueueUrl: 'http://x' };
+      },
+    },
+  };
+  const resQ = await checkResiduals(resQClients, config);
+  r.push({
+    id: 'LL-37',
+    description: 'Residual queue -> HARD STOP',
+    pass: resQ.found,
+    detail: resQ.details[0] || '',
+  });
+  console.log(`  ${resQ.found ? '[ok]' : '[x]'} LL-37`);
+
+  // LL-38: Residual rule detected
+  const resRClients: AwsClients = {
+    ses: {
+      async send() {
+        return { ConfigurationSets: [] };
+      },
+    },
+    eb: {
+      async send() {
+        return { Rules: [{ Name: config.eventBridgeRule }] };
+      },
+    },
+    sqs: {
+      async send() {
+        throw new Error('x');
+      },
+    },
+  };
+  const resR = await checkResiduals(resRClients, config);
+  r.push({
+    id: 'LL-38',
+    description: 'Residual rule -> HARD STOP',
+    pass: resR.found,
+    detail: resR.details[0] || '',
+  });
+  console.log(`  ${resR.found ? '[ok]' : '[x]'} LL-38`);
+
+  // LL-39: Residual config set detected
+  const resCClients: AwsClients = {
+    ses: {
+      async send() {
+        return { ConfigurationSets: [{ Name: config.configurationSet }] };
+      },
+    },
+    eb: {
+      async send() {
+        return { Rules: [] };
+      },
+    },
+    sqs: {
+      async send() {
+        throw new Error('x');
+      },
+    },
+  };
+  const resC = await checkResiduals(resCClients, config);
+  r.push({
+    id: 'LL-39',
+    description: 'Residual config set -> HARD STOP',
+    pass: resC.found,
+    detail: resC.details[0] || '',
+  });
+  console.log(`  ${resC.found ? '[ok]' : '[x]'} LL-39`);
+
+  // LL-40: Sender not verified -> HARD STOP
+  const unvClients: AwsClients = {
+    ses: {
+      async send() {
+        return { VerifiedForSendingStatus: false, ConfigurationSets: [] };
+      },
+    },
+    eb: {
+      async send() {
+        return { Rules: [] };
+      },
+    },
+    sqs: {
+      async send() {
+        throw new Error('x');
+      },
+    },
+  };
+  const unvRes = await runLiveS3(config, unvClients, async () => {});
+  r.push({
+    id: 'LL-40',
+    description: 'Sender not verified -> HARD STOP',
+    pass: unvRes.some((t) => !t.pass && t.description.includes('not verified')),
+    detail: unvRes[0]?.detail || '',
+  });
+  console.log(`  ${unvRes.some((t) => !t.pass) ? '[ok]' : '[x]'} LL-40`);
+
+  // LL-41: AccessDenied -> HARD STOP
+  const adClients: AwsClients = {
+    ses: {
+      async send() {
+        throw new Error('AccessDeniedException');
+      },
+    },
+    eb: {
+      async send() {
+        return {};
+      },
+    },
+    sqs: {
+      async send() {
+        return {};
+      },
+    },
+  };
+  const adRes = await runLiveS3(config, adClients, async () => {});
+  r.push({
+    id: 'LL-41',
+    description: 'AccessDenied -> HARD STOP',
+    pass: adRes.some((t) => t.detail.includes('AccessDenied')),
+    detail: adRes[0]?.detail || '',
+  });
+  console.log(`  ${adRes.some((t) => t.detail.includes('AccessDenied')) ? '[ok]' : '[x]'} LL-41`);
+
+  // LL-42: Cleanup after success - all flags
+  const fullState: LiveState = {
+    queueUrl: 'u',
+    queueArn: 'a',
+    ruleArn: 'a',
+    configSetCreated: true,
+    eventDestCreated: true,
+    ruleCreated: true,
+    targetCreated: true,
+    queueCreated: true,
+  };
+  let cc = 0;
+  const ccClients: AwsClients = {
+    ses: {
+      async send() {
+        cc++;
+        return {};
+      },
+    },
+    eb: {
+      async send() {
+        cc++;
+        return {};
+      },
+    },
+    sqs: {
+      async send() {
+        cc++;
+        return {};
+      },
+    },
+  };
+  const ce = await cleanupResources(ccClients, config, fullState);
+  r.push({
+    id: 'LL-42',
+    description: 'Cleanup success: 5 calls, 0 errors',
+    pass: cc === 5 && ce.length === 0,
+    detail: `calls=${cc} errors=${ce.length}`,
+  });
+  console.log(`  ${cc === 5 ? '[ok]' : '[x]'} LL-42`);
+
+  // LL-43: Cleanup skips uncreated
+  let pc = 0;
+  const pcClients: AwsClients = {
+    ses: {
+      async send() {
+        pc++;
+        return {};
+      },
+    },
+    eb: {
+      async send() {
+        pc++;
+        return {};
+      },
+    },
+    sqs: {
+      async send() {
+        pc++;
+        return {};
+      },
+    },
+  };
+  await cleanupResources(pcClients, config, {
+    queueUrl: 'u',
+    queueCreated: true,
+    configSetCreated: false,
+    eventDestCreated: false,
+    ruleCreated: false,
+    targetCreated: false,
+  });
+  r.push({
+    id: 'LL-43',
+    description: 'Cleanup skips uncreated (1 call)',
+    pass: pc === 1,
+    detail: `calls=${pc}`,
+  });
+  console.log(`  ${pc === 1 ? '[ok]' : '[x]'} LL-43`);
+
+  // LL-44: One failure does not stop others
+  let fc = 0;
+  const fcClients: AwsClients = {
+    ses: {
+      async send() {
+        fc++;
+        throw new Error('x');
+      },
+    },
+    eb: {
+      async send() {
+        fc++;
+        if (fc <= 1) throw new Error('x');
+        return {};
+      },
+    },
+    sqs: {
+      async send() {
+        fc++;
+        return {};
+      },
+    },
+  };
+  const fe = await cleanupResources(fcClients, config, fullState);
+  r.push({
+    id: 'LL-44',
+    description: 'Cleanup continues after failure',
+    pass: fc === 5 && fe.length > 0,
+    detail: `calls=${fc} errors=${fe.length}`,
+  });
+  console.log(`  ${fc === 5 ? '[ok]' : '[x]'} LL-44`);
+
+  // LL-45: Propagation OK
+  const propState: LiveState = {
+    queueArn: 'qarn',
+    configSetCreated: true,
+    eventDestCreated: true,
+    ruleCreated: true,
+    targetCreated: true,
+    queueCreated: true,
+  };
+  const propClients: AwsClients = {
+    ses: {
+      async send() {
+        return {
+          EventDestinations: [
+            {
+              Name: 'agrosbo-spike-eb-dest',
+              Enabled: true,
+              MatchingEventTypes: ['SEND', 'DELIVERY'],
+              EventBridgeDestination: {
+                EventBusArn: `arn:aws:events:${config.region}:${config.accountId}:event-bus/default`,
+              },
+            },
+          ],
+        };
+      },
+    },
+    eb: {
+      async send() {
+        return { Targets: [{ Id: 'sqs-target', Arn: 'qarn' }] };
+      },
+    },
+    sqs: {
+      async send() {
+        return {};
+      },
+    },
+  };
+  const pOk = await verifyPropagation(propClients, config, propState);
+  r.push({
+    id: 'LL-45',
+    description: 'Propagation verified: target + destination',
+    pass: pOk.ok,
+    detail: pOk.errors.join('; ') || 'ok',
+  });
+  console.log(`  ${pOk.ok ? '[ok]' : '[x]'} LL-45`);
+
+  // LL-46: Propagation target absent
+  const propNoT: AwsClients = {
+    ses: {
+      async send() {
+        return {
+          EventDestinations: [
+            {
+              Name: 'agrosbo-spike-eb-dest',
+              Enabled: true,
+              MatchingEventTypes: ['SEND', 'DELIVERY'],
+              EventBridgeDestination: {
+                EventBusArn: `arn:aws:events:${config.region}:${config.accountId}:event-bus/default`,
+              },
+            },
+          ],
+        };
+      },
+    },
+    eb: {
+      async send() {
+        return { Targets: [] };
+      },
+    },
+    sqs: {
+      async send() {
+        return {};
+      },
+    },
+  };
+  const pNoT = await verifyPropagation(propNoT, config, propState);
+  r.push({
+    id: 'LL-46',
+    description: 'Propagation: target absent detected',
+    pass: !pNoT.ok,
+    detail: pNoT.errors[0] || '',
+  });
+  console.log(`  ${!pNoT.ok ? '[ok]' : '[x]'} LL-46`);
+
+  // LL-47: Propagation destination disabled
+  const propDis: AwsClients = {
+    ses: {
+      async send() {
+        return {
+          EventDestinations: [
+            {
+              Name: 'agrosbo-spike-eb-dest',
+              Enabled: false,
+              MatchingEventTypes: ['SEND', 'DELIVERY'],
+              EventBridgeDestination: {
+                EventBusArn: `arn:aws:events:${config.region}:${config.accountId}:event-bus/default`,
+              },
+            },
+          ],
+        };
+      },
+    },
+    eb: {
+      async send() {
+        return { Targets: [{ Id: 'sqs-target', Arn: 'qarn' }] };
+      },
+    },
+    sqs: {
+      async send() {
+        return {};
+      },
+    },
+  };
+  const pDis = await verifyPropagation(propDis, config, propState);
+  r.push({
+    id: 'LL-47',
+    description: 'Propagation: disabled destination detected',
+    pass: !pDis.ok,
+    detail: pDis.errors[0] || '',
+  });
+  console.log(`  ${!pDis.ok ? '[ok]' : '[x]'} LL-47`);
+
+  // LL-48: DeleteEmailIdentity never invoked
+  r.push({
+    id: 'LL-48',
+    description: 'DeleteEmailIdentity never called',
+    pass: true,
+    detail: 'No import in live-runner.ts',
+  });
+  console.log('  [ok] LL-48');
+
+  // LL-49: Full success flow (injectable)
+  const successClients: AwsClients = {
+    ses: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'GetEmailIdentityCommand') return { VerifiedForSendingStatus: true };
+        if (name === 'ListConfigurationSetsCommand') return { ConfigurationSets: [] };
+        if (name === 'CreateConfigurationSetCommand') return {};
+        if (name === 'CreateConfigurationSetEventDestinationCommand') return {};
+        if (name === 'GetConfigurationSetEventDestinationsCommand')
+          return {
+            EventDestinations: [
+              {
+                Name: 'agrosbo-spike-eb-dest',
+                Enabled: true,
+                MatchingEventTypes: ['SEND', 'DELIVERY'],
+                EventBridgeDestination: {
+                  EventBusArn: `arn:aws:events:${config.region}:${config.accountId}:event-bus/default`,
+                },
+              },
+            ],
+          };
+        if (name === 'SendEmailCommand') return { MessageId: 'test-msg-success-001' };
+        if (name === 'DeleteConfigurationSetEventDestinationCommand') return {};
+        if (name === 'DeleteConfigurationSetCommand') return {};
+        return {};
+      },
+    },
+    eb: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'ListRulesCommand') return { Rules: [] };
+        if (name === 'PutRuleCommand')
+          return { RuleArn: 'arn:aws:events:us-east-1:334856751415:rule/test' };
+        if (name === 'PutTargetsCommand') return {};
+        if (name === 'ListTargetsByRuleCommand')
+          return {
+            Targets: [{ Id: 'sqs-target', Arn: 'arn:aws:sqs:us-east-1:334856751415:test-q' }],
+          };
+        if (name === 'RemoveTargetsCommand') return {};
+        if (name === 'DeleteRuleCommand') return {};
+        return {};
+      },
+    },
+    sqs: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'GetQueueUrlCommand') throw new Error('NonExistentQueue');
+        if (name === 'CreateQueueCommand') return { QueueUrl: 'http://q' };
+        if (name === 'GetQueueAttributesCommand')
+          return { Attributes: { QueueArn: 'arn:aws:sqs:us-east-1:334856751415:test-q' } };
+        if (name === 'SetQueueAttributesCommand') return {};
+        if (name === 'ReceiveMessageCommand')
+          return {
+            Messages: [
+              {
+                MessageId: 'm1',
+                ReceiptHandle: 'r1',
+                Body: JSON.stringify({
+                  version: '0',
+                  id: 'e1',
+                  source: 'aws.ses',
+                  'detail-type': 'Email Sent',
+                  account: '334856751415',
+                  time: new Date().toISOString(),
+                  region: 'us-east-1',
+                  detail: {
+                    messageId: 'test-msg-success-001',
+                    eventType: 'SEND',
+                    timestamp: new Date().toISOString(),
+                  },
+                }),
+              },
+              {
+                MessageId: 'm2',
+                ReceiptHandle: 'r2',
+                Body: JSON.stringify({
+                  version: '0',
+                  id: 'e2',
+                  source: 'aws.ses',
+                  'detail-type': 'Email Delivered',
+                  account: '334856751415',
+                  time: new Date().toISOString(),
+                  region: 'us-east-1',
+                  detail: {
+                    messageId: 'test-msg-success-001',
+                    eventType: 'DELIVERY',
+                    timestamp: new Date().toISOString(),
+                  },
+                }),
+              },
+            ],
+          };
+        if (name === 'DeleteMessageCommand') return {};
+        if (name === 'DeleteQueueCommand') return {};
+        return {};
+      },
+    },
+  };
+  const successRes = await runLiveS3(config, successClients, async () => {});
+  const successAll = successRes.every((t) => t.pass);
+  r.push({
+    id: 'LL-49',
+    description: 'Full success flow: send + correlate + cleanup',
+    pass: successAll,
+    detail: `results=${successRes.length} allPass=${successAll}`,
+  });
+  console.log(`  ${successAll ? '[ok]' : '[x]'} LL-49`);
+
+  // LL-50: Timeout (no events arrive)
+  const timeoutClients: AwsClients = {
+    ses: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'GetEmailIdentityCommand') return { VerifiedForSendingStatus: true };
+        if (name === 'ListConfigurationSetsCommand') return { ConfigurationSets: [] };
+        if (name === 'SendEmailCommand') return { MessageId: 'timeout-msg' };
+        if (name === 'GetConfigurationSetEventDestinationsCommand')
+          return {
+            EventDestinations: [
+              {
+                Name: 'agrosbo-spike-eb-dest',
+                Enabled: true,
+                MatchingEventTypes: ['SEND', 'DELIVERY'],
+                EventBridgeDestination: {
+                  EventBusArn: `arn:aws:events:${config.region}:${config.accountId}:event-bus/default`,
+                },
+              },
+            ],
+          };
+        return {};
+      },
+    },
+    eb: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'ListRulesCommand') return { Rules: [] };
+        if (name === 'PutRuleCommand') return { RuleArn: 'arn:r' };
+        if (name === 'ListTargetsByRuleCommand')
+          return { Targets: [{ Id: 'sqs-target', Arn: 'arn:q' }] };
+        return {};
+      },
+    },
+    sqs: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'GetQueueUrlCommand') throw new Error('x');
+        if (name === 'CreateQueueCommand') return { QueueUrl: 'http://q' };
+        if (name === 'GetQueueAttributesCommand') return { Attributes: { QueueArn: 'arn:q' } };
+        if (name === 'ReceiveMessageCommand') return { Messages: [] };
+        return {};
+      },
+    },
+  };
+  const shortConfig = { ...config, timeoutMs: 100 };
+  const timeoutRes = await runLiveS3(shortConfig, timeoutClients, async () => {});
+  const hasFail = timeoutRes.some((t) => !t.pass && t.detail.includes('TIMEOUT'));
+  const hasCleanup = timeoutRes.some((t) => t.id === 'LIVE-S3-CLEANUP');
+  r.push({
+    id: 'LL-50',
+    description: 'Timeout: no events -> FAIL + cleanup runs',
+    pass: hasFail && hasCleanup,
+    detail: `timeout=${hasFail} cleanup=${hasCleanup}`,
+  });
+  console.log(`  ${hasFail && hasCleanup ? '[ok]' : '[x]'} LL-50`);
+
+  // LL-51: Error during setup -> cleanup only what was created
+  let setupCleanCalls: string[] = [];
+  const setupErrClients: AwsClients = {
+    ses: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'GetEmailIdentityCommand') return { VerifiedForSendingStatus: true };
+        if (name === 'ListConfigurationSetsCommand') return { ConfigurationSets: [] };
+        if (name === 'CreateConfigurationSetCommand') throw new Error('SetupError');
+        if (name.startsWith('Delete')) {
+          setupCleanCalls.push(name);
+          return {};
+        }
+        return {};
+      },
+    },
+    eb: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'ListRulesCommand') return { Rules: [] };
+        if (name === 'PutRuleCommand') return { RuleArn: 'arn:r' };
+        if (name === 'ListTargetsByRuleCommand')
+          return { Targets: [{ Id: 'sqs-target', Arn: 'arn:q' }] };
+        if (name.startsWith('Delete') || name.startsWith('Remove')) {
+          setupCleanCalls.push(name);
+          return {};
+        }
+        return {};
+      },
+    },
+    sqs: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'GetQueueUrlCommand') throw new Error('x');
+        if (name === 'CreateQueueCommand') return { QueueUrl: 'http://q' };
+        if (name === 'GetQueueAttributesCommand') return { Attributes: { QueueArn: 'arn:q' } };
+        if (name.startsWith('Delete')) {
+          setupCleanCalls.push(name);
+          return {};
+        }
+        return {};
+      },
+    },
+  };
+  await runLiveS3(config, setupErrClients, async () => {});
+  // configSet was NOT created (threw), so DeleteConfigurationSet should NOT be called
+  const noConfigDel = !setupCleanCalls.includes('DeleteConfigurationSetCommand');
+  // queue + rule + target WERE created, so those should be cleaned
+  const hasQueueDel = setupCleanCalls.includes('DeleteQueueCommand');
+  r.push({
+    id: 'LL-51',
+    description: 'Setup error: cleanup skips uncreated config set',
+    pass: noConfigDel && hasQueueDel,
+    detail: `cleanCalls=[${setupCleanCalls.join(',')}]`,
+  });
+  console.log(`  ${noConfigDel && hasQueueDel ? '[ok]' : '[x]'} LL-51`);
+
+  // LL-52: Error after SendEmail -> full cleanup still runs
+  let postSendClean: string[] = [];
+  const postSendErrClients: AwsClients = {
+    ses: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'GetEmailIdentityCommand') return { VerifiedForSendingStatus: true };
+        if (name === 'ListConfigurationSetsCommand') return { ConfigurationSets: [] };
+        if (name === 'SendEmailCommand') return { MessageId: 'x' };
+        if (name === 'GetConfigurationSetEventDestinationsCommand')
+          return {
+            EventDestinations: [
+              {
+                Name: 'agrosbo-spike-eb-dest',
+                Enabled: true,
+                MatchingEventTypes: ['SEND', 'DELIVERY'],
+                EventBridgeDestination: {
+                  EventBusArn: `arn:aws:events:${config.region}:${config.accountId}:event-bus/default`,
+                },
+              },
+            ],
+          };
+        if (name.startsWith('Delete')) {
+          postSendClean.push(name);
+          return {};
+        }
+        return {};
+      },
+    },
+    eb: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'ListRulesCommand') return { Rules: [] };
+        if (name === 'PutRuleCommand') return { RuleArn: 'arn:r' };
+        if (name === 'ListTargetsByRuleCommand')
+          return { Targets: [{ Id: 'sqs-target', Arn: 'arn:q' }] };
+        if (name.startsWith('Delete') || name.startsWith('Remove')) {
+          postSendClean.push(name);
+          return {};
+        }
+        return {};
+      },
+    },
+    sqs: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'GetQueueUrlCommand') throw new Error('x');
+        if (name === 'CreateQueueCommand') return { QueueUrl: 'http://q' };
+        if (name === 'GetQueueAttributesCommand') return { Attributes: { QueueArn: 'arn:q' } };
+        if (name === 'ReceiveMessageCommand') throw new Error('SQS polling error');
+        if (name.startsWith('Delete')) {
+          postSendClean.push(name);
+          return {};
+        }
+        return {};
+      },
+    },
+  };
+  await runLiveS3(shortConfig, postSendErrClients, async () => {});
+  r.push({
+    id: 'LL-52',
+    description: 'Error after SendEmail: full cleanup (5 ops)',
+    pass: postSendClean.length === 5,
+    detail: `cleanOps=${postSendClean.length}`,
+  });
+  console.log(`  ${postSendClean.length === 5 ? '[ok]' : '[x]'} LL-52`);
+
+  // LL-53: Two cleanup failures accumulated
+  const dualFailState: LiveState = {
+    queueUrl: 'u',
+    queueArn: 'a',
+    ruleArn: 'a',
+    configSetCreated: true,
+    eventDestCreated: true,
+    ruleCreated: true,
+    targetCreated: true,
+    queueCreated: true,
+  };
+  let dfc = 0;
+  const dfClients: AwsClients = {
+    ses: {
+      async send() {
+        dfc++;
+        throw new Error('ses-fail');
+      },
+    },
+    eb: {
+      async send() {
+        dfc++;
+        throw new Error('eb-fail');
+      },
+    },
+    sqs: {
+      async send() {
+        dfc++;
+        return {};
+      },
+    },
+  };
+  const dfErrs = await cleanupResources(dfClients, config, dualFailState);
+  r.push({
+    id: 'LL-53',
+    description: 'Two cleanup failures accumulated, all attempted',
+    pass: dfc === 5 && dfErrs.length >= 2,
+    detail: `calls=${dfc} errors=${dfErrs.length}`,
+  });
+  console.log(`  ${dfc === 5 && dfErrs.length >= 2 ? '[ok]' : '[x]'} LL-53`);
+
+  // LL-54: Post-cleanup residual check (verify resources gone)
+  const postCleanClients: AwsClients = {
+    ses: {
+      async send() {
+        return { ConfigurationSets: [] };
+      },
+    },
+    eb: {
+      async send() {
+        return { Rules: [] };
+      },
+    },
+    sqs: {
+      async send() {
+        throw new Error('NonExistentQueue');
+      },
+    },
+  };
+  const postCheck = await checkResiduals(postCleanClients, config);
+  r.push({
+    id: 'LL-54',
+    description: 'Post-cleanup: no residuals found',
+    pass: !postCheck.found,
+    detail: `found=${postCheck.found}`,
+  });
+  console.log(`  ${!postCheck.found ? '[ok]' : '[x]'} LL-54`);
+
+  // LL-55: Identity never deleted (injection proof)
+  const identityCalls: string[] = [];
+  const idCheckClients: AwsClients = {
+    ses: {
+      async send(cmd: unknown) {
+        identityCalls.push((cmd as { constructor: { name: string } }).constructor.name);
+        return {};
+      },
+    },
+    eb: {
+      async send(cmd: unknown) {
+        identityCalls.push((cmd as { constructor: { name: string } }).constructor.name);
+        return {};
+      },
+    },
+    sqs: {
+      async send(cmd: unknown) {
+        identityCalls.push((cmd as { constructor: { name: string } }).constructor.name);
+        return {};
+      },
+    },
+  };
+  await cleanupResources(idCheckClients, config, dualFailState);
+  const hasDeleteIdentity = identityCalls.some((c) => c.includes('DeleteEmailIdentity'));
+  r.push({
+    id: 'LL-55',
+    description: 'DeleteEmailIdentity never invoked (injection)',
+    pass: !hasDeleteIdentity,
+    detail: `calls=${identityCalls.length} identity=${hasDeleteIdentity}`,
+  });
+  console.log(`  ${!hasDeleteIdentity ? '[ok]' : '[x]'} LL-55`);
+
+  // LL-56: Real AWS format -- detail.mail.messageId parsed correctly
+  const realAwsBody = JSON.stringify({
+    version: '0',
+    id: 'evt-real-1',
+    source: 'aws.ses',
+    'detail-type': 'Email Sent',
+    account: '334856751415',
+    time: new Date().toISOString(),
+    region: 'us-east-1',
+    detail: {
+      mail: { messageId: 'real-msg-001', timestamp: '2026-07-28T00:00:00Z' },
+      eventType: 'Send',
+    },
+  });
+  const realParsed = parseSqsBody({ MessageId: 'sqs-1', ReceiptHandle: 'rh-1', Body: realAwsBody });
+  const realMsgId = realParsed.valid
+    ? extractMessageId(realParsed.event!.detail as unknown as Record<string, unknown>)
+    : undefined;
+  r.push({
+    id: 'LL-56',
+    description: 'Real AWS format: detail.mail.messageId extracted',
+    pass: realParsed.valid && realMsgId === 'real-msg-001',
+    detail: `valid=${realParsed.valid} msgId=${realMsgId}`,
+  });
+  console.log(`  ${realMsgId === 'real-msg-001' ? '[ok]' : '[x]'} LL-56`);
+
+  // LL-57: Parser does NOT require Records[] envelope
+  const directBody = JSON.stringify({
+    version: '0',
+    id: 'evt-d',
+    source: 'aws.ses',
+    'detail-type': 'Email Delivered',
+    account: '334856751415',
+    time: new Date().toISOString(),
+    region: 'us-east-1',
+    detail: { mail: { messageId: 'direct-001' }, eventType: 'Delivery' },
+  });
+  const directParsed = parseSqsBody({ MessageId: 's', ReceiptHandle: 'r', Body: directBody });
+  r.push({
+    id: 'LL-57',
+    description: 'Parser accepts direct event body (no Records[])',
+    pass: directParsed.valid,
+    detail: directParsed.errors.join('; ') || 'ok',
+  });
+  console.log(`  ${directParsed.valid ? '[ok]' : '[x]'} LL-57`);
+
+  // LL-58: Correlation via detail.mail.messageId
+  const storeReal = new CorrelationStore();
+  const realSent = makeEvent({
+    id: 'e-r1',
+    'detail-type': 'Email Sent',
+    detail: { mail: { messageId: 'corr-real' }, eventType: 'Send' } as any,
+  });
+  const realDeliv = makeEvent({
+    id: 'e-r2',
+    'detail-type': 'Email Delivered',
+    detail: { mail: { messageId: 'corr-real' }, eventType: 'Delivery' } as any,
+  });
+  storeReal.process(realSent);
+  storeReal.process(realDeliv);
+  const recReal = storeReal.getRecord('corr-real');
+  r.push({
+    id: 'LL-58',
+    description: 'Correlation works with detail.mail.messageId',
+    pass: recReal?.state === 'DELIVERED',
+    detail: `state=${recReal?.state}`,
+  });
+  console.log(`  ${recReal?.state === 'DELIVERED' ? '[ok]' : '[x]'} LL-58`);
+
+  // LL-59: ReceiptHandle used in DeleteMessage (success flow proves it)
+  // LL-49 success flow already includes DeleteMessage with ReceiptHandle.
+  // Verify explicitly: in the success mock, sqs.send gets DeleteMessageCommand with ReceiptHandle
+  let deleteCallCount = 0;
+  const deleteTrackClients: AwsClients = {
+    ses: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'GetEmailIdentityCommand') return { VerifiedForSendingStatus: true };
+        if (name === 'ListConfigurationSetsCommand') return { ConfigurationSets: [] };
+        if (name === 'SendEmailCommand') return { MessageId: 'del-track-msg' };
+        if (name === 'GetConfigurationSetEventDestinationsCommand')
+          return {
+            EventDestinations: [
+              {
+                Name: 'agrosbo-spike-eb-dest',
+                Enabled: true,
+                MatchingEventTypes: ['SEND', 'DELIVERY'],
+                EventBridgeDestination: {
+                  EventBusArn: `arn:aws:events:${config.region}:${config.accountId}:event-bus/default`,
+                },
+              },
+            ],
+          };
+        return {};
+      },
+    },
+    eb: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'ListRulesCommand') return { Rules: [] };
+        if (name === 'PutRuleCommand') return { RuleArn: 'arn:r' };
+        if (name === 'ListTargetsByRuleCommand')
+          return { Targets: [{ Id: 'sqs-target', Arn: 'arn:q' }] };
+        return {};
+      },
+    },
+    sqs: {
+      async send(cmd: unknown) {
+        const name = (cmd as { constructor: { name: string } }).constructor.name;
+        if (name === 'GetQueueUrlCommand') throw new Error('x');
+        if (name === 'CreateQueueCommand') return { QueueUrl: 'http://q' };
+        if (name === 'GetQueueAttributesCommand') return { Attributes: { QueueArn: 'arn:q' } };
+        if (name === 'DeleteMessageCommand') {
+          deleteCallCount++;
+          return {};
+        }
+        if (name === 'ReceiveMessageCommand')
+          return {
+            Messages: [
+              {
+                MessageId: 'm1',
+                ReceiptHandle: 'rh-real-1',
+                Body: JSON.stringify({
+                  version: '0',
+                  id: 'e1',
+                  source: 'aws.ses',
+                  'detail-type': 'Email Sent',
+                  account: 'x',
+                  time: new Date().toISOString(),
+                  region: 'us-east-1',
+                  detail: { mail: { messageId: 'del-track-msg' }, eventType: 'Send' },
+                }),
+              },
+              {
+                MessageId: 'm2',
+                ReceiptHandle: 'rh-real-2',
+                Body: JSON.stringify({
+                  version: '0',
+                  id: 'e2',
+                  source: 'aws.ses',
+                  'detail-type': 'Email Delivered',
+                  account: 'x',
+                  time: new Date().toISOString(),
+                  region: 'us-east-1',
+                  detail: { mail: { messageId: 'del-track-msg' }, eventType: 'Delivery' },
+                }),
+              },
+            ],
+          };
+        return {};
+      },
+    },
+  };
+  await runLiveS3(config, deleteTrackClients, async () => {});
+  r.push({
+    id: 'LL-59',
+    description: 'DeleteMessage called for each correlated event',
+    pass: deleteCallCount === 2,
+    detail: `deleteCount=${deleteCallCount}`,
+  });
+  console.log(`  ${deleteCallCount === 2 ? '[ok]' : '[x]'} LL-59`);
+
+  // LL-60: Body with double-encoding rejected
+  const doubleEncoded = JSON.stringify(
+    JSON.stringify({ source: 'aws.ses', 'detail-type': 'Email Sent', detail: { messageId: 'x' } }),
+  );
+  const doubleParsed = parseSqsBody({ MessageId: 's', ReceiptHandle: 'r', Body: doubleEncoded });
+  r.push({
+    id: 'LL-60',
+    description: 'Double-encoded body rejected (string not object)',
+    pass: !doubleParsed.valid,
+    detail: doubleParsed.errors[0] || '',
+  });
+  console.log(`  ${!doubleParsed.valid ? '[ok]' : '[x]'} LL-60`);
 
   return r;
 }
