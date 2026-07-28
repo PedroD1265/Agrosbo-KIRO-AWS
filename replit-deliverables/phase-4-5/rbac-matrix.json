@@ -1,0 +1,1725 @@
+{
+  "_meta": {
+    "description": "Matriz derivada del catálogo reconciliado. Distingue autenticación global de requireRole.",
+    "baselineSha": "156036a",
+    "extractedAt": "2026-07-27"
+  },
+  "roles": {
+    "admin": {
+      "description": "Rol interno verificado."
+    },
+    "tecnico": {
+      "description": "Rol interno verificado."
+    },
+    "encargado": {
+      "description": "Rol interno verificado."
+    },
+    "operario": {
+      "description": "Rol interno verificado."
+    },
+    "finanzas": {
+      "description": "Rol interno verificado."
+    }
+  },
+  "globalAuthGuard": {
+    "source": "api/src/app.ts",
+    "publicPaths": [
+      "/api/health/live",
+      "/api/health/ready",
+      "/api/crops",
+      "/api/auth/login",
+      "/api/auth/me",
+      "/api/auth/logout"
+    ],
+    "authenticatedRoles": [
+      "admin",
+      "tecnico",
+      "encargado",
+      "operario",
+      "finanzas"
+    ],
+    "note": "La ausencia de requireRole no convierte una ruta en pública."
+  },
+  "resources": [
+    {
+      "resource": "health",
+      "operations": {
+        "GET /api/health/live": {
+          "routeId": "R-001",
+          "globalAuthRequired": false,
+          "authPublic": true,
+          "roleGuard": null,
+          "effectiveRoles": [],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Ruta pública explícita."
+        },
+        "GET /api/health/ready": {
+          "routeId": "R-002",
+          "globalAuthRequired": false,
+          "authPublic": true,
+          "roleGuard": null,
+          "effectiveRoles": [],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Ruta pública explícita."
+        }
+      }
+    },
+    {
+      "resource": "blocks",
+      "operations": {
+        "GET /api/blocks": {
+          "routeId": "R-003",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "GET /api/blocks/:id": {
+          "routeId": "R-004",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/blocks": {
+          "routeId": "R-005",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "PATCH /api/blocks/:id": {
+          "routeId": "R-006",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "DELETE /api/blocks/:id": {
+          "routeId": "R-007",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    },
+    {
+      "resource": "greenhouses",
+      "operations": {
+        "GET /api/greenhouses": {
+          "routeId": "R-008",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "GET /api/greenhouses/:id": {
+          "routeId": "R-009",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/greenhouses": {
+          "routeId": "R-010",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "PATCH /api/greenhouses/:id": {
+          "routeId": "R-011",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "DELETE /api/greenhouses/:id": {
+          "routeId": "R-012",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    },
+    {
+      "resource": "campaigns",
+      "operations": {
+        "GET /api/campaigns": {
+          "routeId": "R-013",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/campaigns": {
+          "routeId": "R-014",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "GET /api/campaigns/:id/summary": {
+          "routeId": "R-015",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "PATCH /api/campaigns/:id": {
+          "routeId": "R-016",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "DELETE /api/campaigns/:id": {
+          "routeId": "R-017",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "GET /api/campaigns/:id/costs": {
+          "routeId": "R-065",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    },
+    {
+      "resource": "irrigation-events",
+      "operations": {
+        "GET /api/irrigation-events": {
+          "routeId": "R-018",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/irrigation-events": {
+          "routeId": "R-019",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/irrigation-events/:id/done": {
+          "routeId": "R-020",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "PATCH /api/irrigation-events/:id": {
+          "routeId": "R-021",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "DELETE /api/irrigation-events/:id": {
+          "routeId": "R-022",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    },
+    {
+      "resource": "tasks",
+      "operations": {
+        "GET /api/tasks": {
+          "routeId": "R-023",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/tasks": {
+          "routeId": "R-024",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "PATCH /api/tasks/:id/status": {
+          "routeId": "R-025",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "PATCH /api/tasks/:id": {
+          "routeId": "R-026",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "DELETE /api/tasks/:id": {
+          "routeId": "R-027",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    },
+    {
+      "resource": "observations",
+      "operations": {
+        "GET /api/observations": {
+          "routeId": "R-028",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/observations": {
+          "routeId": "R-029",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "DELETE /api/observations/:id": {
+          "routeId": "R-030",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/observations/:id/tasks": {
+          "routeId": "R-031",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    },
+    {
+      "resource": "inventory",
+      "operations": {
+        "GET /api/inventory": {
+          "routeId": "R-032",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/inventory": {
+          "routeId": "R-033",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        },
+        "PATCH /api/inventory/:id": {
+          "routeId": "R-034",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        },
+        "GET /api/inventory/:id/movements": {
+          "routeId": "R-035",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "PATCH /api/inventory/:id/edit": {
+          "routeId": "R-037",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        },
+        "DELETE /api/inventory/:id": {
+          "routeId": "R-038",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        }
+      }
+    },
+    {
+      "resource": "inventory-movements",
+      "operations": {
+        "GET /api/inventory-movements": {
+          "routeId": "R-036",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    },
+    {
+      "resource": "harvest-lots",
+      "operations": {
+        "GET /api/harvest-lots": {
+          "routeId": "R-039",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/harvest-lots": {
+          "routeId": "R-040",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        },
+        "PATCH /api/harvest-lots/:id": {
+          "routeId": "R-041",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        },
+        "DELETE /api/harvest-lots/:id": {
+          "routeId": "R-042",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        }
+      }
+    },
+    {
+      "resource": "weather",
+      "operations": {
+        "GET /api/weather/forecast": {
+          "routeId": "R-043",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    },
+    {
+      "resource": "alerts",
+      "operations": {
+        "GET /api/alerts": {
+          "routeId": "R-044",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    },
+    {
+      "resource": "crops",
+      "operations": {
+        "GET /api/crops": {
+          "routeId": "R-045",
+          "globalAuthRequired": false,
+          "authPublic": true,
+          "roleGuard": null,
+          "effectiveRoles": [],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Ruta pública explícita."
+        }
+      }
+    },
+    {
+      "resource": "applications",
+      "operations": {
+        "GET /api/applications": {
+          "routeId": "R-046",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/applications": {
+          "routeId": "R-047",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        }
+      }
+    },
+    {
+      "resource": "irrigation",
+      "operations": {
+        "GET /api/irrigation/advice": {
+          "routeId": "R-048",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    },
+    {
+      "resource": "apiaries",
+      "operations": {
+        "GET /api/apiaries": {
+          "routeId": "R-049",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/apiaries": {
+          "routeId": "R-050",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        }
+      }
+    },
+    {
+      "resource": "hives",
+      "operations": {
+        "GET /api/hives": {
+          "routeId": "R-051",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/hives": {
+          "routeId": "R-052",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        }
+      }
+    },
+    {
+      "resource": "hive-inspections",
+      "operations": {
+        "GET /api/hive-inspections": {
+          "routeId": "R-053",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/hive-inspections": {
+          "routeId": "R-054",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        }
+      }
+    },
+    {
+      "resource": "honey-harvests",
+      "operations": {
+        "GET /api/honey-harvests": {
+          "routeId": "R-055",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/honey-harvests": {
+          "routeId": "R-056",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        }
+      }
+    },
+    {
+      "resource": "attachments",
+      "operations": {
+        "GET /api/attachments": {
+          "routeId": "R-057",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/attachments": {
+          "routeId": "R-058",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "DELETE /api/attachments/:id": {
+          "routeId": "R-059",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    },
+    {
+      "resource": "expenses",
+      "operations": {
+        "GET /api/expenses": {
+          "routeId": "R-060",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/expenses": {
+          "routeId": "R-061",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "finanzas"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        },
+        "DELETE /api/expenses/:id": {
+          "routeId": "R-062",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "finanzas"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        }
+      }
+    },
+    {
+      "resource": "labor-costs",
+      "operations": {
+        "GET /api/labor-costs": {
+          "routeId": "R-063",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/labor-costs": {
+          "routeId": "R-064",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "finanzas"
+          ],
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        }
+      }
+    },
+    {
+      "resource": "scope-costs",
+      "operations": {
+        "GET /api/scope-costs": {
+          "routeId": "R-066",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    },
+    {
+      "resource": "users",
+      "operations": {
+        "GET /api/users": {
+          "routeId": "R-067",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin"
+          ],
+          "effectiveRoles": [
+            "admin"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Guard específico verificado."
+        },
+        "POST /api/users": {
+          "routeId": "R-068",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": [
+            "admin"
+          ],
+          "effectiveRoles": [
+            "admin"
+          ],
+          "mutation": true,
+          "idempotent": true,
+          "note": "Guard específico verificado."
+        }
+      }
+    },
+    {
+      "resource": "auth",
+      "operations": {
+        "POST /api/auth/login": {
+          "routeId": "R-069",
+          "globalAuthRequired": false,
+          "authPublic": true,
+          "roleGuard": null,
+          "effectiveRoles": [],
+          "mutation": true,
+          "idempotent": false,
+          "note": "Ruta pública explícita."
+        },
+        "GET /api/auth/me": {
+          "routeId": "R-070",
+          "globalAuthRequired": false,
+          "authPublic": true,
+          "roleGuard": null,
+          "effectiveRoles": [],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Ruta pública explícita."
+        },
+        "POST /api/auth/logout": {
+          "routeId": "R-071",
+          "globalAuthRequired": false,
+          "authPublic": true,
+          "roleGuard": null,
+          "effectiveRoles": [],
+          "mutation": true,
+          "idempotent": false,
+          "note": "Ruta pública explícita."
+        }
+      }
+    },
+    {
+      "resource": "reports",
+      "operations": {
+        "GET /api/reports/applications.csv": {
+          "routeId": "R-072",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "GET /api/reports/carencia.csv": {
+          "routeId": "R-073",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "GET /api/reports/expenses.csv": {
+          "routeId": "R-074",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "GET /api/reports/labor.csv": {
+          "routeId": "R-075",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "GET /api/reports/apiaries.csv": {
+          "routeId": "R-076",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "GET /api/reports/hives.csv": {
+          "routeId": "R-077",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "GET /api/reports/inspections.csv": {
+          "routeId": "R-078",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "GET /api/reports/honey-harvests.csv": {
+          "routeId": "R-079",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "GET /api/reports/honey.csv": {
+          "routeId": "R-080",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    },
+    {
+      "resource": "settings",
+      "operations": {
+        "GET /api/settings": {
+          "routeId": "R-081",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "PUT /api/settings": {
+          "routeId": "R-082",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    },
+    {
+      "resource": "integrations",
+      "operations": {
+        "GET /api/integrations/adapters": {
+          "routeId": "R-083",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "GET /api/integrations/adapters/:id": {
+          "routeId": "R-084",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/integrations/adapters/:id/toggle": {
+          "routeId": "R-085",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/integrations/adapters/:id/test": {
+          "routeId": "R-086",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "GET /api/integrations/export/:dataset": {
+          "routeId": "R-087",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": false,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        },
+        "POST /api/integrations/import/:dataset": {
+          "routeId": "R-088",
+          "globalAuthRequired": true,
+          "authPublic": false,
+          "roleGuard": null,
+          "effectiveRoles": [
+            "admin",
+            "tecnico",
+            "encargado",
+            "operario",
+            "finanzas"
+          ],
+          "mutation": true,
+          "idempotent": false,
+          "note": "Sin requireRole; acceso para cualquier rol autenticado cuando AUTH_ENFORCEMENT=on."
+        }
+      }
+    }
+  ],
+  "gapSummary": {
+    "classification": "OPEN_DECISION",
+    "gaps": [
+      {
+        "routeId": "R-005",
+        "route": "POST /api/blocks",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-006",
+        "route": "PATCH /api/blocks/:id",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-007",
+        "route": "DELETE /api/blocks/:id",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-010",
+        "route": "POST /api/greenhouses",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-011",
+        "route": "PATCH /api/greenhouses/:id",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-012",
+        "route": "DELETE /api/greenhouses/:id",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-014",
+        "route": "POST /api/campaigns",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-016",
+        "route": "PATCH /api/campaigns/:id",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-017",
+        "route": "DELETE /api/campaigns/:id",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-019",
+        "route": "POST /api/irrigation-events",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-020",
+        "route": "POST /api/irrigation-events/:id/done",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-021",
+        "route": "PATCH /api/irrigation-events/:id",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-022",
+        "route": "DELETE /api/irrigation-events/:id",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-024",
+        "route": "POST /api/tasks",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-025",
+        "route": "PATCH /api/tasks/:id/status",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-026",
+        "route": "PATCH /api/tasks/:id",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-027",
+        "route": "DELETE /api/tasks/:id",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-029",
+        "route": "POST /api/observations",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-030",
+        "route": "DELETE /api/observations/:id",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-031",
+        "route": "POST /api/observations/:id/tasks",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-058",
+        "route": "POST /api/attachments",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-059",
+        "route": "DELETE /api/attachments/:id",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-082",
+        "route": "PUT /api/settings",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-085",
+        "route": "POST /api/integrations/adapters/:id/toggle",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-086",
+        "route": "POST /api/integrations/adapters/:id/test",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      },
+      {
+        "routeId": "R-088",
+        "route": "POST /api/integrations/import/:dataset",
+        "observation": "Mutación protegida solo por autenticación global; no implica decisión arquitectónica sobre roles."
+      }
+    ],
+    "note": "Observaciones de implementación actual; no son decisiones arquitectónicas."
+  }
+}

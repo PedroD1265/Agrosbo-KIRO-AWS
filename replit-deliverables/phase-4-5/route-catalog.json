@@ -1,0 +1,2255 @@
+{
+  "_meta": {
+    "description": "Catálogo reconciliado contra api/src/routes.ts, api/src/app.ts y api/src/health.ts en la rama autorizada.",
+    "baselineSha": "156036a",
+    "routePrefix": "/api",
+    "totalRoutes": 88,
+    "extractedAt": "2026-07-27",
+    "evidenceMode": "DERIVED_FROM_CURRENT_TYPESCRIPT"
+  },
+  "routes": [
+    {
+      "id": "R-001",
+      "method": "GET",
+      "routePathAsDefined": "/health/live",
+      "publicPath": "/api/health/live",
+      "internalPath": "/health/live",
+      "authRequired": false,
+      "authPublic": true,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "{ ok: true, uptime: number }",
+      "statusCodes": [
+        200
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/health.ts",
+        "line": 33,
+        "routeDeclaration": "router.get('/health/live', ...)"
+      }
+    },
+    {
+      "id": "R-002",
+      "method": "GET",
+      "routePathAsDefined": "/health/ready",
+      "publicPath": "/api/health/ready",
+      "internalPath": "/health/ready",
+      "authRequired": false,
+      "authPublic": true,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "{ ok: boolean, checks: { config: boolean, database: boolean }, now: string }",
+      "statusCodes": [
+        200,
+        503
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/health.ts",
+        "line": 37,
+        "routeDeclaration": "router.get('/health/ready', ...)"
+      }
+    },
+    {
+      "id": "R-003",
+      "method": "GET",
+      "routePathAsDefined": "/blocks",
+      "publicPath": "/api/blocks",
+      "internalPath": "/blocks",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Block[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 374,
+        "routeDeclaration": "router.get('/blocks', ...)"
+      }
+    },
+    {
+      "id": "R-004",
+      "method": "GET",
+      "routePathAsDefined": "/blocks/:id",
+      "publicPath": "/api/blocks/:id",
+      "internalPath": "/blocks/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Block",
+      "statusCodes": [
+        200,
+        401,
+        404
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 378,
+        "routeDeclaration": "router.get('/blocks/:id', ...)"
+      }
+    },
+    {
+      "id": "R-005",
+      "method": "POST",
+      "routePathAsDefined": "/blocks",
+      "publicPath": "/api/blocks",
+      "internalPath": "/blocks",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Block",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 386,
+        "routeDeclaration": "router.post('/blocks', ...)"
+      }
+    },
+    {
+      "id": "R-006",
+      "method": "PATCH",
+      "routePathAsDefined": "/blocks/:id",
+      "publicPath": "/api/blocks/:id",
+      "internalPath": "/blocks/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Block",
+      "statusCodes": [
+        200,
+        400,
+        401,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 393,
+        "routeDeclaration": "router.patch('/blocks/:id', ...)"
+      }
+    },
+    {
+      "id": "R-007",
+      "method": "DELETE",
+      "routePathAsDefined": "/blocks/:id",
+      "publicPath": "/api/blocks/:id",
+      "internalPath": "/blocks/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "{ ok: true }",
+      "statusCodes": [
+        200,
+        401,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 402,
+        "routeDeclaration": "router.delete('/blocks/:id', ...)"
+      }
+    },
+    {
+      "id": "R-008",
+      "method": "GET",
+      "routePathAsDefined": "/greenhouses",
+      "publicPath": "/api/greenhouses",
+      "internalPath": "/greenhouses",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Greenhouse[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 412,
+        "routeDeclaration": "router.get('/greenhouses', ...)"
+      }
+    },
+    {
+      "id": "R-009",
+      "method": "GET",
+      "routePathAsDefined": "/greenhouses/:id",
+      "publicPath": "/api/greenhouses/:id",
+      "internalPath": "/greenhouses/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Greenhouse",
+      "statusCodes": [
+        200,
+        401,
+        404
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 416,
+        "routeDeclaration": "router.get('/greenhouses/:id', ...)"
+      }
+    },
+    {
+      "id": "R-010",
+      "method": "POST",
+      "routePathAsDefined": "/greenhouses",
+      "publicPath": "/api/greenhouses",
+      "internalPath": "/greenhouses",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Greenhouse",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 424,
+        "routeDeclaration": "router.post('/greenhouses', ...)"
+      }
+    },
+    {
+      "id": "R-011",
+      "method": "PATCH",
+      "routePathAsDefined": "/greenhouses/:id",
+      "publicPath": "/api/greenhouses/:id",
+      "internalPath": "/greenhouses/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Greenhouse",
+      "statusCodes": [
+        200,
+        400,
+        401,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 431,
+        "routeDeclaration": "router.patch('/greenhouses/:id', ...)"
+      }
+    },
+    {
+      "id": "R-012",
+      "method": "DELETE",
+      "routePathAsDefined": "/greenhouses/:id",
+      "publicPath": "/api/greenhouses/:id",
+      "internalPath": "/greenhouses/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "{ ok: true }",
+      "statusCodes": [
+        200,
+        401,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 440,
+        "routeDeclaration": "router.delete('/greenhouses/:id', ...)"
+      }
+    },
+    {
+      "id": "R-013",
+      "method": "GET",
+      "routePathAsDefined": "/campaigns",
+      "publicPath": "/api/campaigns",
+      "internalPath": "/campaigns",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Campaign[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 450,
+        "routeDeclaration": "router.get('/campaigns', ...)"
+      }
+    },
+    {
+      "id": "R-014",
+      "method": "POST",
+      "routePathAsDefined": "/campaigns",
+      "publicPath": "/api/campaigns",
+      "internalPath": "/campaigns",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Campaign",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 454,
+        "routeDeclaration": "router.post('/campaigns', ...)"
+      }
+    },
+    {
+      "id": "R-015",
+      "method": "GET",
+      "routePathAsDefined": "/campaigns/:id/summary",
+      "publicPath": "/api/campaigns/:id/summary",
+      "internalPath": "/campaigns/:id/summary",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "CampaignSummary",
+      "statusCodes": [
+        200,
+        401,
+        404
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 461,
+        "routeDeclaration": "router.get('/campaigns/:id/summary', ...)"
+      }
+    },
+    {
+      "id": "R-016",
+      "method": "PATCH",
+      "routePathAsDefined": "/campaigns/:id",
+      "publicPath": "/api/campaigns/:id",
+      "internalPath": "/campaigns/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Campaign",
+      "statusCodes": [
+        200,
+        400,
+        401,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 480,
+        "routeDeclaration": "router.patch('/campaigns/:id', ...)"
+      }
+    },
+    {
+      "id": "R-017",
+      "method": "DELETE",
+      "routePathAsDefined": "/campaigns/:id",
+      "publicPath": "/api/campaigns/:id",
+      "internalPath": "/campaigns/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "{ ok: true }",
+      "statusCodes": [
+        200,
+        401,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 489,
+        "routeDeclaration": "router.delete('/campaigns/:id', ...)"
+      }
+    },
+    {
+      "id": "R-018",
+      "method": "GET",
+      "routePathAsDefined": "/irrigation-events",
+      "publicPath": "/api/irrigation-events",
+      "internalPath": "/irrigation-events",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "IrrigationEvent[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 499,
+        "routeDeclaration": "router.get('/irrigation-events', ...)"
+      }
+    },
+    {
+      "id": "R-019",
+      "method": "POST",
+      "routePathAsDefined": "/irrigation-events",
+      "publicPath": "/api/irrigation-events",
+      "internalPath": "/irrigation-events",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "IrrigationEvent",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 503,
+        "routeDeclaration": "router.post('/irrigation-events', ...)"
+      }
+    },
+    {
+      "id": "R-020",
+      "method": "POST",
+      "routePathAsDefined": "/irrigation-events/:id/done",
+      "publicPath": "/api/irrigation-events/:id/done",
+      "internalPath": "/irrigation-events/:id/done",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "IrrigationEvent",
+      "statusCodes": [
+        200,
+        401,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 510,
+        "routeDeclaration": "router.post('/irrigation-events/:id/done', ...)"
+      }
+    },
+    {
+      "id": "R-021",
+      "method": "PATCH",
+      "routePathAsDefined": "/irrigation-events/:id",
+      "publicPath": "/api/irrigation-events/:id",
+      "internalPath": "/irrigation-events/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "IrrigationEvent",
+      "statusCodes": [
+        200,
+        400,
+        401,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 518,
+        "routeDeclaration": "router.patch('/irrigation-events/:id', ...)"
+      }
+    },
+    {
+      "id": "R-022",
+      "method": "DELETE",
+      "routePathAsDefined": "/irrigation-events/:id",
+      "publicPath": "/api/irrigation-events/:id",
+      "internalPath": "/irrigation-events/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "{ ok: true }",
+      "statusCodes": [
+        200,
+        401,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 530,
+        "routeDeclaration": "router.delete('/irrigation-events/:id', ...)"
+      }
+    },
+    {
+      "id": "R-023",
+      "method": "GET",
+      "routePathAsDefined": "/tasks",
+      "publicPath": "/api/tasks",
+      "internalPath": "/tasks",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Task[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 540,
+        "routeDeclaration": "router.get('/tasks', ...)"
+      }
+    },
+    {
+      "id": "R-024",
+      "method": "POST",
+      "routePathAsDefined": "/tasks",
+      "publicPath": "/api/tasks",
+      "internalPath": "/tasks",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Task",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 544,
+        "routeDeclaration": "router.post('/tasks', ...)"
+      }
+    },
+    {
+      "id": "R-025",
+      "method": "PATCH",
+      "routePathAsDefined": "/tasks/:id/status",
+      "publicPath": "/api/tasks/:id/status",
+      "internalPath": "/tasks/:id/status",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Task",
+      "statusCodes": [
+        200,
+        400,
+        401,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 551,
+        "routeDeclaration": "router.patch('/tasks/:id/status', ...)"
+      }
+    },
+    {
+      "id": "R-026",
+      "method": "PATCH",
+      "routePathAsDefined": "/tasks/:id",
+      "publicPath": "/api/tasks/:id",
+      "internalPath": "/tasks/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Task",
+      "statusCodes": [
+        200,
+        400,
+        401,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 563,
+        "routeDeclaration": "router.patch('/tasks/:id', ...)"
+      }
+    },
+    {
+      "id": "R-027",
+      "method": "DELETE",
+      "routePathAsDefined": "/tasks/:id",
+      "publicPath": "/api/tasks/:id",
+      "internalPath": "/tasks/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "{ ok: true }",
+      "statusCodes": [
+        200,
+        401,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 572,
+        "routeDeclaration": "router.delete('/tasks/:id', ...)"
+      }
+    },
+    {
+      "id": "R-028",
+      "method": "GET",
+      "routePathAsDefined": "/observations",
+      "publicPath": "/api/observations",
+      "internalPath": "/observations",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Observation[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 582,
+        "routeDeclaration": "router.get('/observations', ...)"
+      }
+    },
+    {
+      "id": "R-029",
+      "method": "POST",
+      "routePathAsDefined": "/observations",
+      "publicPath": "/api/observations",
+      "internalPath": "/observations",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Observation",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 586,
+        "routeDeclaration": "router.post('/observations', ...)"
+      }
+    },
+    {
+      "id": "R-030",
+      "method": "DELETE",
+      "routePathAsDefined": "/observations/:id",
+      "publicPath": "/api/observations/:id",
+      "internalPath": "/observations/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "{ ok: true }",
+      "statusCodes": [
+        200,
+        401,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 593,
+        "routeDeclaration": "router.delete('/observations/:id', ...)"
+      }
+    },
+    {
+      "id": "R-031",
+      "method": "POST",
+      "routePathAsDefined": "/observations/:id/tasks",
+      "publicPath": "/api/observations/:id/tasks",
+      "internalPath": "/observations/:id/tasks",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Task",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 602,
+        "routeDeclaration": "router.post('/observations/:id/tasks', ...)"
+      }
+    },
+    {
+      "id": "R-032",
+      "method": "GET",
+      "routePathAsDefined": "/inventory",
+      "publicPath": "/api/inventory",
+      "internalPath": "/inventory",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "InventoryItem[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 634,
+        "routeDeclaration": "router.get('/inventory', ...)"
+      }
+    },
+    {
+      "id": "R-033",
+      "method": "POST",
+      "routePathAsDefined": "/inventory",
+      "publicPath": "/api/inventory",
+      "internalPath": "/inventory",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "InventoryItem",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        403,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 638,
+        "routeDeclaration": "router.post('/inventory', ...)"
+      }
+    },
+    {
+      "id": "R-034",
+      "method": "PATCH",
+      "routePathAsDefined": "/inventory/:id",
+      "publicPath": "/api/inventory/:id",
+      "internalPath": "/inventory/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "InventoryItem",
+      "statusCodes": [
+        200,
+        400,
+        401,
+        403,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 646,
+        "routeDeclaration": "router.patch('/inventory/:id', ...)"
+      }
+    },
+    {
+      "id": "R-035",
+      "method": "GET",
+      "routePathAsDefined": "/inventory/:id/movements",
+      "publicPath": "/api/inventory/:id/movements",
+      "internalPath": "/inventory/:id/movements",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "InventoryMovement[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 687,
+        "routeDeclaration": "router.get('/inventory/:id/movements', ...)"
+      }
+    },
+    {
+      "id": "R-036",
+      "method": "GET",
+      "routePathAsDefined": "/inventory-movements",
+      "publicPath": "/api/inventory-movements",
+      "internalPath": "/inventory-movements",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "InventoryMovement[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 694,
+        "routeDeclaration": "router.get('/inventory-movements', ...)"
+      }
+    },
+    {
+      "id": "R-037",
+      "method": "PATCH",
+      "routePathAsDefined": "/inventory/:id/edit",
+      "publicPath": "/api/inventory/:id/edit",
+      "internalPath": "/inventory/:id/edit",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "InventoryItem",
+      "statusCodes": [
+        200,
+        400,
+        401,
+        403,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 700,
+        "routeDeclaration": "router.patch('/inventory/:id/edit', ...)"
+      }
+    },
+    {
+      "id": "R-038",
+      "method": "DELETE",
+      "routePathAsDefined": "/inventory/:id",
+      "publicPath": "/api/inventory/:id",
+      "internalPath": "/inventory/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "{ ok: true }",
+      "statusCodes": [
+        200,
+        401,
+        403,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 713,
+        "routeDeclaration": "router.delete('/inventory/:id', ...)"
+      }
+    },
+    {
+      "id": "R-039",
+      "method": "GET",
+      "routePathAsDefined": "/harvest-lots",
+      "publicPath": "/api/harvest-lots",
+      "internalPath": "/harvest-lots",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "HarvestLot[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 724,
+        "routeDeclaration": "router.get('/harvest-lots', ...)"
+      }
+    },
+    {
+      "id": "R-040",
+      "method": "POST",
+      "routePathAsDefined": "/harvest-lots",
+      "publicPath": "/api/harvest-lots",
+      "internalPath": "/harvest-lots",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "HarvestLot",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        403,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 728,
+        "routeDeclaration": "router.post('/harvest-lots', ...)"
+      }
+    },
+    {
+      "id": "R-041",
+      "method": "PATCH",
+      "routePathAsDefined": "/harvest-lots/:id",
+      "publicPath": "/api/harvest-lots/:id",
+      "internalPath": "/harvest-lots/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "HarvestLot",
+      "statusCodes": [
+        200,
+        400,
+        401,
+        403,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 736,
+        "routeDeclaration": "router.patch('/harvest-lots/:id', ...)"
+      }
+    },
+    {
+      "id": "R-042",
+      "method": "DELETE",
+      "routePathAsDefined": "/harvest-lots/:id",
+      "publicPath": "/api/harvest-lots/:id",
+      "internalPath": "/harvest-lots/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "{ ok: true }",
+      "statusCodes": [
+        200,
+        401,
+        403,
+        404,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 746,
+        "routeDeclaration": "router.delete('/harvest-lots/:id', ...)"
+      }
+    },
+    {
+      "id": "R-043",
+      "method": "GET",
+      "routePathAsDefined": "/weather/forecast",
+      "publicPath": "/api/weather/forecast",
+      "internalPath": "/weather/forecast",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "WeatherForecast",
+      "statusCodes": [
+        200,
+        400,
+        401,
+        503
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 757,
+        "routeDeclaration": "router.get('/weather/forecast', ...)"
+      }
+    },
+    {
+      "id": "R-044",
+      "method": "GET",
+      "routePathAsDefined": "/alerts",
+      "publicPath": "/api/alerts",
+      "internalPath": "/alerts",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Alert[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 779,
+        "routeDeclaration": "router.get('/alerts', ...)"
+      }
+    },
+    {
+      "id": "R-045",
+      "method": "GET",
+      "routePathAsDefined": "/crops",
+      "publicPath": "/api/crops",
+      "internalPath": "/crops",
+      "authRequired": false,
+      "authPublic": true,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "CropCatalog[]",
+      "statusCodes": [
+        200
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 811,
+        "routeDeclaration": "router.get('/crops', ...)"
+      }
+    },
+    {
+      "id": "R-046",
+      "method": "GET",
+      "routePathAsDefined": "/applications",
+      "publicPath": "/api/applications",
+      "internalPath": "/applications",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Application[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 819,
+        "routeDeclaration": "router.get('/applications', ...)"
+      }
+    },
+    {
+      "id": "R-047",
+      "method": "POST",
+      "routePathAsDefined": "/applications",
+      "publicPath": "/api/applications",
+      "internalPath": "/applications",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Application",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        403,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 823,
+        "routeDeclaration": "router.post('/applications', ...)"
+      }
+    },
+    {
+      "id": "R-048",
+      "method": "GET",
+      "routePathAsDefined": "/irrigation/advice",
+      "publicPath": "/api/irrigation/advice",
+      "internalPath": "/irrigation/advice",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 851,
+        "routeDeclaration": "router.get('/irrigation/advice', ...)"
+      }
+    },
+    {
+      "id": "R-049",
+      "method": "GET",
+      "routePathAsDefined": "/apiaries",
+      "publicPath": "/api/apiaries",
+      "internalPath": "/apiaries",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Apiary[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": true,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 907,
+        "routeDeclaration": "router.get('/apiaries', ...)"
+      }
+    },
+    {
+      "id": "R-050",
+      "method": "POST",
+      "routePathAsDefined": "/apiaries",
+      "publicPath": "/api/apiaries",
+      "internalPath": "/apiaries",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Apiary",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        403,
+        409,
+        503
+      ],
+      "dbRequired": true,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 911,
+        "routeDeclaration": "router.post('/apiaries', ...)"
+      }
+    },
+    {
+      "id": "R-051",
+      "method": "GET",
+      "routePathAsDefined": "/hives",
+      "publicPath": "/api/hives",
+      "internalPath": "/hives",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Hive[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": true,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 920,
+        "routeDeclaration": "router.get('/hives', ...)"
+      }
+    },
+    {
+      "id": "R-052",
+      "method": "POST",
+      "routePathAsDefined": "/hives",
+      "publicPath": "/api/hives",
+      "internalPath": "/hives",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Hive",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        403,
+        409,
+        503
+      ],
+      "dbRequired": true,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 924,
+        "routeDeclaration": "router.post('/hives', ...)"
+      }
+    },
+    {
+      "id": "R-053",
+      "method": "GET",
+      "routePathAsDefined": "/hive-inspections",
+      "publicPath": "/api/hive-inspections",
+      "internalPath": "/hive-inspections",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "HiveInspection[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": true,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 933,
+        "routeDeclaration": "router.get('/hive-inspections', ...)"
+      }
+    },
+    {
+      "id": "R-054",
+      "method": "POST",
+      "routePathAsDefined": "/hive-inspections",
+      "publicPath": "/api/hive-inspections",
+      "internalPath": "/hive-inspections",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "HiveInspection",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        403,
+        409,
+        422,
+        503
+      ],
+      "dbRequired": true,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 940,
+        "routeDeclaration": "router.post('/hive-inspections', ...)"
+      }
+    },
+    {
+      "id": "R-055",
+      "method": "GET",
+      "routePathAsDefined": "/honey-harvests",
+      "publicPath": "/api/honey-harvests",
+      "internalPath": "/honey-harvests",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "HoneyHarvest[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": true,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 964,
+        "routeDeclaration": "router.get('/honey-harvests', ...)"
+      }
+    },
+    {
+      "id": "R-056",
+      "method": "POST",
+      "routePathAsDefined": "/honey-harvests",
+      "publicPath": "/api/honey-harvests",
+      "internalPath": "/honey-harvests",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "HoneyHarvest",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        403,
+        409,
+        503
+      ],
+      "dbRequired": true,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 968,
+        "routeDeclaration": "router.post('/honey-harvests', ...)"
+      }
+    },
+    {
+      "id": "R-057",
+      "method": "GET",
+      "routePathAsDefined": "/attachments",
+      "publicPath": "/api/attachments",
+      "internalPath": "/attachments",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Attachment[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 981,
+        "routeDeclaration": "router.get('/attachments', ...)"
+      }
+    },
+    {
+      "id": "R-058",
+      "method": "POST",
+      "routePathAsDefined": "/attachments",
+      "publicPath": "/api/attachments",
+      "internalPath": "/attachments",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Attachment",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        409,
+        503
+      ],
+      "dbRequired": true,
+      "notes": "wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 993,
+        "routeDeclaration": "router.post('/attachments', ...)"
+      }
+    },
+    {
+      "id": "R-059",
+      "method": "DELETE",
+      "routePathAsDefined": "/attachments/:id",
+      "publicPath": "/api/attachments/:id",
+      "internalPath": "/attachments/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": false,
+      "responseShape": "204",
+      "statusCodes": [
+        204,
+        401,
+        404,
+        409,
+        500
+      ],
+      "dbRequired": true,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1015,
+        "routeDeclaration": "router.delete('/attachments/:id', ...)"
+      }
+    },
+    {
+      "id": "R-060",
+      "method": "GET",
+      "routePathAsDefined": "/expenses",
+      "publicPath": "/api/expenses",
+      "internalPath": "/expenses",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Expense[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": true,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1034,
+        "routeDeclaration": "router.get('/expenses', ...)"
+      }
+    },
+    {
+      "id": "R-061",
+      "method": "POST",
+      "routePathAsDefined": "/expenses",
+      "publicPath": "/api/expenses",
+      "internalPath": "/expenses",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado",
+        "finanzas"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "Expense",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        403,
+        409,
+        503
+      ],
+      "dbRequired": true,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1050,
+        "routeDeclaration": "router.post('/expenses', ...)"
+      }
+    },
+    {
+      "id": "R-062",
+      "method": "DELETE",
+      "routePathAsDefined": "/expenses/:id",
+      "publicPath": "/api/expenses/:id",
+      "internalPath": "/expenses/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado",
+        "finanzas"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "{ ok: true } | 204 (tolerant delete)",
+      "statusCodes": [
+        200,
+        204,
+        401,
+        403,
+        409,
+        503
+      ],
+      "dbRequired": true,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1058,
+        "routeDeclaration": "router.delete('/expenses/:id', ...)"
+      }
+    },
+    {
+      "id": "R-063",
+      "method": "GET",
+      "routePathAsDefined": "/labor-costs",
+      "publicPath": "/api/labor-costs",
+      "internalPath": "/labor-costs",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "LaborCost[]",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": true,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1075,
+        "routeDeclaration": "router.get('/labor-costs', ...)"
+      }
+    },
+    {
+      "id": "R-064",
+      "method": "POST",
+      "routePathAsDefined": "/labor-costs",
+      "publicPath": "/api/labor-costs",
+      "internalPath": "/labor-costs",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin",
+        "tecnico",
+        "encargado",
+        "finanzas"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "LaborCost",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        403,
+        409,
+        503
+      ],
+      "dbRequired": true,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1090,
+        "routeDeclaration": "router.post('/labor-costs', ...)"
+      }
+    },
+    {
+      "id": "R-065",
+      "method": "GET",
+      "routePathAsDefined": "/campaigns/:id/costs",
+      "publicPath": "/api/campaigns/:id/costs",
+      "internalPath": "/campaigns/:id/costs",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1098,
+        "routeDeclaration": "router.get('/campaigns/:id/costs', ...)"
+      }
+    },
+    {
+      "id": "R-066",
+      "method": "GET",
+      "routePathAsDefined": "/scope-costs",
+      "publicPath": "/api/scope-costs",
+      "internalPath": "/scope-costs",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1104,
+        "routeDeclaration": "router.get('/scope-costs', ...)"
+      }
+    },
+    {
+      "id": "R-067",
+      "method": "GET",
+      "routePathAsDefined": "/users",
+      "publicPath": "/api/users",
+      "internalPath": "/users",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin"
+      ],
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "User[]",
+      "statusCodes": [
+        200,
+        401,
+        403
+      ],
+      "dbRequired": false,
+      "notes": "Guard de rol específico; sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1120,
+        "routeDeclaration": "router.get('/users', ...)"
+      }
+    },
+    {
+      "id": "R-068",
+      "method": "POST",
+      "routePathAsDefined": "/users",
+      "publicPath": "/api/users",
+      "internalPath": "/users",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": [
+        "admin"
+      ],
+      "mutation": true,
+      "idempotent": true,
+      "responseShape": "User",
+      "statusCodes": [
+        201,
+        400,
+        401,
+        403,
+        409
+      ],
+      "dbRequired": false,
+      "notes": "Guard de rol específico y wrapper idempotent() verificado.",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1125,
+        "routeDeclaration": "router.post('/users', ...)"
+      }
+    },
+    {
+      "id": "R-069",
+      "method": "POST",
+      "routePathAsDefined": "/auth/login",
+      "publicPath": "/api/auth/login",
+      "internalPath": "/auth/login",
+      "authRequired": false,
+      "authPublic": true,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": false,
+      "responseShape": "{ user: User } with Set-Cookie",
+      "statusCodes": [
+        200,
+        401,
+        400
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1133,
+        "routeDeclaration": "router.post('/auth/login', ...)"
+      }
+    },
+    {
+      "id": "R-070",
+      "method": "GET",
+      "routePathAsDefined": "/auth/me",
+      "publicPath": "/api/auth/me",
+      "internalPath": "/auth/me",
+      "authRequired": false,
+      "authPublic": true,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "User | null",
+      "statusCodes": [
+        200,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1153,
+        "routeDeclaration": "router.get('/auth/me', ...)"
+      }
+    },
+    {
+      "id": "R-071",
+      "method": "POST",
+      "routePathAsDefined": "/auth/logout",
+      "publicPath": "/api/auth/logout",
+      "internalPath": "/auth/logout",
+      "authRequired": false,
+      "authPublic": true,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": false,
+      "responseShape": "{ ok: true }",
+      "statusCodes": [
+        200
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1163,
+        "routeDeclaration": "router.post('/auth/logout', ...)"
+      }
+    },
+    {
+      "id": "R-072",
+      "method": "GET",
+      "routePathAsDefined": "/reports/applications.csv",
+      "publicPath": "/api/reports/applications.csv",
+      "internalPath": "/reports/applications.csv",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1188,
+        "routeDeclaration": "router.get('/reports/applications.csv', ...)"
+      }
+    },
+    {
+      "id": "R-073",
+      "method": "GET",
+      "routePathAsDefined": "/reports/carencia.csv",
+      "publicPath": "/api/reports/carencia.csv",
+      "internalPath": "/reports/carencia.csv",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1201,
+        "routeDeclaration": "router.get('/reports/carencia.csv', ...)"
+      }
+    },
+    {
+      "id": "R-074",
+      "method": "GET",
+      "routePathAsDefined": "/reports/expenses.csv",
+      "publicPath": "/api/reports/expenses.csv",
+      "internalPath": "/reports/expenses.csv",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1207,
+        "routeDeclaration": "router.get('/reports/expenses.csv', ...)"
+      }
+    },
+    {
+      "id": "R-075",
+      "method": "GET",
+      "routePathAsDefined": "/reports/labor.csv",
+      "publicPath": "/api/reports/labor.csv",
+      "internalPath": "/reports/labor.csv",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1220,
+        "routeDeclaration": "router.get('/reports/labor.csv', ...)"
+      }
+    },
+    {
+      "id": "R-076",
+      "method": "GET",
+      "routePathAsDefined": "/reports/apiaries.csv",
+      "publicPath": "/api/reports/apiaries.csv",
+      "internalPath": "/reports/apiaries.csv",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1233,
+        "routeDeclaration": "router.get('/reports/apiaries.csv', ...)"
+      }
+    },
+    {
+      "id": "R-077",
+      "method": "GET",
+      "routePathAsDefined": "/reports/hives.csv",
+      "publicPath": "/api/reports/hives.csv",
+      "internalPath": "/reports/hives.csv",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1237,
+        "routeDeclaration": "router.get('/reports/hives.csv', ...)"
+      }
+    },
+    {
+      "id": "R-078",
+      "method": "GET",
+      "routePathAsDefined": "/reports/inspections.csv",
+      "publicPath": "/api/reports/inspections.csv",
+      "internalPath": "/reports/inspections.csv",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1241,
+        "routeDeclaration": "router.get('/reports/inspections.csv', ...)"
+      }
+    },
+    {
+      "id": "R-079",
+      "method": "GET",
+      "routePathAsDefined": "/reports/honey-harvests.csv",
+      "publicPath": "/api/reports/honey-harvests.csv",
+      "internalPath": "/reports/honey-harvests.csv",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1245,
+        "routeDeclaration": "router.get('/reports/honey-harvests.csv', ...)"
+      }
+    },
+    {
+      "id": "R-080",
+      "method": "GET",
+      "routePathAsDefined": "/reports/honey.csv",
+      "publicPath": "/api/reports/honey.csv",
+      "internalPath": "/reports/honey.csv",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1249,
+        "routeDeclaration": "router.get('/reports/honey.csv', ...)"
+      }
+    },
+    {
+      "id": "R-081",
+      "method": "GET",
+      "routePathAsDefined": "/settings",
+      "publicPath": "/api/settings",
+      "internalPath": "/settings",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1259,
+        "routeDeclaration": "router.get('/settings', ...)"
+      }
+    },
+    {
+      "id": "R-082",
+      "method": "PUT",
+      "routePathAsDefined": "/settings",
+      "publicPath": "/api/settings",
+      "internalPath": "/settings",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1263,
+        "routeDeclaration": "router.put('/settings', ...)"
+      }
+    },
+    {
+      "id": "R-083",
+      "method": "GET",
+      "routePathAsDefined": "/integrations/adapters",
+      "publicPath": "/api/integrations/adapters",
+      "internalPath": "/integrations/adapters",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1275,
+        "routeDeclaration": "router.get('/integrations/adapters', ...)"
+      }
+    },
+    {
+      "id": "R-084",
+      "method": "GET",
+      "routePathAsDefined": "/integrations/adapters/:id",
+      "publicPath": "/api/integrations/adapters/:id",
+      "internalPath": "/integrations/adapters/:id",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1280,
+        "routeDeclaration": "router.get('/integrations/adapters/:id', ...)"
+      }
+    },
+    {
+      "id": "R-085",
+      "method": "POST",
+      "routePathAsDefined": "/integrations/adapters/:id/toggle",
+      "publicPath": "/api/integrations/adapters/:id/toggle",
+      "internalPath": "/integrations/adapters/:id/toggle",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1289,
+        "routeDeclaration": "router.post('/integrations/adapters/:id/toggle', ...)"
+      }
+    },
+    {
+      "id": "R-086",
+      "method": "POST",
+      "routePathAsDefined": "/integrations/adapters/:id/test",
+      "publicPath": "/api/integrations/adapters/:id/test",
+      "internalPath": "/integrations/adapters/:id/test",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": false,
+      "responseShape": "Ver handler en la evidencia de origen",
+      "statusCodes": [],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1305,
+        "routeDeclaration": "router.post('/integrations/adapters/:id/test', ...)"
+      }
+    },
+    {
+      "id": "R-087",
+      "method": "GET",
+      "routePathAsDefined": "/integrations/export/:dataset",
+      "publicPath": "/api/integrations/export/:dataset",
+      "internalPath": "/integrations/export/:dataset",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": false,
+      "idempotent": false,
+      "responseShape": "text/csv",
+      "statusCodes": [
+        200,
+        400,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1318,
+        "routeDeclaration": "router.get('/integrations/export/:dataset', ...)"
+      }
+    },
+    {
+      "id": "R-088",
+      "method": "POST",
+      "routePathAsDefined": "/integrations/import/:dataset",
+      "publicPath": "/api/integrations/import/:dataset",
+      "internalPath": "/integrations/import/:dataset",
+      "authRequired": true,
+      "authPublic": false,
+      "roleGuard": null,
+      "mutation": true,
+      "idempotent": false,
+      "responseShape": "ImportResult",
+      "statusCodes": [
+        200,
+        400,
+        401
+      ],
+      "dbRequired": false,
+      "notes": "sin wrapper idempotent().",
+      "evidence": {
+        "sourceFile": "api/src/routes.ts",
+        "line": 1362,
+        "routeDeclaration": "router.post('/integrations/import/:dataset', ...)"
+      }
+    }
+  ]
+}

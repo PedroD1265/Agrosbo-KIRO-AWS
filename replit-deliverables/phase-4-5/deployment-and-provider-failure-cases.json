@@ -1,0 +1,523 @@
+{
+  "_meta": {
+    "description": "24 casos de fallo de despliegue y proveedor para AGROSBO. Cubre: cold start Lambda, modo in-memory vs PostgreSQL, proveedor auth local-session vs cognito-jwt (no implementado), driver attachments local vs s3 (no implementado), Aurora Data API, failover offline, y errores de configuración detectables en arranque.",
+    "totalCases": 24,
+    "baselineSha": "156036a",
+    "generatedAt": "2026-07-27T22:33:08Z",
+    "implementationStatus": {
+      "cognitoJwt": "NOT_IMPLEMENTED — throws 'not yet implemented'",
+      "s3Attachments": "NOT_IMPLEMENTED — throws 'not yet implemented'",
+      "cdkInfra": "NOT_IMPLEMENTED — infra/src/index.ts is a 3-line placeholder",
+      "auroraDataApi": "PLANNED — Spec 20 work item"
+    },
+    "allowedClassifications": [
+      "VERIFIED_IN_REPOSITORY",
+      "PROPOSED_TEST_CASE",
+      "RUNTIME_VALIDATION_REQUIRED",
+      "OPEN_DECISION",
+      "NOT_IMPLEMENTED"
+    ],
+    "deploymentExecuted": false,
+    "infrastructureStatus": "NOT_IMPLEMENTED"
+  },
+  "cases": [
+    {
+      "id": "DC-001",
+      "category": "cold-start",
+      "deployment": "Lambda + @vendia/serverless-express",
+      "description": "Cold start exitoso con PostgreSQL disponible",
+      "scenario": "Primera invocación Lambda — DATABASE_URL configurado, Aurora Data API responde",
+      "flow": [
+        "handlers/index.ts setup() se ejecuta",
+        "seedDatabase() completa sin error",
+        "verifyIdempotencyTable() valida el schema",
+        "clearOrphanProcessingDb() limpia filas stale",
+        "cleanupExpiredDb() limpia expirados",
+        "initIdempotency() completa",
+        "serverless-express listo para requests"
+      ],
+      "expectedState": "HEALTHY — PostgreSQL storage, idempotencia transaccional disponible",
+      "metrics": {
+        "typicalColdStartMs": "800-2000ms",
+        "dbConnectionTimeMs": "100-400ms"
+      },
+      "notes": "seedDatabase() se ejecuta en cada cold start. Si falla, el proceso se cierra (fail-closed pattern).",
+      "classification": "RUNTIME_VALIDATION_REQUIRED",
+      "classificationRationale": "Requiere un entorno desplegado o proveedor real; no fue ejecutado."
+    },
+    {
+      "id": "DC-002",
+      "category": "cold-start",
+      "deployment": "Lambda",
+      "description": "Cold start sin DATABASE_URL — modo in-memory",
+      "scenario": "DATABASE_URL no configurado en el entorno Lambda",
+      "flow": [
+        "hasDatabaseUrl() retorna false",
+        "storage = InMemoryStorage (no persistente)",
+        "verifyIdempotencyTable() no-op (usesTransactionalDatabaseStorage=false)",
+        "initIdempotency() completa sin verificación de schema",
+        "memCache = new Map() para idempotencia"
+      ],
+      "expectedState": "DEGRADED — datos no persisten entre invocaciones Lambda; idempotencia solo en memoria de proceso",
+      "affectedEndpoints": [
+        "POST /api/expenses (503)",
+        "POST /api/labor-costs (503)",
+        "POST /api/apiaries (503)",
+        "POST /api/hives (503)",
+        "POST /api/hive-inspections (503)",
+        "POST /api/honey-harvests (503)",
+        "POST /api/attachments (503)"
+      ],
+      "errorCode": "DATABASE_REQUIRED",
+      "notes": "Sin DATABASE_URL, los endpoints que requieren requireDatabaseExecutor retornan 503 con code:DATABASE_REQUIRED.",
+      "classification": "RUNTIME_VALIDATION_REQUIRED",
+      "classificationRationale": "Requiere un entorno desplegado o proveedor real; no fue ejecutado."
+    },
+    {
+      "id": "DC-003",
+      "category": "cold-start",
+      "deployment": "Lambda",
+      "description": "Cold start — schema de idempotencia inexistente (migración no aplicada)",
+      "scenario": "DATABASE_URL configurado pero npm run db:migrate no se ejecutó",
+      "flow": [
+        "verifyIdempotencyTable() ejecuta SELECT limit 0",
+        "PostgreSQL error: relation 'idempotency_keys' does not exist",
+        "throw Error: schema check failed — run npm run db:migrate",
+        "setup() lanza → proceso Lambda termina sin servir"
+      ],
+      "expectedState": "FATAL — Lambda no arranca. Fail-closed.",
+      "remediation": "Ejecutar npm run db:migrate contra la base de datos de producción antes de desplegar.",
+      "notes": "Este es el caso que hace imprescindible verificar migraciones antes del primer despliegue a producción.",
+      "classification": "PROPOSED_TEST_CASE",
+      "classificationRationale": "Caso futuro propuesto; no afirma implementación ni ejecución."
+    },
+    {
+      "id": "DC-004",
+      "category": "cold-start",
+      "deployment": "Lambda",
+      "description": "Cold start — seedDatabase() falla por error de esquema",
+      "scenario": "DATABASE_URL válido, migración aplicada, pero datos de seed contradicen constraints",
+      "flow": [
+        "verifyIdempotencyTable() → ok",
+        "seedDatabase() → INSERT lanza constraint violation",
+        "setup() lanza",
+        "Lambda no sirve requests"
+      ],
+      "expectedState": "FATAL — Fail-closed.",
+      "notes": "seedDatabase() en cold start es un riesgo conocido. Ver OD-12 (Spec 18 decisions).",
+      "classification": "PROPOSED_TEST_CASE",
+      "classificationRationale": "Caso futuro propuesto; no afirma implementación ni ejecución."
+    },
+    {
+      "id": "DC-005",
+      "category": "auth-provider",
+      "deployment": "any",
+      "description": "APP_AUTH_PROVIDER=local-session — flujo de autenticación operativo",
+      "scenario": "Variable de entorno APP_AUTH_PROVIDER=local-session (default de desarrollo)",
+      "flow": [
+        "env.ts lee APP_AUTH_PROVIDER=local-session",
+        "LocalSessionAuthProvider configurado",
+        "POST /api/auth/login → verifica credenciales → setSessionCookie → 200",
+        "GET /api/auth/me → lee cookie → retorna User",
+        "req.user disponible en todos los handlers"
+      ],
+      "expectedState": "OPERATIONAL — autenticación funcional",
+      "authPublicPaths": [
+        "/api/health/live",
+        "/api/health/ready",
+        "/api/crops",
+        "/api/auth/login",
+        "/api/auth/me",
+        "/api/auth/logout"
+      ],
+      "notes": "LocalSessionAuthProvider es el único proveedor funcional en el baseline actual.",
+      "classification": "VERIFIED_IN_REPOSITORY",
+      "classificationRationale": "Comportamiento respaldado por código actual; no afirma validación de despliegue."
+    },
+    {
+      "id": "DC-006",
+      "category": "auth-provider",
+      "deployment": "any",
+      "description": "APP_AUTH_PROVIDER=cognito-jwt — not yet implemented",
+      "scenario": "APP_AUTH_PROVIDER=cognito-jwt configurado en producción",
+      "flow": [
+        "env.ts lee APP_AUTH_PROVIDER=cognito-jwt",
+        "getProviders() en providers/index.ts intenta inicializar CognitoJwtProvider",
+        "throw Error: 'not yet implemented'",
+        "Servidor no arranca"
+      ],
+      "expectedState": "FATAL — cognito-jwt.ts no existe en el baseline. No usar en producción hasta que Spec 21 lo implemente.",
+      "affectedVars": [
+        "COGNITO_USER_POOL_ID",
+        "COGNITO_APP_CLIENT_ID",
+        "COGNITO_ISSUER"
+      ],
+      "notes": "Los 3 vars de Cognito están definidos en env.ts pero el proveedor no está implementado. COGNITO_CLIENT_ID no existe (usar COGNITO_APP_CLIENT_ID).",
+      "classification": "NOT_IMPLEMENTED",
+      "classificationRationale": "Proveedor o infraestructura explícitamente no implementado."
+    },
+    {
+      "id": "DC-007",
+      "category": "auth-enforcement",
+      "deployment": "any",
+      "description": "AUTH_ENFORCEMENT=off — todos los guards omitidos",
+      "scenario": "Variable AUTH_ENFORCEMENT=off (default de desarrollo / Replit)",
+      "flow": [
+        "Global auth guard en app.ts: if (env.authEnforcement === 'off') return next()",
+        "requireRole() también es no-op cuando AUTH_ENFORCEMENT=off",
+        "Todos los endpoints accesibles sin autenticación"
+      ],
+      "expectedState": "INSECURE for production — permisible en desarrollo",
+      "notes": "SESSION_SECRET no es requerido cuando AUTH_ENFORCEMENT=off (ephemeral fallback). NO desplegar a producción con AUTH_ENFORCEMENT=off.",
+      "classification": "VERIFIED_IN_REPOSITORY",
+      "classificationRationale": "Comportamiento respaldado por código actual; no afirma validación de despliegue."
+    },
+    {
+      "id": "DC-008",
+      "category": "auth-enforcement",
+      "deployment": "production",
+      "description": "AUTH_ENFORCEMENT=on sin SESSION_SECRET — fallo de arranque",
+      "scenario": "AUTH_ENFORCEMENT=on pero SESSION_SECRET no está en los secrets del entorno",
+      "flow": [
+        "env.ts evalúa SESSION_SECRET",
+        "if (authEnforcement === 'on' && !SESSION_SECRET) → throw Error",
+        "Servidor no arranca"
+      ],
+      "expectedState": "FATAL — SESSION_SECRET es requerido cuando AUTH_ENFORCEMENT=on",
+      "notes": "SESSION_SECRET está en el workspace secrets de Replit. Disponible como env var pero no debe ser hardcodeado ni logueado.",
+      "classification": "VERIFIED_IN_REPOSITORY",
+      "classificationRationale": "Comportamiento respaldado por código actual; no afirma validación de despliegue."
+    },
+    {
+      "id": "DC-009",
+      "category": "auth-enforcement",
+      "deployment": "production",
+      "description": "AUTH_ENFORCEMENT=on — request sin cookie/token en ruta protegida",
+      "scenario": "Cliente hace GET /api/blocks sin sesión cuando AUTH_ENFORCEMENT=on",
+      "flow": [
+        "attachUser() middleware corre — no encuentra cookie válida → req.user = null",
+        "Global auth guard: req.path !== AUTH_PUBLIC && !req.user → 401",
+        "Handler nunca se ejecuta"
+      ],
+      "expectedState": "EXPECTED 401 — seguridad correcta",
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "No autenticado"
+      },
+      "notes": "Los 6 paths en AUTH_PUBLIC están exentos. /api/blocks NO es PUBLIC → requiere autenticación.",
+      "classification": "VERIFIED_IN_REPOSITORY",
+      "classificationRationale": "Comportamiento respaldado por código actual; no afirma validación de despliegue."
+    },
+    {
+      "id": "DC-010",
+      "category": "attachments-provider",
+      "deployment": "any",
+      "description": "ATTACHMENTS_STORAGE_DRIVER=local — operativo en desarrollo",
+      "scenario": "ATTACHMENTS_STORAGE_DRIVER=local (default, sin S3)",
+      "flow": [
+        "providers/index.ts inicializa LocalAttachmentsProvider",
+        "POST /api/attachments → escribe al filesystem local (UPLOADS_DIR)",
+        "/uploads/* servido como estático por app.ts (express.static)"
+      ],
+      "expectedState": "OPERATIONAL en Replit dev. DEGRADED en Lambda (filesystem efímero).",
+      "notes": "En Lambda, los archivos locales se pierden entre invocaciones. Solo válido para desarrollo.",
+      "classification": "VERIFIED_IN_REPOSITORY",
+      "classificationRationale": "Comportamiento respaldado por código actual; no afirma validación de despliegue."
+    },
+    {
+      "id": "DC-011",
+      "category": "attachments-provider",
+      "deployment": "any",
+      "description": "ATTACHMENTS_STORAGE_DRIVER=s3 — not yet implemented",
+      "scenario": "ATTACHMENTS_STORAGE_DRIVER=s3 configurado",
+      "flow": [
+        "providers/index.ts intenta inicializar S3AttachmentsProvider",
+        "throw Error: 'not yet implemented'",
+        "Servidor no arranca"
+      ],
+      "expectedState": "FATAL — S3AttachmentsProvider no existe en el baseline. Esperar Spec 20.",
+      "notes": "S3 + CloudFront para adjuntos es trabajo de Spec 20. No configurar en producción hasta entonces.",
+      "classification": "NOT_IMPLEMENTED",
+      "classificationRationale": "Proveedor o infraestructura explícitamente no implementado."
+    },
+    {
+      "id": "DC-012",
+      "category": "database-failure",
+      "deployment": "Lambda + Aurora",
+      "description": "Aurora Data API cold start — primera consulta lenta",
+      "scenario": "Aurora Serverless v2 con Data API, primera query tras idle period",
+      "flow": [
+        "seedDatabase() ejecuta primera query a Aurora",
+        "Aurora Data API puede tardar 1-5s en warm up",
+        "Query completa con éxito",
+        "Cold start total: Lambda init + Aurora warm = potencialmente 3-7s"
+      ],
+      "expectedState": "SLOW but OPERATIONAL — dentro del timeout de Lambda (configurar min 10s)",
+      "mitigations": [
+        "Aurora min ACU > 0 (previene cold start de DB)",
+        "Lambda provisioned concurrency (previene Lambda cold start)",
+        "Configurar Lambda timeout >= 30s para arranque robusto"
+      ],
+      "notes": "Doble cold start (Lambda + Aurora) es el escenario de peor caso. Ver resultados S3 en manifest-s3.md.",
+      "classification": "RUNTIME_VALIDATION_REQUIRED",
+      "classificationRationale": "Requiere un entorno desplegado o proveedor real; no fue ejecutado."
+    },
+    {
+      "id": "DC-013",
+      "category": "database-failure",
+      "deployment": "Lambda + Aurora",
+      "description": "Aurora Data API timeout durante request — 503 al cliente",
+      "scenario": "Query a Aurora supera el timeout configurado en Drizzle/Data API",
+      "flow": [
+        "Handler llama storage.listBlocks()",
+        "Drizzle ORM ejecuta SELECT via Data API",
+        "Aurora timeout o red error",
+        "asyncHandler atrapa el error",
+        "Error handler: res.status(500).json({error: 'Error interno del servidor'})"
+      ],
+      "expectedStatus": 500,
+      "expectedBody": {
+        "error": "Error interno del servidor"
+      },
+      "notes": "No hay retry automático en el handler actual. El cliente debe implementar retry con backoff exponencial.",
+      "classification": "RUNTIME_VALIDATION_REQUIRED",
+      "classificationRationale": "Requiere un entorno desplegado o proveedor real; no fue ejecutado."
+    },
+    {
+      "id": "DC-014",
+      "category": "database-failure",
+      "deployment": "any",
+      "description": "DatabaseRequiredError en endpoint de gastos — 503",
+      "scenario": "GET o POST /api/expenses cuando DATABASE_URL no está configurado",
+      "flow": [
+        "requireDatabaseExecutor(getStorage(req)) se ejecuta",
+        "getStorage(req) retorna InMemoryStorage",
+        "isTransactionalStorage(InMemoryStorage) = false",
+        "throw DatabaseRequiredError",
+        "Error handler: res.status(503).json({error: mensaje, code: 'DATABASE_REQUIRED'})"
+      ],
+      "expectedStatus": 503,
+      "expectedBody": {
+        "error": "Operación no disponible con almacenamiento en memoria",
+        "code": "DATABASE_REQUIRED"
+      },
+      "affectedEndpoints": [
+        "POST /api/expenses",
+        "DELETE /api/expenses/:id",
+        "POST /api/labor-costs",
+        "POST /api/apiaries",
+        "POST /api/hives",
+        "POST /api/hive-inspections",
+        "POST /api/honey-harvests",
+        "POST /api/attachments"
+      ],
+      "notes": "GET /api/expenses también falla si usa requireDatabaseExecutor — verificar en implementación.",
+      "classification": "VERIFIED_IN_REPOSITORY",
+      "classificationRationale": "Comportamiento respaldado por código actual; no afirma validación de despliegue."
+    },
+    {
+      "id": "DC-015",
+      "category": "validation-failure",
+      "deployment": "any",
+      "description": "Zod schema error — 400 con issues detalladas",
+      "scenario": "Body de POST /api/tasks con campo requerido faltante o tipo incorrecto",
+      "examples": [
+        {
+          "input": "{ title: '' }",
+          "error": "title: String must contain at least 1 character"
+        },
+        {
+          "input": "{ priority: 'urgent' }",
+          "error": "priority: Invalid enum value. Expected 'low' | 'med' | 'high'"
+        },
+        {
+          "input": "{ status: 'active' }",
+          "error": "status: Invalid enum value. Expected 'pending' | 'in_progress' | 'done'"
+        }
+      ],
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "Datos inválidos",
+        "issues": "[ZodIssue[]]"
+      },
+      "notes": "El error handler de routes.ts atrapa ZodError y retorna 400. El campo 'issues' permite al cliente mostrar errores campo por campo.",
+      "classification": "VERIFIED_IN_REPOSITORY",
+      "classificationRationale": "Comportamiento respaldado por código actual; no afirma validación de despliegue."
+    },
+    {
+      "id": "DC-016",
+      "category": "validation-failure",
+      "deployment": "any",
+      "description": "Inventory stock negativo — 409 InventoryStockError",
+      "scenario": "PATCH /api/inventory/:id con delta que llevaría el stock a < 0",
+      "flow": [
+        "requireRole pasa (admin/tecnico/encargado)",
+        "idempotent wrapper activo",
+        "storage.createInventoryMovement() detecta stock insuficiente",
+        "throw InventoryStockError(message)",
+        "Handler catch: res.status(409).json({error: err.message})"
+      ],
+      "expectedStatus": 409,
+      "notes": "InventoryStockError es un error de negocio, no de idempotencia. La clave se libera (release) para permitir reintentos con delta correcto.",
+      "classification": "VERIFIED_IN_REPOSITORY",
+      "classificationRationale": "Comportamiento respaldado por código actual; no afirma validación de despliegue."
+    },
+    {
+      "id": "DC-017",
+      "category": "validation-failure",
+      "deployment": "any",
+      "description": "Hive inspection — inventario de colmena no encontrado (422)",
+      "scenario": "POST /api/hive-inspections referencia itemId de inventario que no existe",
+      "flow": [
+        "createInspection() intenta usar inventario de colmena",
+        "throw HiveInventoryItemNotFoundError",
+        "Handler catch: res.status(422).json({error: err.message})"
+      ],
+      "expectedStatus": 422,
+      "notes": "422 Unprocessable Entity — body semánticamente incorrecto aunque sintácticamente válido.",
+      "classification": "VERIFIED_IN_REPOSITORY",
+      "classificationRationale": "Comportamiento respaldado por código actual; no afirma validación de despliegue."
+    },
+    {
+      "id": "DC-018",
+      "category": "offline-pwa",
+      "deployment": "PWA + Lambda",
+      "description": "Operación offline en PWA — encolada en Dexie",
+      "scenario": "Técnico en campo sin señal. Crea tarea en la PWA.",
+      "flow": [
+        "PWA detecta navigator.onLine = false",
+        "Mutación se encola en Dexie con X-Idempotency-Key generado",
+        "UI muestra estado 'pendiente de sincronización'",
+        "Cuando recupera conexión: Dexie replay → POST /api/tasks con la clave guardada",
+        "Si la clave ya fue procesada (sync anterior): X-Idempotent-Replay:1 → sin duplicado"
+      ],
+      "expectedState": "CONSISTENT — idempotencia previene duplicados al reconectar",
+      "notes": "La duración de la garantía de idempotencia es 24h (IDEM_TTL_MS). Operaciones offline de > 24h pueden duplicarse.",
+      "classification": "PROPOSED_TEST_CASE",
+      "classificationRationale": "Caso futuro propuesto; no afirma implementación ni ejecución."
+    },
+    {
+      "id": "DC-019",
+      "category": "offline-pwa",
+      "deployment": "PWA + Lambda",
+      "description": "Sync de cola offline — conflicto de estado (datos cambiados por otro usuario)",
+      "scenario": "Operario A marca tarea done offline; otro usuario la eliminó mientras tanto",
+      "flow": [
+        "PATCH /api/tasks/T-001/status → 404 not found",
+        "La cola offline recibe 404",
+        "PWA debe manejar el 404 con gracia (tarea ya no existe)"
+      ],
+      "expectedStatus": 404,
+      "expectedBody": {
+        "error": "Tarea no encontrado"
+      },
+      "resolution": "La PWA debe notificar al usuario del conflicto, no reintentar indefinidamente.",
+      "notes": "Conflictos de estado son inevitables en sistemas offline-first. El servidor es la fuente de verdad.",
+      "classification": "PROPOSED_TEST_CASE",
+      "classificationRationale": "Caso futuro propuesto; no afirma implementación ni ejecución."
+    },
+    {
+      "id": "DC-020",
+      "category": "alb-health-check",
+      "deployment": "Lambda + ALB",
+      "description": "ALB health check — GET /api/health/live sin auth",
+      "scenario": "ALB configurado para health check en /api/health/live",
+      "flow": [
+        "ALB envía GET /api/health/live cada N segundos",
+        "attachUser() no encuentra auth → req.user = null",
+        "Global auth guard: AUTH_PUBLIC.has('/health/live') → next()",
+        "registerHealthRoutes: retorna {ok:true, uptime}"
+      ],
+      "expectedStatus": 200,
+      "expectedBody": {
+        "ok": true,
+        "uptime": "number"
+      },
+      "notes": "AUTH_PUBLIC incluye '/health/live'. Sin auth necesaria. Importante: el path en AUTH_PUBLIC es '/health/live' (sin el prefijo /api) porque se evalúa sobre req.path dentro del router.",
+      "classification": "RUNTIME_VALIDATION_REQUIRED",
+      "classificationRationale": "Requiere un entorno desplegado o proveedor real; no fue ejecutado."
+    },
+    {
+      "id": "DC-021",
+      "category": "alb-health-check",
+      "deployment": "Lambda + ALB",
+      "description": "GET /api/health/ready — DB no conectada → 503",
+      "scenario": "ALB o monitoring usa /ready para verificar estado de DB",
+      "flow": [
+        "registerHealthRoutes ejecuta checks",
+        "checks.database = false (DB no accesible)",
+        "res.status(503).json({ok:false, checks:{config:true, database:false}, now:isoString})"
+      ],
+      "expectedStatus": 503,
+      "expectedBody": {
+        "ok": false,
+        "checks": {
+          "config": true,
+          "database": false
+        },
+        "now": "ISO string"
+      },
+      "notes": "ALB puede interpretar 503 de /ready como instancia no lista → retira del pool. Correcto comportamiento para blue/green.",
+      "classification": "RUNTIME_VALIDATION_REQUIRED",
+      "classificationRationale": "Requiere un entorno desplegado o proveedor real; no fue ejecutado."
+    },
+    {
+      "id": "DC-022",
+      "category": "cors-proxy",
+      "deployment": "Replit + Lambda",
+      "description": "Frontend hace fetch sin credenciales — falla de CORS",
+      "scenario": "web/src hace fetch a VITE_API_BASE_URL con credenciales de session cookie",
+      "flow": [
+        "VITE_API_BASE_URL = '' (same-origin default)",
+        "En Replit dev: frontend y backend corren en puertos distintos",
+        "Requests same-origin funcionan. Cross-origin sin CORS headers → 401 o error CORS"
+      ],
+      "expectedState": "OPERATIONAL en same-origin deployment. Requiere CORS config para cross-origin.",
+      "notes": "api-config.ts: VITE_API_BASE_URL || '' — sin hardcode de localhost. En Replit, el proxy maneja el routing.",
+      "classification": "PROPOSED_TEST_CASE",
+      "classificationRationale": "Caso futuro propuesto; no afirma implementación ni ejecución."
+    },
+    {
+      "id": "DC-023",
+      "category": "csv-export-import",
+      "deployment": "any",
+      "description": "Export CSV — dataset desconocido → 400",
+      "scenario": "GET /api/integrations/export/unknown-dataset",
+      "flow": [
+        "exportDatasetSchema.parse('unknown-dataset') → ZodError",
+        "Error handler: 400 {error: 'Datos inválidos', issues: [...]}"
+      ],
+      "validDatasets": [
+        "blocks",
+        "greenhouses",
+        "tasks",
+        "irrigation-events",
+        "observations",
+        "inventory",
+        "harvest-lots"
+      ],
+      "expectedStatus": 400,
+      "notes": "importDatasetSchema también valida para POST /integrations/import/:dataset.",
+      "classification": "VERIFIED_IN_REPOSITORY",
+      "classificationRationale": "Comportamiento respaldado por código actual; no afirma validación de despliegue."
+    },
+    {
+      "id": "DC-024",
+      "category": "csv-export-import",
+      "deployment": "any",
+      "description": "Import CSV en dryRun=true — validación sin persistencia",
+      "scenario": "POST /api/integrations/import/tasks con body {csv:'...', dryRun:true}",
+      "flow": [
+        "importDatasetSchema.parse(req.params.dataset) valida el tipo",
+        "z.object({csv,dryRun}).parse(req.body) — dryRun defaults true",
+        "parseAndImport(dataset, csv, true, storage) — no escribe a DB",
+        "retorna ImportResult con filas válidas/inválidas"
+      ],
+      "expectedStatus": 200,
+      "expectedBody": "ImportResult { rows: number, valid: number, invalid: number, errors: [] }",
+      "notes": "dryRun=true es el default seguro — el usuario debe enviar dryRun:false explícitamente para persistir. Permite validar el CSV antes de importar.",
+      "classification": "VERIFIED_IN_REPOSITORY",
+      "classificationRationale": "Comportamiento respaldado por código actual; no afirma validación de despliegue."
+    }
+  ]
+}

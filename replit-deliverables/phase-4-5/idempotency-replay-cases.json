@@ -1,0 +1,438 @@
+{
+  "_meta": {
+    "description": "24 casos de prueba de idempotencia para el middleware idempotent() de AGROSBO. Verificado desde api/src/idempotency.ts (origin/main SHA 156036a). Cubre ambos backends (in-memory y PostgreSQL), comportamientos de replay, conflictos, expiración y casos límite.",
+    "totalCases": 24,
+    "baselineSha": "156036a",
+    "generatedAt": "2026-07-27T22:33:08Z",
+    "keyConstants": {
+      "IDEM_TTL_MS": 86400000,
+      "PROCESSING_STALE_MS": 600000,
+      "IDEM_MAX_MEM": 5000,
+      "CLEANUP_PROBABILITY": 0.01,
+      "keyFormat": "${method}:${baseUrl}${path}:${headerValue}",
+      "replayHeader": "X-Idempotent-Replay: 1",
+      "processingConflictCode": "IDEMPOTENCY_IN_PROGRESS",
+      "conflictStatus": 409,
+      "retryAfterOnConflict": 2,
+      "serviceUnavailableRetryAfter": 5
+    }
+  },
+  "cases": [
+    {
+      "id": "IC-001",
+      "category": "happy-path",
+      "backend": "in-memory",
+      "description": "Primera ejecución sin clave — pasa directo al handler",
+      "request": {
+        "method": "POST",
+        "path": "/api/tasks",
+        "headers": {}
+      },
+      "expectedFlow": "idemKey() retorna null → handler ejecuta directamente sin idempotency check",
+      "expectedStatus": 201,
+      "expectedIdempotentReplay": false,
+      "notes": "Si no se envía X-Idempotency-Key, el middleware no actúa."
+    },
+    {
+      "id": "IC-002",
+      "category": "happy-path",
+      "backend": "in-memory",
+      "description": "Primera ejecución con clave nueva — claimed y completada",
+      "request": {
+        "method": "POST",
+        "path": "/api/tasks",
+        "headers": {
+          "X-Idempotency-Key": "key-ic-002"
+        }
+      },
+      "derivedKey": "POST:/api/tasks:key-ic-002",
+      "expectedFlow": "claimMem() → type:claimed → handler ejecuta → complete() guarda {status:201, body}",
+      "expectedStatus": 201,
+      "expectedIdempotentReplay": false,
+      "notes": "Primera ejecución exitosa. Clave guardada en memCache con TTL 24h."
+    },
+    {
+      "id": "IC-003",
+      "category": "replay",
+      "backend": "in-memory",
+      "description": "Replay de clave ya completada — retorna respuesta original",
+      "request": {
+        "method": "POST",
+        "path": "/api/tasks",
+        "headers": {
+          "X-Idempotency-Key": "key-ic-002"
+        },
+        "body": {
+          "scopeType": "block",
+          "scopeId": "B-01",
+          "title": "Revisar riego"
+        }
+      },
+      "prerequisite": "IC-002 completado con la misma clave y el mismo payload (state:completed)",
+      "derivedKey": "POST:/api/tasks:key-ic-002",
+      "expectedFlow": "claimMem() → type:completed → retorna {status, body} original inmediatamente",
+      "expectedStatus": 201,
+      "expectedHeaders": {
+        "X-Idempotent-Replay": "1"
+      },
+      "expectedIdempotentReplay": true,
+      "notes": "Misma clave + mismo payload: el handler NO se ejecuta; se reproduce la respuesta original."
+    },
+    {
+      "id": "IC-004",
+      "category": "conflict",
+      "backend": "in-memory",
+      "description": "Clave en estado processing (no stale) — 409 IDEMPOTENCY_IN_PROGRESS",
+      "request": {
+        "method": "POST",
+        "path": "/api/tasks",
+        "headers": {
+          "X-Idempotency-Key": "key-in-flight"
+        }
+      },
+      "prerequisite": "Entrada en memCache con state:processing, createdAt < PROCESSING_STALE_MS (< 10 min)",
+      "derivedKey": "POST:/api/tasks:key-in-flight",
+      "expectedFlow": "claimMem() → existing.state=processing, age < PROCESSING_STALE_MS → type:processing",
+      "expectedStatus": 409,
+      "expectedBody": {
+        "error": "Solicitud duplicada en proceso",
+        "code": "IDEMPOTENCY_IN_PROGRESS"
+      },
+      "expectedHeaders": {
+        "Retry-After": "2"
+      },
+      "notes": "El cliente debe respetar Retry-After: 2 antes de reintentar."
+    },
+    {
+      "id": "IC-005",
+      "category": "stale-processing",
+      "backend": "in-memory",
+      "description": "Clave en estado processing pero stale (> 10 min) — se reclama",
+      "request": {
+        "method": "POST",
+        "path": "/api/tasks",
+        "headers": {
+          "X-Idempotency-Key": "key-stale"
+        }
+      },
+      "prerequisite": "Entrada en memCache con state:processing, age > PROCESSING_STALE_MS (> 10 min)",
+      "derivedKey": "POST:/api/tasks:key-stale",
+      "expectedFlow": "claimMem() → existing.state=processing, age > PROCESSING_STALE_MS → nueva entry claimed → handler ejecuta",
+      "expectedStatus": 201,
+      "expectedIdempotentReplay": false,
+      "notes": "Procesamiento huérfano por crash del worker anterior. Se reclama tras el stale timeout."
+    },
+    {
+      "id": "IC-006",
+      "category": "expiry",
+      "backend": "in-memory",
+      "description": "Clave expirada (> 24h) — se trata como nueva",
+      "request": {
+        "method": "POST",
+        "path": "/api/tasks",
+        "headers": {
+          "X-Idempotency-Key": "key-expired"
+        }
+      },
+      "prerequisite": "Entrada en memCache con expires < now (TTL 24h transcurrido)",
+      "expectedFlow": "pruneMem() elimina la entrada expirada → claimMem() no la encuentra → claimed → handler ejecuta",
+      "expectedStatus": 201,
+      "expectedIdempotentReplay": false,
+      "notes": "pruneMem() se ejecuta en cada llamada a claimMem(). Entradas expiradas se limpian proactivamente."
+    },
+    {
+      "id": "IC-007",
+      "category": "error-handling",
+      "backend": "in-memory",
+      "description": "Handler lanza error — clave liberada",
+      "request": {
+        "method": "POST",
+        "path": "/api/tasks",
+        "headers": {
+          "X-Idempotency-Key": "key-error"
+        }
+      },
+      "expectedFlow": "claimed → handler lanza Error → release(key, token) llamado → clave eliminada del cache → 500",
+      "expectedStatus": 500,
+      "expectedIdempotentReplay": false,
+      "notes": "release() se llama en el catch block. La clave queda disponible para reintentos."
+    },
+    {
+      "id": "IC-008",
+      "category": "error-handling",
+      "backend": "in-memory",
+      "description": "Handler retorna 5xx — clave liberada (no se persiste error)",
+      "request": {
+        "method": "POST",
+        "path": "/api/tasks",
+        "headers": {
+          "X-Idempotency-Key": "key-5xx"
+        }
+      },
+      "expectedFlow": "claimed → handler retorna cap.status >= 500 → release(key, token) → no complete() → retorna 5xx",
+      "expectedStatus": 503,
+      "expectedIdempotentReplay": false,
+      "notes": "Errores 5xx NO se persisten en el cache de idempotencia. Permite reintentos seguros."
+    },
+    {
+      "id": "IC-009",
+      "category": "key-format",
+      "backend": "in-memory",
+      "description": "Misma clave en diferente ruta — son claves distintas",
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/tasks",
+          "headers": {
+            "X-Idempotency-Key": "same-value"
+          },
+          "derivedKey": "POST:/api/tasks:same-value"
+        },
+        {
+          "method": "POST",
+          "path": "/api/observations",
+          "headers": {
+            "X-Idempotency-Key": "same-value"
+          },
+          "derivedKey": "POST:/api/observations:same-value"
+        }
+      ],
+      "expectedBehavior": "Claves derivadas son distintas (incluyen el path). Cada ruta tiene su espacio de claves aislado.",
+      "notes": "keyFormat: `${method}:${baseUrl}${path}:${headerValue}` — el path es parte de la clave."
+    },
+    {
+      "id": "IC-010",
+      "category": "key-format",
+      "backend": "in-memory",
+      "description": "Mismo valor de header, diferente método HTTP — claves distintas",
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/tasks",
+          "headers": {
+            "X-Idempotency-Key": "key-x"
+          },
+          "derivedKey": "POST:/api/tasks:key-x"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/tasks/T-001",
+          "headers": {
+            "X-Idempotency-Key": "key-x"
+          },
+          "derivedKey": "PATCH:/api/tasks/T-001:key-x"
+        }
+      ],
+      "expectedBehavior": "El método HTTP forma parte de la clave derivada. POST y PATCH con el mismo header son operaciones independientes.",
+      "notes": "Importante: el operador no puede confundir operaciones diferentes usando el mismo idempotency key header value."
+    },
+    {
+      "id": "IC-011",
+      "category": "db-transactional",
+      "backend": "postgresql",
+      "description": "Primera ejecución con DB — INSERT exitoso en idempotency_keys",
+      "request": {
+        "method": "POST",
+        "path": "/api/expenses",
+        "headers": {
+          "X-Idempotency-Key": "key-db-001"
+        }
+      },
+      "expectedFlow": "isTransactionalStorage=true → withTransaction → claimTx(tx, key) → INSERT idempotency_keys → type:claimed → handler ejecuta → completeTx(tx, key, token, status, body)",
+      "expectedStatus": 201,
+      "expectedIdempotentReplay": false,
+      "notes": "En modo PostgreSQL, el claim y el handler corren en la MISMA transacción (atomicidad completa)."
+    },
+    {
+      "id": "IC-012",
+      "category": "db-transactional",
+      "backend": "postgresql",
+      "description": "Replay con DB — SELECT finds completed entry",
+      "request": {
+        "method": "POST",
+        "path": "/api/expenses",
+        "headers": {
+          "X-Idempotency-Key": "key-db-001"
+        }
+      },
+      "prerequisite": "IC-011 completado — fila en idempotency_keys con state:completed",
+      "expectedFlow": "claimTx → INSERT onConflictDoNothing → inserted.length=0 → SELECT existing → state=completed → type:completed → retorna body original",
+      "expectedStatus": 201,
+      "expectedHeaders": {
+        "X-Idempotent-Replay": "1"
+      },
+      "expectedIdempotentReplay": true,
+      "notes": "La unicidad se garantiza por la constraint única en la columna 'key' de idempotency_keys."
+    },
+    {
+      "id": "IC-013",
+      "category": "db-transactional",
+      "backend": "postgresql",
+      "description": "Race condition — concurrent INSERT mismo key, uno gana por unique constraint",
+      "request": {
+        "method": "POST",
+        "path": "/api/expenses",
+        "headers": {
+          "X-Idempotency-Key": "key-race"
+        }
+      },
+      "scenario": "Dos instancias Lambda intentan INSERT simultáneamente con la misma key",
+      "expectedFlow": "Instance A: INSERT ok → type:claimed. Instance B: INSERT → onConflictDoNothing → inserted.length=0 → SELECT → state:processing, age < stale → type:processing → 409",
+      "expectedStatuses": [
+        201,
+        409
+      ],
+      "notes": "onConflictDoNothing previene duplicate key error. El perdedor recibe 409 con Retry-After:2."
+    },
+    {
+      "id": "IC-014",
+      "category": "db-transactional",
+      "backend": "postgresql",
+      "description": "Fila processing stale en DB — se limpia y se reclama",
+      "request": {
+        "method": "POST",
+        "path": "/api/expenses",
+        "headers": {
+          "X-Idempotency-Key": "key-stale-db"
+        }
+      },
+      "prerequisite": "Fila en idempotency_keys con state:processing, created_at > 10 min atrás",
+      "expectedFlow": "claimTx → INSERT onConflictDoNothing → 0 inserted → SELECT → state=processing, createdAt < staleCutoff → DELETE stale row → re-INSERT → type:claimed",
+      "expectedStatus": 201,
+      "notes": "La limpieza de stale processing en DB usa staleCutoff = now - PROCESSING_STALE_MS. clearOrphanProcessingDb() también se ejecuta en initIdempotency() al cold start."
+    },
+    {
+      "id": "IC-015",
+      "category": "db-transactional",
+      "backend": "postgresql",
+      "description": "complete() falla (DB error) — release() y 503",
+      "request": {
+        "method": "POST",
+        "path": "/api/expenses",
+        "headers": {
+          "X-Idempotency-Key": "key-complete-fail"
+        }
+      },
+      "expectedFlow": "claimed → handler ejecuta exitosamente → complete() lanza Error (DB down) → catch: release(key, token) → res.setHeader('Retry-After', '5') → 503",
+      "expectedStatus": 503,
+      "expectedHeaders": {
+        "Retry-After": "5"
+      },
+      "notes": "Fallo en persistir el resultado. La clave se libera — el cliente puede reintentar en 5s."
+    },
+    {
+      "id": "IC-016",
+      "category": "db-unavailable",
+      "backend": "postgresql",
+      "description": "type:unavailable — DB no disponible en el momento del claim",
+      "request": {
+        "method": "POST",
+        "path": "/api/expenses",
+        "headers": {
+          "X-Idempotency-Key": "key-unavailable"
+        }
+      },
+      "expectedFlow": "claimTx → error de conexión → type:unavailable → handler ejecuta sin garantía de idempotencia",
+      "expectedStatus": 201,
+      "notes": "DEGRADED MODE: si el subsistema de idempotencia no está disponible, la operación se ejecuta sin garantías — el caller debe detectar duplicados por otros medios."
+    },
+    {
+      "id": "IC-017",
+      "category": "mem-eviction",
+      "backend": "in-memory",
+      "description": "Cache en memoria llena (> 5000 entries) — eviction LRU-like",
+      "scenario": "memCache.size > IDEM_MAX_MEM (5000)",
+      "expectedFlow": "pruneMem() itera por expirados primero. Si aún size > IDEM_MAX_MEM, elimina el primer entry (insertion-order FIFO) hasta que size ≤ 5000",
+      "notes": "Map preserva orden de inserción. La eviction elimina las entradas más antiguas. Puede perder entradas válidas no expiradas bajo carga extrema."
+    },
+    {
+      "id": "IC-018",
+      "category": "cleanup",
+      "backend": "postgresql",
+      "description": "cleanupExpiredDb() — eliminación de entradas expiradas en DB",
+      "scenario": "initIdempotency() en cold start, o probabilidad 1% en cada claim",
+      "expectedFlow": "DELETE FROM idempotency_keys WHERE expires_at < now(). Ejecutado en el contexto de idemLog.",
+      "notes": "CLEANUP_PROBABILITY = 0.01 → ~1% de requests activan la limpieza. El cold start siempre limpia. Error de limpieza es logueado pero no propaga al usuario."
+    },
+    {
+      "id": "IC-019",
+      "category": "schema-check",
+      "backend": "postgresql",
+      "description": "verifyIdempotencyTable() falla en cold start — error explícito",
+      "scenario": "La tabla idempotency_keys no existe (migración no aplicada)",
+      "expectedFlow": "verifyIdempotencyTable() → SELECT limit 0 → PG error → throw Error con mensaje 'run npm run db:migrate'",
+      "expectedError": "schema check failed for 'idempotency_keys' — run 'npm run db:migrate' to apply latest schema",
+      "notes": "Fail-closed: el servidor no arranca si el schema de idempotencia no está listo."
+    },
+    {
+      "id": "IC-020",
+      "category": "response-capture",
+      "backend": "in-memory",
+      "description": "res.json() interceptado — captura de status y body",
+      "scenario": "Handler llama res.status(201).json({id: 'T-new'}) en el middleware de idempotencia",
+      "expectedFlow": "Middleware sobreescribe res.json → captura {status:201, body:{id:'T-new'}} → llama original res.json → guarda en complete()",
+      "notes": "El middleware parchea res.json, res.send y res.end para capturar la respuesta antes de persistirla."
+    },
+    {
+      "id": "IC-021",
+      "category": "response-capture",
+      "backend": "in-memory",
+      "description": "Handler llama res.end() sin body — captura de status sin body",
+      "scenario": "DELETE handler: res.status(200).end()",
+      "expectedFlow": "Middleware sobreescribe res.end → captura {status:200, body:null} → complete() persiste body=null → replay retorna status 200 sin body",
+      "expectedStatus": 200,
+      "notes": "body=null es válido en complete(). En replay: if (cap.body === null) return res.status(cap.status).end()"
+    },
+    {
+      "id": "IC-022",
+      "category": "transaction-compensation",
+      "backend": "postgresql",
+      "description": "IdempotencyAbortError lanza en withTransaction — compensaciones se ejecutan",
+      "scenario": "claimTx retorna type:processing dentro de withTransaction → se lanza IdempotencyAbortError('processing')",
+      "expectedFlow": "withTransaction atrapa IdempotencyAbortError → transacción hace rollback → runTransactionCompensations() se ejecuta → 409 se retorna del respHolder",
+      "expectedStatus": 409,
+      "notes": "IdempotencyAbortError es la señal de aborto limpio. No es un error inesperado — es parte del flujo de control."
+    },
+    {
+      "id": "IC-023",
+      "category": "idempotency-key-construction",
+      "backend": "both",
+      "description": "Misma clave y payload distinto: la clave derivada no incluye el payload",
+      "notes": "Limitación verificada: idemKey usa método + baseUrl + path + header, no el payload.",
+      "requests": [
+        {
+          "method": "POST",
+          "baseUrl": "/api",
+          "path": "/tasks",
+          "header": "payload-test",
+          "body": {
+            "title": "Tarea A"
+          },
+          "expectedKey": "POST:/api/tasks:payload-test"
+        },
+        {
+          "method": "POST",
+          "baseUrl": "/api",
+          "path": "/tasks",
+          "header": "payload-test",
+          "body": {
+            "title": "Tarea B"
+          },
+          "expectedKey": "POST:/api/tasks:payload-test"
+        }
+      ],
+      "expectedFlow": "Ambos payloads producen la misma clave. Si el primero está completed, el segundo recibe replay del resultado original; el código actual no compara hashes de payload.",
+      "expectedIdempotentReplay": true
+    },
+    {
+      "id": "IC-024",
+      "category": "release",
+      "backend": "both",
+      "description": "release() en in-memory: elimina clave si attemptId coincide",
+      "scenario": "release(key, token) llamado después de error del handler",
+      "inMemoryFlow": "memCache.get(key) → si attemptId === token → memCache.delete(key)",
+      "dbFlow": "DELETE FROM idempotency_keys WHERE key=? AND attempt_id=?",
+      "notes": "La condición attemptId === token previene que un release libere una clave reclamada por otra instancia. Token es un UUID generado en cada claim."
+    }
+  ]
+}

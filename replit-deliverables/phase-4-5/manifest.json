@@ -1,0 +1,87 @@
+{
+  "_meta": {
+    "description": "Manifest del pack rescatado y reconciliado contra el baseline autorizado."
+  },
+  "packVersion": "1.1.0",
+  "packName": "agrosbo-phase-4-5-fixture-pack",
+  "baselineSha": "156036a",
+  "baselineDescription": "Merge pull request #18 from PedroD1265/replit/spec-17-cloud-prep",
+  "salvageSource": "origin/replit/spec-18-readiness-plan",
+  "workspaceBranch": "feat/phase-4-5-fixtures-salvaged",
+  "generatedAt": "2026-07-27",
+  "generatedBy": "Codex salvage under explicit allowlist",
+  "requiresKiroReview": true,
+  "requiresHumanPromotion": true,
+  "productionReady": false,
+  "zipIncluded": false,
+  "validatorReadOnlyByDefault": true,
+  "totalRecords": {
+    "readConversations": 48,
+    "writeScenarios": 36,
+    "idempotencyCases": 24,
+    "deploymentFailureCases": 24,
+    "routes": 88,
+    "totalFixtureRecords": 132
+  },
+  "coverage": {
+    "rbacRolesCovered": [
+      "admin",
+      "tecnico",
+      "encargado",
+      "operario",
+      "finanzas"
+    ],
+    "classificationVocabulary": [
+      "VERIFIED_IN_REPOSITORY",
+      "PROPOSED_TEST_CASE",
+      "RUNTIME_VALIDATION_REQUIRED",
+      "OPEN_DECISION",
+      "NOT_IMPLEMENTED"
+    ]
+  },
+  "files": [
+    {
+      "name": "README.md"
+    },
+    {
+      "name": "source-baseline.json"
+    },
+    {
+      "name": "route-catalog.json"
+    },
+    {
+      "name": "rbac-matrix.json"
+    },
+    {
+      "name": "agent-read-conversations.es.json"
+    },
+    {
+      "name": "agent-write-confirmation-scenarios.es.json"
+    },
+    {
+      "name": "idempotency-replay-cases.json"
+    },
+    {
+      "name": "deployment-and-provider-failure-cases.json"
+    },
+    {
+      "name": "validate-pack.mjs"
+    },
+    {
+      "name": "validation-report.md"
+    },
+    {
+      "name": "manifest.json"
+    }
+  ],
+  "verificationMethod": "Current TypeScript source extraction plus cross-file validation",
+  "knownLimitations": [
+    "Fixtures are synthetic specifications, not executed integration tests.",
+    "Cognito JWT, S3 attachments, and CDK infrastructure are NOT_IMPLEMENTED.",
+    "Aurora and deployment behavior require runtime validation.",
+    "The idempotency key does not hash or compare payloads."
+  ],
+  "openDecisionsAffectingThisPack": [
+    "Role guards absent on some authenticated mutations remain observations for Kiro/human review."
+  ]
+}

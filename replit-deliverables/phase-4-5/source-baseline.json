@@ -1,0 +1,180 @@
+{
+  "_meta": {
+    "description": "Baseline de código fuente verificado por lectura directa de git show origin/main. Todos los hechos son verificados a partir del SHA base.",
+    "baselineSha": "156036a",
+    "baselineDescription": "Merge pull request #18 from PedroD1265/replit/spec-17-cloud-prep",
+    "workspaceBranch": "feat/phase-4-5-fixtures-salvaged",
+    "extractedAt": "2026-07-27",
+    "verificationMethod": "current-branch-direct-source-read",
+    "totalRoutes": 88,
+    "salvageSource": "origin/replit/spec-18-readiness-plan"
+  },
+  "repo": {
+    "owner": "PedroD1265",
+    "name": "agrosbo",
+    "defaultBranch": "main"
+  },
+  "keyFiles": {
+    "api/src/app.ts": {
+      "routePrefix": "/api",
+      "authPublicPaths": [
+        "/health/live",
+        "/health/ready",
+        "/crops",
+        "/auth/login",
+        "/auth/me",
+        "/auth/logout"
+      ],
+      "authEnforcementVar": "AUTH_ENFORCEMENT",
+      "attachUserMiddleware": "applied to /api prefix",
+      "note": "apiRouter mounts registerHealthRoutes + registerRoutes; app.use('/api', apiRouter) → all public paths are /api/*"
+    },
+    "api/src/routes.ts": {
+      "totalRouterRoutes": 86,
+      "idempotentHeaderName": "X-Idempotency-Key",
+      "routeEvidence": "route-catalog.json contiene routePathAsDefined, guard e idempotencia derivados del TypeScript actual",
+      "noRequireRoleMutations": [
+        "POST /blocks",
+        "PATCH /blocks/:id",
+        "DELETE /blocks/:id",
+        "POST /greenhouses",
+        "PATCH /greenhouses/:id",
+        "DELETE /greenhouses/:id",
+        "POST /campaigns",
+        "PATCH /campaigns/:id",
+        "DELETE /campaigns/:id",
+        "POST /irrigation-events",
+        "POST /irrigation-events/:id/done",
+        "PATCH /irrigation-events/:id",
+        "DELETE /irrigation-events/:id",
+        "POST /tasks",
+        "PATCH /tasks/:id/status",
+        "PATCH /tasks/:id",
+        "DELETE /tasks/:id",
+        "POST /observations",
+        "DELETE /observations/:id",
+        "POST /observations/:id/tasks",
+        "POST /attachments",
+        "DELETE /attachments/:id",
+        "PUT /settings",
+        "POST /integrations/adapters/:id/toggle",
+        "POST /integrations/adapters/:id/test",
+        "POST /integrations/import/:dataset"
+      ],
+      "requireRoleAdminTecnicoEncargado": [
+        "POST /inventory",
+        "PATCH /inventory/:id",
+        "PATCH /inventory/:id/edit",
+        "DELETE /inventory/:id",
+        "POST /harvest-lots",
+        "PATCH /harvest-lots/:id",
+        "DELETE /harvest-lots/:id",
+        "POST /applications",
+        "POST /apiaries",
+        "POST /hives",
+        "POST /hive-inspections",
+        "POST /honey-harvests"
+      ],
+      "requireRoleAdminTecnicoEncargadoFinanzas": [
+        "POST /expenses",
+        "DELETE /expenses/:id",
+        "POST /labor-costs"
+      ],
+      "requireRoleAdmin": [
+        "GET /users",
+        "POST /users"
+      ]
+    },
+    "api/src/env.ts": {
+      "authProvider": "APP_AUTH_PROVIDER = 'local-session' | 'cognito-jwt'",
+      "cognitoVars": [
+        "COGNITO_USER_POOL_ID",
+        "COGNITO_APP_CLIENT_ID",
+        "COGNITO_ISSUER"
+      ],
+      "sessionSecret": "SESSION_SECRET — ephemeral fallback when AUTH_ENFORCEMENT=off; required when on",
+      "attachmentsDriver": "ATTACHMENTS_STORAGE_DRIVER = 'local' | 's3'",
+      "cognitoJwtStatus": "throws 'not yet implemented' — cognito-jwt.ts does not exist",
+      "s3AttachmentsStatus": "throws 'not yet implemented'"
+    },
+    "api/src/health.ts": {
+      "liveEndpoint": "GET /api/health/live → { ok: true, uptime: number }",
+      "readyEndpoint": "GET /api/health/ready → { ok: boolean, checks: { config: boolean, database: boolean }, now: string } — can return 503",
+      "routeCount": 2
+    },
+    "api/src/idempotency.ts": {
+      "ttlMs": 86400000,
+      "processingStaleMs": 600000,
+      "maxMemEntries": 5000,
+      "storageBackends": [
+        "in-memory (Map)",
+        "PostgreSQL idempotency_keys table"
+      ],
+      "claimResults": [
+        "completed",
+        "processing",
+        "claimed",
+        "unavailable"
+      ],
+      "replayHeader": "X-Idempotent-Replay: 1",
+      "processingConflictCode": "IDEMPOTENCY_IN_PROGRESS",
+      "conflictStatus": 409,
+      "retryAfterHeader": "Retry-After: 2"
+    },
+    "api/src/providers/index.ts": {
+      "roles": [
+        "admin",
+        "tecnico",
+        "encargado",
+        "operario",
+        "finanzas"
+      ],
+      "prohibitedRoleNames": [
+        "owner",
+        "collaborator",
+        "colaborador"
+      ]
+    },
+    "infra/src/index.ts": {
+      "content": "3-line placeholder — comment + export {}. Zero CDK constructs.",
+      "status": "NOT_IMPLEMENTED"
+    },
+    "web/src/lib/api-config.ts": {
+      "baseUrl": "VITE_API_BASE_URL || '' (same-origin default, no localhost hardcoded)",
+      "authProviders": {
+        "LocalSessionAuthProvider": "functional",
+        "CognitoAuthProvider": "future — comment only, not implemented"
+      }
+    }
+  },
+  "adrs": {
+    "ADR-015": {
+      "title": "Modelo de acción y confirmación del agente",
+      "status": "Accepted",
+      "keyRules": [
+        "Agent invokes structured tools — never generates or executes SQL",
+        "Navigation/reads do not require confirmation",
+        "All agent-proposed mutations require visible draft + explicit PWA confirmation",
+        "Server cannot execute mutation on LLM decision alone",
+        "Idempotent execution: Dexie offline queue → X-Idempotency-Key → audit",
+        "Sensitive actions (expenses, inventory, deletions) require reinforced confirmation (distinguishable UI)"
+      ],
+      "exceptionsToPWAConfirmation": [
+        "External collaborator structured response via valid token",
+        "External verified events (SES delivery, TTL expiry, revocation)"
+      ]
+    },
+    "ADR-018": {
+      "title": "Límites de la inteligencia agrícola",
+      "status": "Accepted",
+      "hardBoundaries": [
+        "No recomendar pesticidas, fungicidas ni agroquímicos específicos",
+        "No diagnóstico definitivo — solo evaluación preliminar con aviso de seguridad",
+        "No automatización financiera ni contractual",
+        "No proyecciones presentadas como certezas",
+        "Toda evaluación visual incluye aviso de seguridad",
+        "No sustituir asesoría profesional agronómica"
+      ]
+    }
+  }
+}
