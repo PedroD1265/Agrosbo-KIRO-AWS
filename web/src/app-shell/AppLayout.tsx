@@ -6,23 +6,36 @@ import { BottomNav } from './BottomNav';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SyncIndicator } from '@/shared/ui/SyncIndicator';
 import { CommandPalette, useCommandPalette } from '@/components/CommandPalette';
-import { Search } from 'lucide-react';
+import { Search, Bot } from 'lucide-react';
+import { AssistantProvider, AssistantDockPlaceholder, useAssistant } from '@/features/assistant';
 
 function MobileTopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
+  const { openDock, open } = useAssistant();
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/70 bg-background/95 px-4 backdrop-blur-md">
-      <div className="flex items-center gap-2.5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground shadow-card">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground shadow-card">
           <span className="text-sm font-bold">A</span>
         </div>
-        <div className="leading-tight">
-          <p className="text-sm font-semibold">AgrosBO</p>
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+        <div className="min-w-0 leading-tight">
+          <p className="truncate text-sm font-semibold">AgrosBO</p>
+          <p className="truncate text-[10px] uppercase tracking-wider text-muted-foreground">
             Toco · Bolivia
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1">
+        <button
+          type="button"
+          onClick={openDock}
+          aria-label="Abrir asistente"
+          aria-expanded={open}
+          aria-haspopup="dialog"
+          data-testid="button-open-assistant-mobile"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-md text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Bot className="h-4 w-4" />
+        </button>
         <button
           type="button"
           onClick={onOpenCommand}
@@ -38,7 +51,7 @@ function MobileTopBar({ onOpenCommand }: { onOpenCommand: () => void }) {
   );
 }
 
-export function AppLayout() {
+function AppLayoutInner() {
   const isMobile = useIsMobile();
   const { open: cmdOpen, setOpen: setCmdOpen } = useCommandPalette();
 
@@ -56,6 +69,7 @@ export function AppLayout() {
         </main>
         <BottomNav />
         <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} />
+        <AssistantDockPlaceholder />
       </div>
     );
   }
@@ -76,7 +90,16 @@ export function AppLayout() {
           </main>
         </div>
         <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} />
+        <AssistantDockPlaceholder />
       </div>
     </SidebarProvider>
+  );
+}
+
+export function AppLayout() {
+  return (
+    <AssistantProvider>
+      <AppLayoutInner />
+    </AssistantProvider>
   );
 }
