@@ -15,7 +15,7 @@
 | Presupuesto aprobado | USD 2.00 |
 | Presupuesto consumido | UNKNOWN — invocacion funcional no completada |
 | Recursos AWS creados | 0 |
-| STATUS | **BLOCKED_QUOTA** |
+| STATUS | **BLOCKED_EXTERNAL_QUOTA** |
 
 ---
 
@@ -109,14 +109,20 @@
 
 ## Veredicto
 
-**BLOCKED_QUOTA**
+**BLOCKED_EXTERNAL_QUOTA**
 
 Auth (PASS), IAM (PASS), endpoint (PASS). Invocacion funcional no completada
 en ninguno de los dos modelos autorizados. Tool calling no evaluado.
 
 ---
 
-## Proximo paso
+## Decisión de cierre
 
-Esperar reset de cuota diaria de Bedrock o aprobacion de aumento de quota
-(AWS Service Quotas). Reintentar con el mismo comando una vez disponible.
+Por decisión humana del 2026-07-28, S1 se cierra como
+**BLOCKED_EXTERNAL_QUOTA**. No es PASS ni fallo de código. No se realizan nuevas
+invocaciones Bedrock en Spec 17. La validación funcional de tool calling,
+`tool_use`, `tool_result`, composición y latencia se difiere a Spec 21.
+
+El costo final permanece **PENDING_HUMAN_BILLING_CONFIRMATION**. Un waiver
+humano explícito permite cerrar Spec 17 sin interpretar el costo pendiente como
+USD 0.00.

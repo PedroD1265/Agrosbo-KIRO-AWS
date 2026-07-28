@@ -1,9 +1,9 @@
 # AGROSBO Phase 3 Execution Runbook
 
-> **Estado: IN PROGRESS.**
+> **Estado: COMPLETADA — 2026-07-28.**
 >
 > Spec activa: `.kiro/specs/critical-cloud-spikes/` (Spec 17).
-> Rama autorizada: `docs/spec-17-kickoff` (kickoff); ramas futuras por checkpoint.
+> Rama de cierre: `feat/spec-17-final-closeout`.
 
 ## Convenciones normativas
 
@@ -29,8 +29,8 @@ antes de construir la infraestructura de produccion (Spec 18+).
 - Spec de referencia: `.kiro/specs/critical-cloud-spikes/`.
 - Rama de kickoff: `docs/spec-17-kickoff`.
 - Baseline: `bfedd57` (HEAD de main al iniciar Fase 3).
-- Working tree principal: `D:\Pedro\AGROBO` (escritor: Kiro).
-- Worktree de auditoria: `D:\Pedro\AGROBO-audit` (solo lectura: Antigravity).
+- Working tree principal: `<WORKTREE_PRIMARY>` (escritor único).
+- Worktree de auditoria: `<WORKTREE_AUDIT>` (solo lectura).
 - Codex: candidato para harnesses (worktree propio) despues de aprobar Design.
 
 ### Fuentes de gobernanza vigentes
@@ -51,10 +51,10 @@ crearse como parte de esta Spec. Las fuentes listadas arriba son suficientes.
 
 | Agente | Working tree | Modo | Rol en Fase 3 |
 |--------|-------------|------|---------------|
-| Kiro | D:\Pedro\AGROBO | Escritor principal | Spec, runbook, harnesses, ejecucion, evaluacion |
-| Antigravity | D:\Pedro\AGROBO-audit | Solo lectura | Auditoria de resultados y cleanup |
-| Codex | D:\Pedro\AGROBO-codex (futuro) | Escritor delegado | Harnesses (solo si aprobado post-Design) |
-| Humano | D:\Pedro\AGROBO | Autoridad final | IAM, presupuesto, commit, push, PR, merge |
+| Kiro | `<WORKTREE_PRIMARY>` | Escritor principal | Spec, runbook, harnesses, ejecucion, evaluacion |
+| Antigravity | `<WORKTREE_AUDIT>` | Solo lectura | Auditoria de resultados y cleanup |
+| Codex | `<WORKTREE_DELEGATED>` | Escritor delegado | Harnesses (solo si aprobado post-Design) |
+| Humano | `<WORKTREE_PRIMARY>` | Autoridad final | IAM, presupuesto, commit, push, PR, merge |
 
 ### Responsabilidades especificas
 
@@ -211,7 +211,7 @@ revisa durante el Checkpoint 3.2 usando documentacion actual de AWS.
 |-------|----------------------|---------------|
 | S1 | <= USD 2.00 | ~5 invocaciones de modelo con tool calling |
 | S2 | <= USD 1.00 | ~5 clips de 15s = ~75s de transcripcion |
-| S3 | <= USD 0.50 | ~10 correos SES + SQS/SNS minimal |
+| S3 | <= USD 0.50 | ~10 correos SES + EventBridge/SQS minimal |
 | S4 | USD 0.00 | Ejecucion local |
 | **Total** | **<= USD 3.50** | Ceiling propuesto |
 
@@ -347,7 +347,7 @@ Al reanudar:
 ### Condiciones para activar Codex
 
 - Design aprobado (post-Checkpoint 3.1).
-- Worktree creado: `D:\Pedro\AGROBO-codex` con rama dedicada.
+- Worktree creado: `<WORKTREE_DELEGATED>` con rama dedicada.
 - Allowlist exclusiva: solo `spikes/critical-cloud/harnesses/<spike-asignado>/`.
 - Sin solapamiento de archivos con Kiro.
 - Human approval explicito por tarea delegada.
@@ -361,22 +361,22 @@ Al reanudar:
 
 ## 16. Definition of Done — Fase 3 (Spec 17)
 
-- [ ] Spec 17 (R+D+T) aprobada y coherente.
-- [ ] Runbook (este documento) aprobado.
-- [ ] Preflight cloud completado con region y permisos documentados.
-- [ ] Harnesses S1–S4 implementados y ejecutables.
-- [ ] Spikes S1–S4 ejecutados con manifests producidos.
-- [ ] Microvalidaciones M1 y M2 documentadas.
-- [ ] Resumen ejecutivo producido.
-- [ ] Cleanup verificado: 0 recursos AWS residuales.
-- [ ] Costos dentro del presupuesto aprobado.
-- [ ] Quality gates del monorepo verdes (npm run format, npm run check:encoding, npm run lint, npm run typecheck, npm test, npm run build, git diff --check).
-- [ ] Cero modificaciones a api/src, web/src, shared, infra/src.
-- [ ] Cero dependencias del monorepo modificadas.
-- [ ] Spike code no importado por produccion.
-- [ ] Ningun commit/push/PR/merge/deploy sin autorizacion.
-- [ ] Handoff final producido.
-- [ ] Alineacion documental completada (spec-map, delivery-roadmap).
+- [x] Spec 17 (R+D+T) aprobada y coherente.
+- [x] Runbook (este documento) aprobado.
+- [x] Preflight cloud completado con region y permisos documentados.
+- [x] Harnesses S1–S4 implementados y ejecutables.
+- [x] S1 cerrado como BLOCKED_EXTERNAL_QUOTA; S2–S4 PASS.
+- [x] Microvalidaciones M1 y M2 documentadas.
+- [x] Resumen ejecutivo producido.
+- [x] Cleanup verificado: 0 recursos AWS residuales.
+- [x] Billing PENDING_HUMAN_BILLING_CONFIRMATION bajo waiver humano explícito.
+- [x] Quality gates del monorepo verdes.
+- [x] Cero modificaciones a api/src, web/src, shared, infra/src.
+- [x] Cero dependencias del monorepo modificadas.
+- [x] Spike code no importado por produccion.
+- [x] Ningun commit/push/PR/merge/deploy sin autorizacion.
+- [x] Handoff final producido.
+- [x] Alineacion documental completada (spec-map, delivery-roadmap).
 
 ## 17. Siguiente fase
 
@@ -388,4 +388,5 @@ Al cerrar Spec 17:
 - El patron de token validado informa Spec 24.
 - Los resultados SES informan Spec 24.
 
-No se inicia Spec 18 sin cerrar Spec 17 y sin autorizacion humana explicita.
+Spec 17 está cerrada. No se inicia Spec 18 sin una autorización humana nueva y
+explícita.

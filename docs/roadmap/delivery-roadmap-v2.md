@@ -3,7 +3,7 @@
 > Fuente canónica:
 > [`../product/product-scope-v2.md`](../product/product-scope-v2.md).
 >
-> Última actualización: julio 2026 (Fase 3 iniciada; Fases 0–2 completadas).
+> Última actualización: 28 de julio de 2026 (Fases 0–3 completadas).
 >
 > Este documento ordena las fases y Specs sin crear carpetas de Specs futuras.
 > La numeración de Specs (15–31) es un identificador estable; no equivale
@@ -17,7 +17,7 @@
 | 0 | Gobierno documental y técnico (incluye Spec 15) | P0 | COMPLETADA (PR #3 merged) |
 | 1 | Preparación de estación de trabajo | P0 | COMPLETADA (PRs #4, #5 merged) |
 | 2 | Gobernanza multiagente (Spec 16) | P0 | COMPLETADA (PR #11 merged) |
-| 3 | Spikes críticos de servicios cloud (Spec 17) | P0 | IN PROGRESS |
+| 3 | Spikes críticos de servicios cloud (Spec 17) | P0 | COMPLETADA — S1 BLOCKED_EXTERNAL_QUOTA; S2–S4 PASS |
 | 4 | Despliegue AWS del core existente | P0 | PLANNED |
 | 5 | Agente operacional | P0 | PLANNED |
 | 6 | Colaboradores y notificaciones | P0 | PLANNED |
@@ -48,7 +48,7 @@ P0 debe completarse (incluyendo Spec 31) antes de iniciar P1. P2 no bloquea.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 15 | product-agent-scope-v2 | P0 | Contrato canónico aprobado; auditoría y documentos derivados aprobados; ADRs y arquitectura aprobados; documentación y Steering alineados (Checkpoints 0.2–0.8) | Formalizar requirements, design y tasks de la nueva dirección de producto | Checkpoints 0.2–0.8 aprobados | requirements.md + design.md + tasks.md coherentes, trazables y aprobados | COMPLETADA (PR #3 merged) |
 | 16 | multi-agent-workflow | P0 | Spec 15 aprobada | Definir colaboración segura entre agentes de desarrollo (Kiro, Codex, Antigravity, Lovable, otros): ownership de archivos, handoffs, checkpoints, reglas Git, un solo escritor por working tree, worktrees/ramas separadas para paralelismo, prohibición de merge/push/deploy autónomos | Spec 15 aprobada | Reglas de colaboración multi-agente documentadas y operativas | COMPLETADA (PR #11 merged) |
-| 17 | critical-cloud-spikes | P0 | Spec 15 aprobada | Validar viabilidad técnica: Bedrock tool calling, Transcribe streaming, SES delivery events, token hash flow | Spec 15 aprobada | Spike report con resultados verificados por servicio | IN PROGRESS |
+| 17 | critical-cloud-spikes | P0 | Spec 15 aprobada | Validar viabilidad técnica: Bedrock tool calling, Transcribe streaming, SES delivery events, token hash flow | Spec 15 aprobada | Spike report con resultados verificados por servicio | COMPLETADA — 2026-07-28; S1 BLOCKED_EXTERNAL_QUOTA, S2–S4 PASS, Billing pendiente bajo waiver |
 | 18 | aws-infrastructure-baseline | P0 | Spec 17 | CDK stack mínimo: VPC, Aurora, S3, Secrets Manager, CloudWatch | Spikes validados | Stack desplegable; db:migrate exitoso contra Aurora | PLANNED |
 | 19 | aws-core-deployment | P0 | Spec 18 | Desplegar core existente: Lambda, API GW, CF+OAC, Cognito | Infra baseline desplegada | App accesible; health checks verdes; seed exitoso | PLANNED |
 | 20 | cloud-auth-and-attachments | P0 | Spec 19 | Cognito JWT provider + S3 attachment provider funcionales | Core desplegado | Login vía Cognito; adjuntos en S3 con presigned URLs | PLANNED |
@@ -77,6 +77,10 @@ P0 debe completarse (incluyendo Spec 31) antes de iniciar P1. P2 no bloquea.
 
 Spec 16 es un habilitador completado (PR #11 merged, Fase 2 cerrada). Habilita
 la operación multiagente segura para todas las fases posteriores.
+
+Spec 17 quedó cerrada con cero residuos AWS verificados. El costo final conserva
+el estado `PENDING_HUMAN_BILLING_CONFIRMATION` bajo waiver humano explícito.
+Este cierre no inicia ni autoriza automáticamente Spec 18.
 
 ### P1 (solo después de cerrar P0)
 

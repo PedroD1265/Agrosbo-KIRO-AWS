@@ -341,8 +341,8 @@ aprobar el Design y completar el preflight cloud.
 | Dependencias | T18 completada; quality gates verdes |
 | Allowlist (crear) | Ninguno (output en chat) |
 | Allowlist (modificar) | Ninguno |
-| Comandos permitidos | git status, git diff --check, npm run format, npm run check:encoding, npm run lint, npm run typecheck, npm test, npm run build |
-| Prohibido | git commit, git push, git merge |
+| Comandos permitidos | git status, git diff --check, npm run format, npm run check:encoding, npm run lint, npm run typecheck, npm test, npm run build; commit, push y PR únicamente con autorización humana explícita |
+| Prohibido | git merge; deploy; commit, push o PR sin autorización humana |
 | Evidencia | Handoff estructurado conforme a template |
 | Criterio de aceptacion | Handoff completo; all quality gates PASS (npm run format, npm run check:encoding, npm run lint, npm run typecheck, npm test, npm run build, git diff --check); confirmacion de: 0 recursos AWS residuales, 0 commit sin auth, 0 push, 0 deploy; plan de commits propuesto |
 | STOP REQUIRED | Esperando autorizacion humana para commit y push |
@@ -405,37 +405,47 @@ esten completados.
 | T16–T17 | Kiro (implementer) + humano | — |
 | T18–T19 | Kiro (planner) | — |
 
-## 7. Estado actual
+## 7. Estado final
 
 | Tarea | Estado |
 |-------|--------|
-| T01 | COMPLETED — AWAITING HUMAN APPROVAL |
-| T02 | COMPLETED — AWAITING HUMAN APPROVAL |
-| T03 | COMPLETED — AWAITING HUMAN APPROVAL |
-| T04–T19 | PLANNED |
+| T01–T03 | COMPLETED — kickoff documental |
+| T04 | PASS — preflight cloud |
+| T05 | PASS — permisos temporales disponibles durante ejecución |
+| T06–T09 | COMPLETED — harnesses S1–S4 |
+| T10 | **BLOCKED_EXTERNAL_QUOTA** — auth, IAM y endpoint PASS; tool calling diferido a Spec 21 |
+| T11 | **PASS** — Transcribe streaming |
+| T12 | **PASS** — SES → EventBridge → SQS |
+| T13 | **PASS** — token seguro, 21/21 |
+| T14 | COMPLETED — `results/summary.md` |
+| T15 | COMPLETED — microvalidaciones Polly y Aurora/Data API |
+| T16 | PASS — inventario vacío; no fueron necesarias eliminaciones |
+| T17 | PASS WITH HUMAN WAIVER — cero residuos; Billing pendiente |
+| T18 | COMPLETED — reconciliación documental |
+| T19 | COMPLETED — gates, auditoría y handoff final |
 
 ## 8. Definition of Done — Spec 17
 
-- [ ] Requirements, Design y Tasks coherentes y trazables.
-- [ ] phase-3-execution-runbook completo.
-- [ ] delivery-roadmap-v2 y spec-map actualizados.
-- [ ] Preflight cloud completado (region y permisos documentados).
-- [ ] Harnesses S1–S4 creados y ejecutables.
-- [ ] S1 (Bedrock tool calling): PASS o FAIL documentado con evidencia.
-- [ ] S2 (Transcribe voz agricola): PASS o FAIL documentado con evidencia.
-- [ ] S3 (SES eventos): PASS o FAIL documentado con evidencia.
-- [ ] S4 (Token seguro): PASS documentado con evidencia.
-- [ ] Microvalidaciones M1 y M2 documentadas.
-- [ ] Resumen ejecutivo producido.
-- [ ] Cleanup completado y verificado (0 recursos residuales).
-- [ ] Costos finales dentro del presupuesto aprobado.
-- [ ] Quality gates del monorepo verdes (npm run format, npm run check:encoding, npm run lint, npm run typecheck, npm test, npm run build, git diff --check).
-- [ ] Cero codigo funcional en api/src, web/src, shared, infra/src modificado.
-- [ ] Cero dependencias del monorepo modificadas.
-- [ ] Spike code en spikes/critical-cloud/ no importado por produccion.
-- [ ] Cero recursos AWS residuales post-cleanup.
-- [ ] Ningun commit, push, PR, merge o deploy sin autorizacion humana.
-- [ ] Handoff final producido.
+- [x] Requirements, Design y Tasks coherentes y trazables.
+- [x] phase-3-execution-runbook completo.
+- [x] delivery-roadmap-v2 y spec-map actualizados.
+- [x] Preflight cloud completado (region y permisos documentados).
+- [x] Harnesses S1–S4 creados y ejecutables.
+- [x] S1 documentado como BLOCKED_EXTERNAL_QUOTA por decisión humana; validación funcional diferida a Spec 21.
+- [x] S2 (Transcribe voz agricola): PASS documentado con evidencia.
+- [x] S3 (SES eventos): PASS documentado con evidencia.
+- [x] S4 (Token seguro): PASS documentado con evidencia.
+- [x] Microvalidaciones M1 y M2 documentadas.
+- [x] Resumen ejecutivo producido.
+- [x] Cleanup completado y verificado (0 recursos residuales).
+- [x] Billing final PENDING_HUMAN_BILLING_CONFIRMATION con waiver humano explícito.
+- [x] Quality gates del monorepo verdes (npm run format, npm run check:encoding, npm run lint, npm run typecheck, npm test, npm run build, git diff --check).
+- [x] Cero codigo funcional en api/src, web/src, shared, infra/src modificado.
+- [x] Cero dependencias del monorepo modificadas.
+- [x] Spike code en spikes/critical-cloud/ no importado por produccion.
+- [x] Cero recursos AWS residuales post-cleanup.
+- [x] Ningun commit, push, PR, merge o deploy sin autorizacion humana.
+- [x] Handoff final producido.
 
 ## 9. Trazabilidad Tasks → Requirements
 

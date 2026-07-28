@@ -7,7 +7,7 @@
 | 0 | Gobierno documental y técnico (Spec 15) | COMPLETADA (PR #3 merged) |
 | 1 | Preparación de estación de trabajo | COMPLETADA (PRs #4, #5 merged) |
 | 2 | Gobernanza multiagente (Spec 16) | COMPLETADA — Spec 16 y Checkpoint 2.6 cerrados mediante PR #11 |
-| 3 | Spikes críticos de servicios cloud (Spec 17) | IN PROGRESS |
+| 3 | Spikes críticos de servicios cloud (Spec 17) | COMPLETADA — S1 bloqueado por cuota externa; S2–S4 PASS |
 | 4–9 | Desarrollo P0/P1 (Specs 18–31) | PLANNED |
 
 ---
@@ -198,7 +198,7 @@
 |---|------|-----------|--------|
 | 15 | product-agent-scope-v2 | P0 | COMPLETADA (PR #3 merged) |
 | 16 | multi-agent-workflow | P0 | COMPLETADA (PR #11 merged) |
-| 17 | critical-cloud-spikes | P0 | IN PROGRESS |
+| 17 | critical-cloud-spikes | P0 | COMPLETADA — 2026-07-28 |
 | 18 | aws-infrastructure-baseline | P0 | PLANNED |
 | 19 | aws-core-deployment | P0 | PLANNED |
 | 20 | cloud-auth-and-attachments | P0 | PLANNED |
@@ -275,14 +275,15 @@
 - **Objetivo**: validar viabilidad técnica de servicios AWS críticos para P0
   mediante spikes aislados: Bedrock tool calling, Transcribe voz agrícola,
   SES eventos verificables, tokens externos seguros.
-- **Estado**: **IN PROGRESS** — Checkpoint 3.1 (kickoff documental).
+- **Estado**: **COMPLETADA** — 2026-07-28. S1
+  `BLOCKED_EXTERNAL_QUOTA`; S2, S3 y S4 `PASS`.
 - **Baseline inicial de Fase 3**: `bfedd57`.
 - **Artefactos**:
   - [Requirements](../.kiro/specs/critical-cloud-spikes/requirements.md)
   - [Design](../.kiro/specs/critical-cloud-spikes/design.md)
   - [Tasks](../.kiro/specs/critical-cloud-spikes/tasks.md)
   - [Phase 3 Execution Runbook](./roadmap/phase-3-execution-runbook.md)
-- **Checkpoints planificados**:
+- **Checkpoints completados**:
   - 3.1 — Kickoff documental (T01–T03).
   - 3.2 — Preflight cloud (T04–T05).
   - 3.3 — Harnesses locales (T06–T09).
@@ -293,9 +294,18 @@
 - **Spikes obligatorios**: S1 Bedrock, S2 Transcribe, S3 SES, S4 Token.
 - **Microvalidaciones documentales**: M1 Polly, M2 Aurora+Data API.
 - **Dependencias**: Spec 16 completada; Fases 0–2 completadas.
-- **Terminado** (esperado): manifests con PASS/FAIL por servicio; cleanup
-  verificado; costos dentro de presupuesto; spike code desechable en
-  `spikes/critical-cloud/`.
+- **Resultados**:
+  - S1 Bedrock: autenticación, IAM y endpoint alcanzados; tool calling bloqueado
+    por cuota diaria externa y diferido a Spec 21.
+  - S2 Transcribe: PASS.
+  - S3 SES → EventBridge → SQS: PASS.
+  - S4 token seguro: PASS.
+  - Cleanup verificado con cero residuos.
+  - Billing: `PENDING_HUMAN_BILLING_CONFIRMATION`, cierre aceptado mediante
+    waiver humano explícito.
+- **Evidencia**: [resumen ejecutivo](../spikes/critical-cloud/results/summary.md).
+- **Terminado**: manifests consolidados; cleanup verificado; waiver de Billing;
+  spike code desechable en `spikes/critical-cloud/`.
 - **AWS**: Bedrock, Transcribe, SES, S3 (temporal), SQS (temporal), EventBridge
   (temporal). Todos temporales; cleanup obligatorio.
 - **Kiro**: Requirements, Design, Tasks, runbook, harnesses, ejecución,
@@ -328,5 +338,6 @@
 
 - Cada Spec se ejecuta por checkpoints con autorización explícita.
 - No se avanza automáticamente de una Spec a la siguiente.
+- El cierre de Spec 17 no autoriza iniciar Spec 18.
 - P0 debe cerrarse (Spec 31) antes de iniciar P1 (Specs 27–28).
 - P2 no bloquea ninguna fase.
