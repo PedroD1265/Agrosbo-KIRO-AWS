@@ -54,6 +54,22 @@
     --status-idle-soft: 220 12% 94%;
     --status-pending-sync: 220 70% 50%;
     --status-pending-sync-soft: 220 80% 95%;
+    --status-info: 210 80% 45%;
+    --status-info-soft: 210 80% 95%;
+    --status-offline: 220 10% 40%;
+    --status-offline-soft: 220 15% 93%;
+    --status-syncing: 220 70% 50%;
+    --status-syncing-soft: 220 80% 95%;
+    --status-queued: 260 55% 50%;
+    --status-queued-soft: 260 60% 95%;
+
+    /* Confidence tokens for agent/assessment results */
+    --confidence-high: 142 55% 38%;
+    --confidence-high-soft: 142 50% 92%;
+    --confidence-medium: 36 88% 48%;
+    --confidence-medium-soft: 38 90% 93%;
+    --confidence-low: 4 70% 48%;
+    --confidence-low-soft: 4 75% 95%;
 
     /* Crop stage tokens */
     --stage-seed: 32 60% 45%;
@@ -120,6 +136,20 @@
     --status-idle-soft: 220 12% 18%;
     --status-pending-sync: 220 70% 60%;
     --status-pending-sync-soft: 220 30% 18%;
+    --status-info: 210 80% 60%;
+    --status-info-soft: 210 30% 18%;
+    --status-offline: 220 10% 65%;
+    --status-offline-soft: 220 15% 18%;
+    --status-syncing: 220 70% 60%;
+    --status-syncing-soft: 220 30% 18%;
+    --status-queued: 260 55% 65%;
+    --status-queued-soft: 260 30% 18%;
+    --confidence-high: 142 55% 50%;
+    --confidence-high-soft: 142 30% 18%;
+    --confidence-medium: 36 88% 55%;
+    --confidence-medium-soft: 36 30% 18%;
+    --confidence-low: 4 70% 55%;
+    --confidence-low-soft: 4 30% 18%;
     --sidebar-background: 150 25% 10%;
     --sidebar-foreground: 80 15% 88%;
     --sidebar-primary: 36 70% 55%;

@@ -1,5 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
-import { resolveApiUrl, buildFetchInit } from './api-config.js';
+import { resolveApiUrl, buildFetchInit, apiFetch } from './api-config.js';
 
 async function defaultFetcher({ queryKey }: { queryKey: readonly unknown[] }) {
   const path = queryKey
@@ -10,7 +10,7 @@ async function defaultFetcher({ queryKey }: { queryKey: readonly unknown[] }) {
   const url = resolveApiUrl(path);
   const init = await buildFetchInit({ headers: { Accept: 'application/json' } });
 
-  const res = await fetch(url, init);
+  const res = await apiFetch(url, init);
 
   if (!res.ok) {
     const body = await res.text().catch(() => '');
@@ -47,7 +47,7 @@ export async function apiRequest<T = unknown>(
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  const res = await fetch(fullUrl, init);
+  const res = await apiFetch(fullUrl, init);
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');

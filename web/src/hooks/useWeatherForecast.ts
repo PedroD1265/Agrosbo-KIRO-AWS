@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { DailyForecast, WeatherForecast } from '@shared/schema';
+import { apiFetch, resolveApiUrl } from '@/lib/api-config';
 
 export type { DailyForecast, WeatherForecast };
 
@@ -8,7 +9,11 @@ async function fetchForecast(lat: number, lng: number): Promise<WeatherForecast>
     lat: lat.toFixed(4),
     lng: lng.toFixed(4),
   });
-  const res = await fetch(`/api/weather/forecast?${params.toString()}`);
+  // Use the central apiFetch so VITE_USE_MOCKS=1 can serve a mocked forecast
+  // without any global fetch monkey-patch. Behaviour without the flag is
+  // identical to the previous direct fetch (same URL, no credentials, no
+  // extra headers) — apiFetch is a pure passthrough in production.
+  const res = await apiFetch(resolveApiUrl(`/api/weather/forecast?${params.toString()}`));
   if (!res.ok) throw new Error(`Weather ${res.status}`);
   return (await res.json()) as WeatherForecast;
 }
