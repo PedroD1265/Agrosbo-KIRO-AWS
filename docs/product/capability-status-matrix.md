@@ -91,7 +91,7 @@
 | Borradores + confirmación | MISSING | PLANNED P0 | Cola offline + idempotencia (reutilizable) |
 | Colaboradores internos (CRUD avanzado) | PARTIAL | PLANNED P0 | Users CRUD + RBAC existentes |
 | Colaboradores externos | MISSING | PLANNED P0 | — |
-| Amazon SES | DOCUMENTED_ONLY | PLANNED P0 | S3 VERIFIED_IN_SPIKE (SES → EventBridge → SQS); ningún código productivo |
+| Amazon SES | DOCUMENTED_ONLY | PLANNED P0 | Spike S3 VERIFIED_IN_SPIKE (SES → EventBridge → SQS); ningún código productivo |
 | Enlaces seguros | MISSING | PLANNED P0 | Patrón criptográfico y concurrencia S4 VERIFIED_IN_SPIKE; endpoints y persistencia productivos ausentes |
 | Evaluación visual (Bedrock) | MISSING | PLANNED P0 | Attachments upload existente |
 | IrrigationDelayScenario | MISSING | PLANNED P0 | IrrigationAdvisor (datos reutilizables) |
