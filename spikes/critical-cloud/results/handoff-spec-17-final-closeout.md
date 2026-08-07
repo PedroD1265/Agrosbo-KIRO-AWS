@@ -117,6 +117,31 @@ El primer test run coincidió con build y tuvo cinco timeouts; el rerun aislado
 pasó 132/132 sin cambiar código ni timeouts. S1 dry-run imprimió 12/12 PASS,
 pero retuvo un handle después del resultado; no hubo ejecución live.
 
+## Revalidación post-integración con main (2026-08-06)
+
+Tras integrar `origin/main` (que incluye Fase 2 y cambios posteriores al cierre
+original), se ejecutó una revalidación completa sin modificar código ni
+timeouts:
+
+| Gate | Resultado |
+|---|---|
+| `npm test` (primera ejecución) | 1 timeout transitorio en `api/src/test/health.test.ts` ("importing app.ts does not start a server listener") |
+| `health.test.ts` aislado | 3/3 PASS |
+| `npm test` (rerun completo) | 138/138 PASS |
+| `npm run test:memstorage` | 7/7 PASS |
+| `npm run test:integration` (PostgreSQL) | 26/26 PASS |
+| `npm run build` | PASS |
+| `npm run format` | PASS |
+| `npm run check:encoding` | PASS |
+| `npm run lint` | PASS — 0 errores, 154 warnings existentes |
+| `npm run typecheck` | PASS |
+| `git diff --check` | PASS |
+
+**Total post-integración**: 138 + 7 + 26 = **171 tests**.
+
+El timeout transitorio inicial no se presenta como fallo vigente. No se modificó
+código ni se aumentaron timeouts para resolverlo.
+
 ## Auditoría y límites
 
 - Cero cambios en `api/src`, `web/src`, `shared`, `infra/src`.
@@ -135,5 +160,12 @@ pero retuvo un handle después del resultado; no hubo ejecución live.
 
 Todos los cambios pertenecen al allowlist autorizado. Se stagean por ruta
 explícita, se crea un único commit autorizado, se hace push de la rama y se abre
-un PR draft contra `main`. La URL y el SHA resultantes se reportan fuera de este
-archivo al finalizar la publicación.
+un PR draft contra `main`.
+
+### Estado actualizado post-integración (2026-08-06)
+
+- Commit de cierre creado.
+- Rama `feat/spec-17-final-closeout` publicada.
+- PR #1 abierto en draft contra `main`.
+- HEAD actual integrado con `origin/main`: `ece4d0f`.
+- Merge: **NO realizado y NO autorizado por esta tarea.**

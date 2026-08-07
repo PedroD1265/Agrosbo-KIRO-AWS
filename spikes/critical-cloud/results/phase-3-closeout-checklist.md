@@ -118,6 +118,29 @@ El primer `npm test` se ejecutó simultáneamente con build y registró cinco
 timeouts por contención. El rerun aislado, sin cambios de código ni de
 timeouts, pasó 132/132.
 
+### Revalidación post-integración con main (2026-08-06)
+
+Tras integrar `origin/main` en la rama de cierre:
+
+| Gate | Resultado |
+|---|---|
+| `npm test` (primera ejecución) | 1 timeout transitorio en `health.test.ts` |
+| `health.test.ts` aislado | 3/3 PASS |
+| `npm test` (rerun completo) | 138/138 PASS |
+| `npm run test:memstorage` | 7/7 PASS |
+| `npm run test:integration` (PostgreSQL) | 26/26 PASS |
+| `npm run build` | PASS |
+| `npm run format` | PASS |
+| `npm run check:encoding` | PASS |
+| `npm run lint` | PASS — 0 errores, 154 warnings existentes |
+| `npm run typecheck` | PASS |
+| `git diff --check` | PASS |
+
+**Total post-integración**: 138 + 7 + 26 = **171 tests**.
+
+Sin cambios de código ni de timeouts. El timeout transitorio inicial no es un
+fallo vigente.
+
 ### Workspace `spikes/critical-cloud`
 
 | Check | Resultado |

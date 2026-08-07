@@ -70,7 +70,7 @@
 | CDK stack | PLACEHOLDER | PLANNED P0 | No | Archivo vacío |
 | DB dual-path (pg + Data API) | PARTIAL | CURRENT | Solo PG local | PG local verificado; Data API existe en código pero no probado contra Aurora real; disponibilidad documental revisada en Spec 17 |
 | Migraciones Drizzle | IMPLEMENTED | CURRENT | Solo PG local | CI las ejecuta |
-| CI (GitHub Actions) | IMPLEMENTED | CURRENT | GitHub | 165 tests |
+| CI (GitHub Actions) | IMPLEMENTED | CURRENT | GitHub | 171 tests |
 | PWA Service Worker | IMPLEMENTED | CURRENT | No | Shell + assets cacheados |
 | Cola offline (Dexie, 40+ tipos) | IMPLEMENTED | CURRENT | N/A | Mutaciones durables en IndexedDB |
 | Sync engine + reconciliación | IMPLEMENTED | CURRENT | N/A | Backoff, idMap, 401 handling |
