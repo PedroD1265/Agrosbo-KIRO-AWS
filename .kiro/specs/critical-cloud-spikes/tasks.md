@@ -420,7 +420,7 @@ esten completados.
 | T14 | COMPLETED — `results/summary.md` |
 | T15 | COMPLETED — microvalidaciones Polly y Aurora/Data API |
 | T16 | PASS — inventario vacío; no fueron necesarias eliminaciones |
-| T17 | PASS WITH HUMAN WAIVER — cero residuos; Billing pendiente |
+| T17 | PASS — waiver humano — cero residuos; Billing pendiente |
 | T18 | COMPLETED — reconciliación documental |
 | T19 | COMPLETED — gates, auditoría y handoff final |
 
