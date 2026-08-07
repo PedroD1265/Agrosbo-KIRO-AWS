@@ -15,7 +15,7 @@ Fuente: requirements.md REQ-COST-01, runbook §8.
 | Campo | Valor |
 |---|---|
 | Unidad de facturación | Tokens de entrada + tokens de salida |
-| Presupuesto límite aprobado | <= USD 2.00 — PROPOSED ALLOCATION — PENDING HUMAN APPROVAL |
+| Presupuesto límite aprobado | <= USD 2.00 — APROBADO |
 | Fuente oficial de precios | https://aws.amazon.com/bedrock/pricing/ |
 | Fecha de consulta de precios | **PENDING OFFICIAL CHECK** — verificar antes de T10 |
 
@@ -48,13 +48,13 @@ Costo_S1 = (tokens_entrada_total / 1,000,000) × precio_input
 
 | Campo | Valor |
 |---|---|
-| Modelo utilizado | PENDING |
-| Región | PENDING |
-| Tokens de entrada reales | PENDING |
-| Tokens de salida reales | PENDING |
-| Costo real USD | PENDING |
-| Margen de seguridad restante | PENDING (= USD 2.00 − costo real) |
-| Condición de parada activada | No / Sí — PENDING |
+| Modelo utilizado | `amazon.nova-lite-v1:0`; fallback `amazon.nova-micro-v1:0` |
+| Región | `us-east-1` |
+| Tokens de entrada reales | UNKNOWN — requests rechazados antes de respuesta |
+| Tokens de salida reales | UNKNOWN |
+| Costo real USD | **PENDING_HUMAN_BILLING_CONFIRMATION** |
+| Margen de seguridad restante | PENDING — costo final no disponible |
+| Condición de parada activada | Sí — `BLOCKED_EXTERNAL_QUOTA` |
 
 ---
 
@@ -63,7 +63,7 @@ Costo_S1 = (tokens_entrada_total / 1,000,000) × precio_input
 | Campo | Valor |
 |---|---|
 | Unidad de facturación | Por segundo de audio transcrito (redondeado a 15s mínimo para batch) |
-| Presupuesto límite aprobado | <= USD 1.00 — PROPOSED ALLOCATION — PENDING HUMAN APPROVAL |
+| Presupuesto límite aprobado | <= USD 1.00 — APROBADO |
 | Fuente oficial de precios | https://aws.amazon.com/transcribe/pricing/ |
 | Fecha de consulta de precios | **PENDING OFFICIAL CHECK** — verificar antes de T11 |
 
@@ -101,13 +101,13 @@ esta tabla.
 
 | Campo | Valor |
 |---|---|
-| Locale probado | PENDING |
-| Clips transcritos | PENDING |
-| Duración total real (seg) | PENDING |
-| Modo(s) ejecutados | PENDING |
-| Costo real USD | PENDING |
-| Margen restante | PENDING |
-| Condición de parada activada | No / Sí — PENDING |
+| Locale probado | `es-US` |
+| Clips transcritos | 3 |
+| Duración total real (seg) | ~12.63 |
+| Modo(s) ejecutados | Streaming |
+| Costo real USD | **PENDING_HUMAN_BILLING_CONFIRMATION** |
+| Margen restante | PENDING — costo final no disponible |
+| Condición de parada activada | No |
 
 ---
 
@@ -116,7 +116,7 @@ esta tabla.
 | Campo | Valor |
 |---|---|
 | Unidad de facturación | Por correo enviado (SES) + por mensaje SQS + requests EventBridge |
-| Presupuesto límite aprobado | <= USD 0.50 — PROPOSED ALLOCATION — PENDING HUMAN APPROVAL |
+| Presupuesto límite aprobado | <= USD 0.50 — APROBADO |
 | Fuente oficial de precios SES | https://aws.amazon.com/ses/pricing/ |
 | Fuente oficial de precios SQS | https://aws.amazon.com/sqs/pricing/ |
 | Fuente oficial de precios EventBridge | https://aws.amazon.com/eventbridge/pricing/ |
@@ -156,12 +156,12 @@ minimal. Los precios de free tier aplican pero no se verifican como vigentes.
 
 | Campo | Valor |
 |---|---|
-| Correos enviados | PENDING |
-| MessageId(s) registrados | PENDING (sanitizados) |
-| Mensajes SQS consumidos | PENDING |
-| Costo real USD | PENDING |
-| Margen restante | PENDING |
-| Condición de parada activada | No / Sí — PENDING |
+| Correos enviados | 1 |
+| MessageId(s) registrados | 1, sanitizado |
+| Mensajes SQS consumidos | 2 |
+| Costo real USD | **PENDING_HUMAN_BILLING_CONFIRMATION** |
+| Margen restante | PENDING — costo final no disponible |
+| Condición de parada activada | No |
 
 ---
 
@@ -181,11 +181,11 @@ minimal. Los precios de free tier aplican pero no se verifican como vigentes.
 
 | Spike | Límite aprobado | Costo estimado | Costo real | Margen restante |
 |---|---|---|---|---|
-| S1 — Bedrock | USD 2.00 | PENDING OFFICIAL CHECK | PENDING | PENDING |
-| S2 — Transcribe | USD 1.00 | PENDING OFFICIAL CHECK | PENDING | PENDING |
-| S3 — SES/EB/SQS | USD 0.50 | PENDING OFFICIAL CHECK | PENDING | PENDING |
+| S1 — Bedrock | USD 2.00 | No calculable: requests bloqueados | PENDING_HUMAN_BILLING_CONFIRMATION | PENDING |
+| S2 — Transcribe | USD 1.00 | < USD 0.05 según manifest | PENDING_HUMAN_BILLING_CONFIRMATION | PENDING |
+| S3 — SES/EB/SQS | USD 0.50 | < USD 0.01 según manifest | PENDING_HUMAN_BILLING_CONFIRMATION | PENDING |
 | S4 — Token (local) | USD 0.00 | USD 0.00 | USD 0.00 | USD 0.00 |
-| **TOTAL** | **USD 3.50** | **PENDING** | **PENDING** | **PENDING** |
+| **TOTAL** | **USD 3.50** | **Sin total final verificable** | **PENDING_HUMAN_BILLING_CONFIRMATION** | **PENDING** |
 
 ---
 
@@ -208,3 +208,22 @@ minimal. Los precios de free tier aplican pero no se verifican como vigentes.
 3. Después de T12: llenar campos reales de S3 usando `manifest-s3.md`.
 4. Verificar que el total real no supera USD 3.50.
 5. Documentar los precios oficiales consultados con fecha de consulta.
+
+---
+
+## Estado de cierre — 2026-07-28
+
+Esta sección reemplaza los campos `PENDING` de planificación como estado de
+cierre, sin inventar un costo final:
+
+| Spike | Resultado | Evidencia de costo disponible | Costo final |
+|---|---|---|---|
+| S1 — Bedrock | BLOCKED_EXTERNAL_QUOTA | Request rechazado antes de respuesta; tokens no disponibles | **PENDING_HUMAN_BILLING_CONFIRMATION** |
+| S2 — Transcribe | PASS | Manifest estima < USD 0.05 para ~12.63 s | **PENDING_HUMAN_BILLING_CONFIRMATION** |
+| S3 — SES/EB/SQS | PASS | Manifest estima < USD 0.01 para 1 email y 2 eventos | **PENDING_HUMAN_BILLING_CONFIRMATION** |
+| S4 — Token local | PASS | Sin AWS | USD 0.00 |
+| **TOTAL SPEC 17** | Cierre autorizado por waiver | Cost Explorer aún `Estimated=true`; servicios no totalmente publicados | **PENDING_HUMAN_BILLING_CONFIRMATION** |
+
+Waiver humano explícito: **CONCEDIDO 2026-07-28** para cerrar Spec 17 con
+Billing pendiente. El waiver no convierte el costo en USD 0.00 ni confirma que
+el total sea cero; el importe final permanece como riesgo residual.

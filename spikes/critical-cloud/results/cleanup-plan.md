@@ -332,3 +332,95 @@ Ejecutar **al final**, después de que S2 y S3 cleanup estén completos.
 | SES configuration set `agrosbo-spike-config-<TS>` | T12 | PENDING | — |
 | SES event destination | T12 | PENDING | — |
 | AgrosboSpikeTemporaryPolicy | T05 | PENDING | — |
+
+---
+
+## Ejecución T16–T17 — 2026-07-28
+
+### Contexto verificado
+
+| Campo | Resultado |
+|---|---|
+| Perfil temporal | `agrosbo-role` |
+| Rol esperado | `AgrosboDeveloperRole` — verificado, identificadores sanitizados |
+| Región | `us-east-1` |
+| Identidad SES verificada | Preservada; no se ejecutó `delete-email-identity` |
+| Invocaciones Bedrock en T16–T17 | 0 |
+| Deploys o creación de recursos | 0 |
+
+### Inventario previo y cleanup
+
+Se ejecutaron consultas AWS CLI de solo lectura antes de cualquier posible
+eliminación. El inventario ya estaba vacío, por lo que no se ejecutó ningún
+comando AWS de escritura o eliminación:
+
+| Tipo autorizado | Encontrados | Eliminados en T16 | Resultado |
+|---|---:|---:|---|
+| Buckets `agrosbo-spike*` | 0 | 0 | PASS |
+| Objetos en buckets del spike | 0 | 0 | PASS — no había buckets |
+| Transcribe jobs `agrosbo-spike*` | 0 | 0 | PASS |
+| Transcribe vocabularies `agrosbo-spike*` | 0 | 0 | PASS |
+| SQS queues `agrosbo-spike*` | 0 | 0 | PASS |
+| EventBridge rules/targets `agrosbo-spike*` | 0 | 0 | PASS |
+| SES configuration sets/event destinations `agrosbo-spike*` | 0 | 0 | PASS |
+| CloudWatch log groups con `agrosbo-spike` | 0 | 0 | PASS |
+| `AgrosboSpikeTemporaryPolicy` | 0 | 0 | PASS — no existía policy que retirar |
+
+### Verificación posterior de cero residuos
+
+Las mismas consultas read-only se repitieron después del inventario. Resultado:
+
+```text
+S3_BUCKETS=0
+SQS_QUEUES=0
+EVENTBRIDGE_RULES=0
+SES_CONFIGURATION_SETS=0
+TRANSCRIBE_JOBS=0
+TRANSCRIBE_VOCABULARIES=0
+IAM_TEMP_POLICIES=0
+CLOUDWATCH_LOG_GROUPS=0
+ZERO_RESIDUE_ALL=true
+```
+
+Comandos ejecutados, expresados sin identificadores sensibles:
+
+```text
+aws s3api list-buckets --profile <PROFILE>
+aws sqs list-queues --queue-name-prefix agrosbo-spike --region us-east-1 --profile <PROFILE>
+aws events list-rules --name-prefix agrosbo-spike --region us-east-1 --profile <PROFILE>
+aws sesv2 list-configuration-sets --region us-east-1 --profile <PROFILE>
+aws transcribe list-transcription-jobs --region us-east-1 --profile <PROFILE>
+aws transcribe list-vocabularies --region us-east-1 --profile <PROFILE>
+aws iam list-policies --scope Local --profile <PROFILE>
+aws logs describe-log-groups --region us-east-1 --profile <PROFILE>
+```
+
+### Billing
+
+Estado: **PENDING_HUMAN_BILLING_CONFIRMATION**.
+
+`aws ce get-cost-and-usage` respondió para `2026-07-27..2026-07-29`, pero
+ambos períodos siguen marcados `Estimated=true`. La vista disponible contiene
+totales diarios por servicio de toda la cuenta, no costos aislados por tag o
+run del spike:
+
+| Período UTC | Servicio visible | Importe disponible | Limitación |
+|---|---|---:|---|
+| 2026-07-27..2026-07-28 | Amazon SQS | USD 0 | Estimado; total diario de cuenta |
+| 2026-07-27..2026-07-28 | Amazon S3 | USD 0.0000000044 | Estimado; total diario de cuenta |
+| 2026-07-28..2026-07-29 | Servicios del spike | Sin cargos publicados | Estimado |
+
+Bedrock, Transcribe y SES todavía no aparecen con cargos publicados en la
+consulta. Estos datos no permiten afirmar un costo final del spike ni sustituir
+la confirmación de Billing.
+
+Importe final confirmado: **PENDIENTE**.
+
+Confirmación humana o waiver explícito: **WAIVER EXPLÍCITO CONCEDIDO —
+2026-07-28**.
+
+El waiver autoriza cerrar Spec 17 con Billing pendiente. No convierte el costo
+en USD 0.00, no confirma un importe final y no elimina el riesgo residual.
+
+Condición de cierre: **SATISFECHA POR WAIVER HUMANO**. T18–T19 pueden continuar
+manteniendo `PENDING_HUMAN_BILLING_CONFIRMATION` en summary, handoff y PR.

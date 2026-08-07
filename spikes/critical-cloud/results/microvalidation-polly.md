@@ -1,245 +1,78 @@
 # Microvalidación M1 — Amazon Polly
 
-## Metadata
+## Estado
 
 | Campo | Valor |
 |---|---|
 | Tarea | T15 |
-| Tipo | Documental — sin ejecución de código |
-| Fecha de verificación | 2026-07-27 |
-| Región objetivo | us-east-1 |
-| Fuente primaria | Documentación oficial AWS (enlaces citados inline) |
+| Tipo | Documental; sin ejecución nueva durante el cierre |
+| Cierre | 2026-07-28 |
+| Región observada | `us-east-1` |
+| Resultado | **COMPLETED — VERIFIED_IN_SPIKE para fixtures; NOT_IMPLEMENTED en producción** |
+| Decisión productiva | Diferida a Spec 23 |
 
-> **Nota**: esta validación no ejecuta Polly. Toda afirmación de disponibilidad o
-> precio se etiqueta como HECHO (documentación oficial), INFERENCIA (razonamiento
-> sobre documentación), o RECOMENDACIÓN (juicio para el proyecto). Donde no se
-> puede acceder a documentación oficial actualizada en este entorno, se marca
-> **NEEDS OFFICIAL VERIFICATION**.
+Fuentes oficiales:
 
----
+- [Voces disponibles](https://docs.aws.amazon.com/polly/latest/dg/available-voices.html)
+- [API SynthesizeSpeech](https://docs.aws.amazon.com/polly/latest/APIReference/API_SynthesizeSpeech.html)
+- [Precios de Amazon Polly](https://aws.amazon.com/polly/pricing/)
 
-## 1. Disponibilidad del servicio
+La ejecución S2 ya registrada usó Polly Neural, voz Lupe (`es-US`), para crear
+los tres clips PCM. Esta microvalidación no realizó nuevas síntesis.
 
-**NEEDS OFFICIAL VERIFICATION**: Amazon Polly is documented as available in `us-east-1`.
-Confirm availability via `aws polly describe-voices --region us-east-1` before T11.
+## Voces españolas verificadas en `us-east-1`
 
----
+Una consulta read-only `describe-voices` del 2026-07-28 confirmó:
 
-## 2. Voces en español disponibles
+| Idioma | Standard | Neural | Long-form | Generative |
+|---|---|---|---|---|
+| `es-US` | Lupe, Penelope, Miguel | Lupe, Pedro | — | Lupe, Pedro |
+| `es-ES` | Lucia, Enrique, Conchita | Lucia, Sergio | Alba, Raul | Lucia, Sergio |
+| `es-MX` | Mia | Mia, Andres | — | Mia, Andres |
 
-**HECHO** (documentación oficial de voces Polly):
-https://docs.aws.amazon.com/polly/latest/dg/voicelist.html
+La disponibilidad de una voz depende del engine y la región. Spec 23 debe
+repetir `describe-voices` antes de elegir una voz productiva.
 
-| Voz | Idioma | Tipo | Notas |
-|---|---|---|---|
-| Lupe | es-US | Neural | Voz femenina, español de EE.UU. |
-| Pedro | es-US | Neural | Voz masculina, español de EE.UU. |
-| Conchita | es-ES | Standard | Voz femenina, español de España |
-| Enrique | es-ES | Standard | Voz masculino, español de España |
-| Lucia | es-ES | Neural | Voz femenina, español de España |
-| Mia | es-MX | Neural | Voz femenina, español de México |
-| Andrés | es-MX | Generative | Voz masculina, español de México (si disponible en región) |
+## Formatos y sample rates
 
-**NEEDS OFFICIAL VERIFICATION**: la lista de voces Generative cambia con frecuencia.
-Ejecutar `aws polly describe-voices --language-code es-US` (y es-ES, es-MX) antes de
-T11 para obtener lista exacta de voces disponibles en la región seleccionada.
+`SynthesizeSpeech` documenta los siguientes formatos:
 
----
-
-## 3. Variantes regionales disponibles
-
-| Código de idioma | Disponibilidad en us-east-1 | Notas |
+| Formato | Tipo | Sample rates documentados |
 |---|---|---|
-| `es-US` | HECHO: disponible (Lupe, Pedro Neural) | Más relevante para AGROSBO si audiencia es Latinoamérica radicada en EE.UU. |
-| `es-ES` | HECHO: disponible (Conchita Standard, Lucia Neural) | Español castellano; accent diferente |
-| `es-MX` | INFERENCIA: disponible (Mia Neural documentada) | Más natural para contexto agrícola latinoamericano |
+| `mp3` | Audio comprimido | 8, 16, 22.05, 24, 44.1 y 48 kHz |
+| `ogg_vorbis` | Audio comprimido | 8, 16, 22.05, 24, 44.1 y 48 kHz |
+| `ogg_opus` | Audio comprimido | 48 kHz |
+| `pcm` | PCM mono, signed 16-bit little-endian | 8 y 16 kHz |
+| `mulaw` / `alaw` | Audio telefónico | 8 kHz |
+| `json` | Speech marks; no contiene audio | N/A |
 
----
+Para S2 se verificó `pcm` a 16 kHz, compatible con Transcribe Streaming. Polly
+no produce FLAC directamente.
 
-## 4. Motores disponibles
+## Sesgo Polly → Transcribe
 
-| Motor | Descripción | Voces es-* |
-|---|---|---|
-| Standard | TTS concatenativo clásico; menor latencia; menor naturalidad | Conchita (es-ES), Enrique (es-ES) |
-| Neural | TTS con redes neuronales; más natural; mayor latencia (~100–200ms adicionales) | Lupe/Pedro (es-US), Lucia (es-ES), Mia (es-MX) |
-| Generative | TTS generativo; mayor naturalidad; mayor costo y latencia; disponibilidad regional variable | Andrés (es-MX) — **NEEDS OFFICIAL VERIFICATION** |
-| Long-Form | Para texto largo; no relevante para clips de 5–15s del spike |  |
-
-**RECOMENDACIÓN**: usar motor Neural para fixtures S2. Mayor naturalidad → menor sesgo
-positivo al evaluar Transcribe con voz sintética (aunque el sesgo sigue siendo real —
-ver §9).
-
----
-
-## 5. Formatos de salida
-
-**HECHO**: https://docs.aws.amazon.com/polly/latest/dg/SupportedCharacterSets.html
-
-| Formato | Disponibilidad | Notas relevantes para S2 |
-|---|---|---|
-| `mp3` | Sí | 22,050 Hz o 24,000 Hz; compatible con batch Transcribe |
-| `ogg_vorbis` | Sí | No compatible con streaming Transcribe |
-| `pcm` | Sí | PCM sin cabecera; compatible con streaming Transcribe (16-bit LE) |
-| `json` | Sí | Speech marks únicamente; no audio |
-
-Para fixtures S2 streaming (obligatorio):
-- Formato requerido: **FLAC** o **PCM** (según design.md §5.3).
-- Polly genera `pcm` (PCM sin cabecera, 16-bit LE) → compatible con streaming Transcribe.
-- Polly no genera FLAC directamente; se requiere conversión (ffmpeg) si se prefiere FLAC.
-
----
-
-## 6. Sample rates
-
-| Motor | Sample rates disponibles |
+| Riesgo | Evaluación |
 |---|---|
-| Standard | 8,000 Hz, 22,050 Hz |
-| Neural | 8,000 Hz, 16,000 Hz, 22,050 Hz, 24,000 Hz |
-| Generative | 8,000 Hz, 16,000 Hz, 22,050 Hz, 24,000 Hz |
+| Pronunciación sintética limpia | ALTO — puede reducir artificialmente el WER |
+| Ausencia de ruido, viento y maquinaria | ALTO |
+| Acento distinto al operador real | MEDIO |
+| Posible circularidad entre servicios AWS de voz | DESCONOCIDO — no asumir modelos compartidos |
 
-**HECHO relevante**: Transcribe streaming requiere `MediaSampleRateHertz: 16000` (según
-design.md §5.4). Polly Neural puede generar a 16,000 Hz. La combinación es compatible.
+El WER de S2 (18.1% promedio) es evidencia del harness, no una estimación de
+producción. Spec 23 debe medir voz humana, ruido real y acentos de campo.
 
----
+## Precios y Billing
 
-## 7. Límites relevantes
+Los precios exactos no se capturaron de forma reproducible durante el cierre:
+**NEEDS_OFFICIAL_VERIFICATION**. El importe final de Spec 17 permanece
+**PENDING_HUMAN_BILLING_CONFIRMATION** bajo waiver explícito.
 
-**HECHO** (documentación oficial de límites):
-https://docs.aws.amazon.com/polly/latest/dg/limits.html
+No se interpreta el costo pendiente como USD 0.00 y no se extrapola un precio
+productivo desde los tres clips.
 
-| Límite | Valor | Impacto en spike |
-|---|---|---|
-| Texto por request (SynthesizeSpeech) | 3,000 caracteres de texto; 6,000 caracteres de SSML | Los clips de 5–15s tienen ~50–100 palabras; muy por debajo del límite |
-| Llamadas por segundo (SynthesizeSpeech) | 80 req/seg (Standard), 8 req/seg (Neural) | No aplica; spike usa 3–5 clips |
-| Longitud máxima de clip | No hay límite fijo en segundos; limitado por caracteres | Sin impacto |
+## Decisión
 
----
-
-## 8. Soporte SSML
-
-**HECHO**: Polly soporta SSML para control fino de prosodia, velocidad, y pronunciación.
-https://docs.aws.amazon.com/polly/latest/dg/supportedtags.html
-
-Para fixtures de S2: no se recomienda SSML en los clips sintéticos del spike. El
-objetivo es aproximar habla natural sin marcar artificialmente el ritmo, ya que Transcribe
-se evalúa con habla natural real en producción. Los clips deben ser texto plano
-sintetizado sin modificaciones SSML para no sesgar el WER artificialmente.
-
----
-
-## 9. Precios
-
-**HECHO** (metodología): https://aws.amazon.com/polly/pricing/
-
-**NEEDS OFFICIAL VERIFICATION de precios exactos actuales** — los precios varían y no
-deben hardcodearse sin verificación en la consola de AWS.
-
-Metodología de cálculo (estructura de precios conocida a la fecha de entrenamiento del
-modelo, verificar actualización):
-
-| Motor | Precio (USD/millón de caracteres) |
-|---|---|
-| Standard | **NEEDS OFFICIAL VERIFICATION** |
-| Neural | **NEEDS OFFICIAL VERIFICATION** |
-| Generative | **NEEDS OFFICIAL VERIFICATION** |
-
-**Estimación para 3–5 clips cortos (5–15s, ~50–100 palabras ~ 300–600 caracteres cada
-uno)**:
-
-| Escenario | Caracteres totales | Motor | Estimación |
-|---|---|---|---|
-| 5 clips × 500 chars | 2,500 chars | Neural | **PENDING OFFICIAL CHECK** (expected < USD 0.01) |
-| 5 clips × 500 chars | 2,500 chars | Standard | **PENDING OFFICIAL CHECK** (expected < USD 0.01) |
-
-**INFERENCIA**: el costo de generar 5 clips con Polly es expected to be negligible
-(< USD 0.01) given standard pricing structures, but exact amounts require official
-price verification.
-
-Capa gratuita: **NEEDS OFFICIAL VERIFICATION** — free tier availability depends on
-account age. Do not assume active.
-
----
-
-## 10. Uso posible para fixtures de T11 (S2)
-
-**RECOMENDACIÓN**:
-
-- Polly es viable para generar los 3–5 clips sintéticos de S2. Costo negligible.
-- El proceso recomendado:
-  1. `aws polly synthesize-speech --engine neural --language-code es-US --voice-id Lupe --output-format pcm --sample-rate 16000 --text "<frase>" output.pcm`
-  2. Subir el `.pcm` directamente al harness S2 streaming (sin conversión).
-  3. Para batch S2: convertir a WAV con cabecera usando `ffmpeg -f s16le -ar 16000 -ac 1 -i output.pcm output.wav`
-- Requiere autorización humana antes de ejecutar (T11).
-- Los clips se almacenan en `harnesses/s2-transcribe-voice/fixtures/` (ver REQ-EVD-05).
-
----
-
-## 11. Riesgos de usar TTS para evaluar STT
-
-**HECHO / RECOMENDACIÓN**:
-
-| Riesgo | Nivel | Explicación |
-|---|---|---|
-| Sesgo positivo en WER | ALTO | Polly genera voz "perfectamente pronunciada" sin pausas, hesitaciones ni ruido. Transcribe podría mostrar WER artificialmente bajo que no se reproducirá con voz humana real. |
-| Acento sintético vs. acento de operador | MEDIO | La voz del operador tendrá un acento diferente al de Polly (es-US, es-ES, es-MX). El WER en producción podría ser mayor. |
-| Vocabulario agrícola y Polly | BAJO | Polly no necesariamente pronuncia correctamente términos agrícolas como "agrosbo", "colmenas", "abono" con la prosodia esperada. Puede introducir errores de pronunciación que no corresponden a habla humana. |
-| Riesgo de circularidad | MEDIO | Si Polly y Transcribe comparten modelos acústicos internos (ambos son servicios AWS de voz), el WER podría subestimar la dificultad real. No está documentado si comparten representaciones internas. |
-
-**DECISIÓN RECOMENDADA para el spike**:
-- Usar Polly para tener clips rápidamente disponibles y hacer posible T11 sin depender
-  del operador.
-- Documentar claramente en `manifest-s2.md` que los clips son TTS sintético (Polly) y
-  que el WER medido tiene sesgo positivo.
-- Registrar esto como limitación para Spec 23: el WER definitivo debe medirse con voz
-  humana real de operadores de campo.
-
----
-
-## 12. Diferencia entre voz sintética (TTS) y voz humana
-
-| Dimensión | Voz Polly Neural | Voz humana de operador |
-|---|---|---|
-| Pronunciación | Perfecta y consistente | Variable; acentos; jerga local |
-| Velocidad | Constante y controlada | Variable; pausas; hesitaciones |
-| Vocabulario agrícola | Pronuncia según fonética estándar | Puede tener pronunciaciones regionales ("abono", "invernadero") |
-| Ruido de fondo | Cero | Ruido de campo, viento, maquinaria |
-| Longitud real de producción | 5–15s clipps limpios | 2–30s; con interrupciones |
-| Representatividad | Baja para producción | Alta para producción |
-
----
-
-## 13. Decisión recomendada para el spike (T11)
-
-**RECOMENDACIÓN**: Usar Polly Neural + `es-US` (Lupe) para generar los clips, aceptar
-el sesgo positivo, documentarlo explícitamente en `manifest-s2.md`, y reservar la
-evaluación con voz humana para Spec 23.
-
-Justificación: el spike S2 valida que Transcribe *puede* transcribir español agrícola
-con un WER aceptable. La validación definitiva de WER con voz humana es Spec 23.
-Sesgar positivamente el spike es aceptable si el sesgo está documentado; sesgar
-negativamente (sin clips) bloquearía T11 completamente.
-
----
-
-## 14. Decisión diferida para producción
-
-**NO SE DECIDE en Spec 17**:
-- Motor definitivo (Standard vs Neural vs Generative): depende de latencia y costo en
-  caso de uso real (Spec 23).
-- Si Polly se usa en producción: decisión de Spec 23 (o Spec futuro de audio). En P0
-  la voz es entrada (STT), no salida (TTS); Polly solo sería relevante si se añade un
-  canal de respuesta por voz.
-- Idioma/dialecto definitivo de los clips para producción: Spec 23.
-
----
-
-## Conclusión
-
-| Aspecto | Estado | Acción requerida |
-|---|---|---|
-| Polly disponible en us-east-1 | INFERENCIA (alta confianza) | Verificar con `aws polly describe-voices` antes de T11 |
-| Voces es-* disponibles | HECHO (documentación) | Confirmar versión actual |
-| Formato pcm compatible con Transcribe streaming | HECHO | Sin acción |
-| Costo clips spike | INFERENCIA: < USD 0.001 | Verificar precios actuales en consola |
-| Riesgo sesgo positivo | HECHO | Documentar en manifest-s2 |
-| Decisión de uso en producción | DIFERIDA a Spec 23 | Sin acción en Spec 17 |
+Polly fue viable para generar fixtures sintéticos de S2 y queda
+**VERIFIED_IN_SPIKE** únicamente para ese uso. Integración, elección de engine,
+voz, latencia, experiencia hablada y costo productivos están
+**NOT_IMPLEMENTED** y se difieren a Spec 23.

@@ -6,7 +6,7 @@
 > Auditoría de referencia:
 > [`../reviews/current-capability-audit-v2.md`](../reviews/current-capability-audit-v2.md).
 >
-> Última actualización: julio 2026 (Fase 0, revisión final del PR #3).
+> Última actualización: 28 de julio de 2026 (cierre de Fase 3 / Spec 17).
 
 ## Definiciones de estado
 
@@ -16,6 +16,7 @@
 | PARTIAL | Algunos componentes existen; flujo completo no funciona |
 | PLACEHOLDER | Interface/scaffold definido; implementación arroja error o es noop |
 | DOCUMENTED_ONLY | Descrito en docs pero sin código funcional |
+| VERIFIED_IN_SPIKE | Evidencia aislada con datos sintéticos; no cambia el estado productivo ni equivale a IMPLEMENTED |
 | MISSING | Sin código funcional ni artefacto operativo |
 | PLANNED P0 | Horizonte aprobado P0; no implementado |
 | PLANNED P1 | Horizonte aprobado P1; no implementado |
@@ -67,9 +68,9 @@
 | Idempotencia HTTP atómica | IMPLEMENTED | CURRENT | No | DB + mem; tests de concurrencia |
 | Lambda adapter | IMPLEMENTED | CURRENT | No | Código funcional; no verificado en AWS |
 | CDK stack | PLACEHOLDER | PLANNED P0 | No | Archivo vacío |
-| DB dual-path (pg + Data API) | PARTIAL | CURRENT | Solo PG local | PG local verificado; Data API existe en código pero no probado contra Aurora real |
+| DB dual-path (pg + Data API) | PARTIAL | CURRENT | Solo PG local | PG local verificado; Data API existe en código pero no probado contra Aurora real; disponibilidad documental revisada en Spec 17 |
 | Migraciones Drizzle | IMPLEMENTED | CURRENT | Solo PG local | CI las ejecuta |
-| CI (GitHub Actions) | IMPLEMENTED | CURRENT | GitHub | 165 tests |
+| CI (GitHub Actions) | IMPLEMENTED | CURRENT | GitHub | 171 tests |
 | PWA Service Worker | IMPLEMENTED | CURRENT | No | Shell + assets cacheados |
 | Cola offline (Dexie, 40+ tipos) | IMPLEMENTED | CURRENT | N/A | Mutaciones durables en IndexedDB |
 | Sync engine + reconciliación | IMPLEMENTED | CURRENT | N/A | Backoff, idMap, 401 handling |
@@ -84,14 +85,14 @@
 | Despliegue AWS (CDK completo) | PLACEHOLDER | PLANNED P0 | CDK scaffold vacío; Lambda adapter, db dual-path, providers boundary, health checks |
 | Agente operacional | DOCUMENTED_ONLY | PLANNED P0 | Arquitectura activa en docs/architecture/operational-agent-plan.md; farm-assistant-plan.md SUPERSEDED; ningún código funcional |
 | Consultas por texto | MISSING | PLANNED P0 | — |
-| Entrada por voz (Transcribe) | MISSING | PLANNED P0 | — |
-| Respuestas habladas (Polly) | MISSING | PLANNED P0 | — |
+| Entrada por voz (Transcribe) | MISSING | PLANNED P0 | S2 VERIFIED_IN_SPIKE en harness aislado; integración productiva ausente |
+| Respuestas habladas (Polly) | MISSING | PLANNED P0 | Polly VERIFIED_IN_SPIKE solo para fixtures S2; integración productiva ausente |
 | Navegación visible | MISSING | PLANNED P0 | React Router existente |
 | Borradores + confirmación | MISSING | PLANNED P0 | Cola offline + idempotencia (reutilizable) |
 | Colaboradores internos (CRUD avanzado) | PARTIAL | PLANNED P0 | Users CRUD + RBAC existentes |
 | Colaboradores externos | MISSING | PLANNED P0 | — |
-| Amazon SES | DOCUMENTED_ONLY | PLANNED P0 | Aparece en documentación (aws-service-plan.md); ningún código funcional |
-| Enlaces seguros | MISSING | PLANNED P0 | — |
+| Amazon SES | DOCUMENTED_ONLY | PLANNED P0 | Spike S3 VERIFIED_IN_SPIKE (SES → EventBridge → SQS); ningún código productivo |
+| Enlaces seguros | MISSING | PLANNED P0 | Patrón criptográfico y concurrencia S4 VERIFIED_IN_SPIKE; endpoints y persistencia productivos ausentes |
 | Evaluación visual (Bedrock) | MISSING | PLANNED P0 | Attachments upload existente |
 | IrrigationDelayScenario | MISSING | PLANNED P0 | IrrigationAdvisor (datos reutilizables) |
 | Cognito en producción | PLACEHOLDER | PLANNED P0 | Interface + AuthTokenProvider abstraction |
